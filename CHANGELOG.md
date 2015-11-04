@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file based on the
 - Add `bigintConversion` to keys passed to connection config in `Elastica\Client` #1005
 
 ### Added
+- Connection option to convert JSON bigint results to strings can now be set [#717](https://github.com/ruflin/Elastica/issues/717)
 
 ### Improvements
 
