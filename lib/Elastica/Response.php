@@ -183,7 +183,11 @@ class Response
                 $this->_error = true;
             } else {
                 try {
-                    $response = JSON::parse($response);
+                    if ($this->getJsonBigintConversion()) {
+                        $response = JSON::parse($response, true, 512, JSON_BIGINT_AS_STRING);
+                    } else {
+                        $response = JSON::parse($response);
+                    }
                 } catch (JSONParseException $e) {
                     // leave response as is if parse fails
                 }
