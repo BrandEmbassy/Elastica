@@ -7,7 +7,6 @@ All notable changes to this project will be documented in this file based on the
 ### Backward Compatibility Breaks
 
 ### Bugfixes
-- Function score query: corrected the `score_method` `average` to `avg` #975 
 - Set `json_decode()` assoc parameter to true in `Elastica\Response` #1005
 - Add `bigintConversion` to keys passed to connection config in `Elastica\Client` #1005
 
