@@ -1,13 +1,13 @@
 <?php
-namespace Elastica2\Test\Filter;
+namespace OldElastica\Test\Filter;
 
-use Elastica2\Document;
-use Elastica2\Filter\AbstractGeoShape;
-use Elastica2\Filter\GeoShapeProvided;
-use Elastica2\Query\Filtered;
-use Elastica2\Query\MatchAll;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type\Mapping;
+use OldElastica\Document;
+use OldElastica\Filter\AbstractGeoShape;
+use OldElastica\Filter\GeoShapeProvided;
+use OldElastica\Query\Filtered;
+use OldElastica\Query\MatchAll;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type\Mapping;
 
 class GeoShapeProvidedTest extends BaseTest
 {

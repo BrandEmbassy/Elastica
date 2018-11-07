@@ -1,8 +1,8 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Node;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Node;
+use OldElastica\Test\Base as BaseTest;
 
 class NodeTest extends BaseTest
 {
@@ -75,6 +75,6 @@ class NodeTest extends BaseTest
      */
     public function testGetId()
     {
-        $node = new Node('Elastica2', $this->_getClient());
+        $node = new Node('OldElastica', $this->_getClient());
     }
 }

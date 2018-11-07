@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Bulk;
+namespace OldElastica\Test\Bulk;
 
-use Elastica2\Bulk;
-use Elastica2\Bulk\Action;
-use Elastica2\Exception\Bulk\ResponseException;
-use Elastica2\Response;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Bulk;
+use OldElastica\Bulk\Action;
+use OldElastica\Exception\Bulk\ResponseException;
+use OldElastica\Response;
+use OldElastica\Test\Base as BaseTest;
 
 class ResponseSetTest extends BaseTest
 {
@@ -135,7 +135,7 @@ class ResponseSetTest extends BaseTest
      * @param array $responseData
      * @param array $actions
      *
-     * @return \Elastica2\Bulk\ResponseSet
+     * @return \OldElastica\Bulk\ResponseSet
      */
     protected function _createResponseSet(array $responseData, array $actions)
     {

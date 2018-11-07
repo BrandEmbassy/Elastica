@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Facet;
+namespace OldElastica\Test\Facet;
 
-use Elastica2\Document;
-use Elastica2\Facet\TermsStats;
-use Elastica2\Query;
-use Elastica2\Query\MatchAll;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Facet\TermsStats;
+use OldElastica\Query;
+use OldElastica\Query\MatchAll;
+use OldElastica\Test\Base as BaseTest;
 
 class TermsStatsTest extends BaseTest
 {

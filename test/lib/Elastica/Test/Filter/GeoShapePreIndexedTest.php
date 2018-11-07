@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Filter;
+namespace OldElastica\Test\Filter;
 
-use Elastica2\Filter\AbstractGeoShape;
-use Elastica2\Filter\GeoShapePreIndexed;
-use Elastica2\Query\Filtered;
-use Elastica2\Query\MatchAll;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Filter\AbstractGeoShape;
+use OldElastica\Filter\GeoShapePreIndexed;
+use OldElastica\Query\Filtered;
+use OldElastica\Query\MatchAll;
+use OldElastica\Test\Base as BaseTest;
 
 class GeoShapePreIndexedTest extends BaseTest
 {
@@ -20,7 +20,7 @@ class GeoShapePreIndexedTest extends BaseTest
         $otherType = $index->getType('other_type');
 
         // create mapping
-        $mapping = new \Elastica2\Type\Mapping($type, array(
+        $mapping = new \OldElastica\Type\Mapping($type, array(
             'location' => array(
                 'type' => 'geo_shape',
             ),
@@ -28,7 +28,7 @@ class GeoShapePreIndexedTest extends BaseTest
         $type->setMapping($mapping);
 
         // create other type mapping
-        $otherMapping = new \Elastica2\Type\Mapping($type, array(
+        $otherMapping = new \OldElastica\Type\Mapping($type, array(
             'location' => array(
                 'type' => 'geo_shape',
             ),
@@ -36,7 +36,7 @@ class GeoShapePreIndexedTest extends BaseTest
         $otherType->setMapping($otherMapping);
 
         // add type docs
-        $type->addDocument(new \Elastica2\Document('1', array(
+        $type->addDocument(new \OldElastica\Document('1', array(
             'location' => array(
                 'type' => 'envelope',
                 'coordinates' => array(
@@ -47,7 +47,7 @@ class GeoShapePreIndexedTest extends BaseTest
         )));
 
         // add other type docs
-        $otherType->addDocument(new \Elastica2\Document('2', array(
+        $otherType->addDocument(new \OldElastica\Document('2', array(
             'location' => array(
                 'type' => 'envelope',
                 'coordinates' => array(

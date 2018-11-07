@@ -1,10 +1,10 @@
 <?php
-namespace Elastica2\Test\Filter;
+namespace OldElastica\Test\Filter;
 
-use Elastica2\Document;
-use Elastica2\Filter\BoolOr;
-use Elastica2\Filter\Ids;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Filter\BoolOr;
+use OldElastica\Filter\Ids;
+use OldElastica\Test\Base as BaseTest;
 
 class BoolOrTest extends BaseTest
 {
@@ -80,9 +80,9 @@ class BoolOrTest extends BaseTest
 
         $index->refresh();
 
-        $boolOr = new \Elastica2\Filter\BoolOr();
-        $boolOr->addFilter(new \Elastica2\Filter\Term(array('categoryId' => '1')));
-        $boolOr->addFilter(new \Elastica2\Filter\Term(array('categoryId' => '2')));
+        $boolOr = new \OldElastica\Filter\BoolOr();
+        $boolOr->addFilter(new \OldElastica\Filter\Term(array('categoryId' => '1')));
+        $boolOr->addFilter(new \OldElastica\Filter\Term(array('categoryId' => '2')));
 
         $resultSet = $type->search($boolOr);
         $this->assertEquals(2, $resultSet->count());

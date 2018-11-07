@@ -1,13 +1,13 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Query;
-use Elastica2\Query\HasChild;
-use Elastica2\Query\Match;
-use Elastica2\Query\MatchAll;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type\Mapping;
+use OldElastica\Document;
+use OldElastica\Query;
+use OldElastica\Query\HasChild;
+use OldElastica\Query\Match;
+use OldElastica\Query\MatchAll;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type\Mapping;
 
 class HasChildTest extends BaseTest
 {

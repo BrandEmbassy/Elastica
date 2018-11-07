@@ -1,13 +1,13 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Index;
-use Elastica2\Query\BoolQuery;
-use Elastica2\Query\Ids;
-use Elastica2\Query\Term;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type;
+use OldElastica\Document;
+use OldElastica\Index;
+use OldElastica\Query\BoolQuery;
+use OldElastica\Query\Ids;
+use OldElastica\Query\Term;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type;
 
 class BoolQueryTest extends BaseTest
 {
@@ -162,7 +162,7 @@ class BoolQueryTest extends BaseTest
 
         $index->refresh();
 
-        $boolQuery = new \Elastica2\Query\Bool();
+        $boolQuery = new \OldElastica\Query\Bool();
 
         $resultSet = $type->search($boolQuery);
 

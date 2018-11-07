@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Query\Match;
-use Elastica2\Query\MatchPhrase;
-use Elastica2\Query\MatchPhrasePrefix;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Query\Match;
+use OldElastica\Query\MatchPhrase;
+use OldElastica\Query\MatchPhrasePrefix;
+use OldElastica\Test\Base as BaseTest;
 
 class MatchTest extends BaseTest
 {

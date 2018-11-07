@@ -1,16 +1,16 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Client;
-use Elastica2\Connection;
-use Elastica2\Document;
-use Elastica2\Exception\Connection\HttpException;
-use Elastica2\Exception\InvalidException;
-use Elastica2\Index;
-use Elastica2\Request;
-use Elastica2\Script;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type;
+use OldElastica\Client;
+use OldElastica\Connection;
+use OldElastica\Document;
+use OldElastica\Exception\Connection\HttpException;
+use OldElastica\Exception\InvalidException;
+use OldElastica\Index;
+use OldElastica\Request;
+use OldElastica\Script;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type;
 
 class ClientTest extends BaseTest
 {
@@ -160,7 +160,7 @@ class ClientTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testAddDocumentsEmpty()
     {
@@ -279,7 +279,7 @@ class ClientTest extends BaseTest
      * Test deleteIds method using string parameters.
      *
      * This test ensures that the deleteIds method of
-     * the \Elastica2\Client can properly accept and use
+     * the \OldElastica\Client can properly accept and use
      * an $index parameter and $type parameter that are
      * strings
      *
@@ -340,7 +340,7 @@ class ClientTest extends BaseTest
         $this->assertEquals(1, $totalHits);
 
         // Using the existing $index and $type variables which
-        // are \Elastica2\Index and \Elastica2\Type objects respectively
+        // are \OldElastica\Index and \OldElastica\Type objects respectively
         $resp = $index->getClient()->deleteIds($ids, $index, $type, 1);
 
         // Refresh the index to clear out deleted ID information
@@ -357,9 +357,9 @@ class ClientTest extends BaseTest
      * and object parameter for $type.
      *
      * This test ensures that the deleteIds method of
-     * the \Elastica2\Client can properly accept and use
+     * the \OldElastica\Client can properly accept and use
      * an $index parameter that is a string and a $type
-     * parameter that is of type \Elastica2\Type
+     * parameter that is of type \OldElastica\Type
      *
      * This test is a bit more verbose than just sending the
      * values to deleteIds and checking for exceptions or
@@ -404,7 +404,7 @@ class ClientTest extends BaseTest
         $this->assertInstanceOf('Elastica\Type', $type);
 
         // Using the existing $index and $type variables which
-        // are \Elastica2\Index and \Elastica2\Type objects respectively
+        // are \OldElastica\Index and \OldElastica\Type objects respectively
         $resp = $index->getClient()->deleteIds($ids, $index, $type);
 
         // Refresh the index to clear out deleted ID information
@@ -421,7 +421,7 @@ class ClientTest extends BaseTest
      * and string parameter for $type.
      *
      * This test ensures that the deleteIds method of
-     * the \Elastica2\Client can properly accept and use
+     * the \OldElastica\Client can properly accept and use
      * an $index parameter that is  of type Elasitca_Index
      * and a $type parameter that is a string
      *
@@ -468,7 +468,7 @@ class ClientTest extends BaseTest
         $this->assertTrue(is_string($typeString));
 
         // Using the existing $index and $type variables which
-        // are \Elastica2\Index and \Elastica2\Type objects respectively
+        // are \OldElastica\Index and \OldElastica\Type objects respectively
         $resp = $index->getClient()->deleteIds($ids, $index, $type);
 
         // Refresh the index to clear out deleted ID information
@@ -485,9 +485,9 @@ class ClientTest extends BaseTest
      * and object parameter for $type.
      *
      * This test ensures that the deleteIds method of
-     * the \Elastica2\Client can properly accept and use
+     * the \OldElastica\Client can properly accept and use
      * an $index parameter that is an object and a $type
-     * parameter that is of type \Elastica2\Type
+     * parameter that is of type \OldElastica\Type
      *
      * This test is a bit more verbose than just sending the
      * values to deleteIds and checking for exceptions or
@@ -531,7 +531,7 @@ class ClientTest extends BaseTest
         $this->assertInstanceOf('Elastica\Type', $type);
 
         // Using the existing $index and $type variables which
-        // are \Elastica2\Index and \Elastica2\Type objects respectively
+        // are \OldElastica\Index and \OldElastica\Type objects respectively
         $resp = $index->getClient()->deleteIds($ids, $index, $type);
 
         // Refresh the index to clear out deleted ID information

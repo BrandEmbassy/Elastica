@@ -1,9 +1,9 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Client;
-use Elastica2\Connection;
-use Elastica2\Index;
+use OldElastica\Client;
+use OldElastica\Connection;
+use OldElastica\Index;
 
 class Base extends \PHPUnit_Framework_TestCase
 {
@@ -66,7 +66,7 @@ class Base extends \PHPUnit_Framework_TestCase
      * @param bool   $delete Delete index if it exists
      * @param int    $shards Number of shards to create
      *
-     * @return \Elastica2\Index
+     * @return \OldElastica\Index
      */
     protected function _createIndex($name = null, $delete = true, $shards = 1)
     {

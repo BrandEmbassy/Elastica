@@ -1,10 +1,10 @@
 <?php
-namespace Elastica2\Test\Transport;
+namespace OldElastica\Test\Transport;
 
-use Elastica2\Document;
-use Elastica2\Query;
-use Elastica2\ResultSet;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Query;
+use OldElastica\ResultSet;
+use OldElastica\Test\Base as BaseTest;
 
 class HttpTest extends BaseTest
 {
@@ -83,7 +83,7 @@ class HttpTest extends BaseTest
 
         $id = 1;
         $data = array('id' => $id, 'name' => 'Item 1');
-        $doc = new \Elastica2\Document($id, $data);
+        $doc = new \OldElastica\Document($id, $data);
 
         $type->addDocument($doc);
 
@@ -118,7 +118,7 @@ class HttpTest extends BaseTest
             Послушай: далеко, далеко, на озере Чад /
             Изысканный бродит жираф.');
 
-        $doc = new \Elastica2\Document($id, $data);
+        $doc = new \OldElastica\Document($id, $data);
 
         $type->addDocument($doc);
 

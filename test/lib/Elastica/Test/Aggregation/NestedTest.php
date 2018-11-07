@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Aggregation;
+namespace OldElastica\Test\Aggregation;
 
-use Elastica2\Aggregation\Min;
-use Elastica2\Aggregation\Nested;
-use Elastica2\Document;
-use Elastica2\Query;
-use Elastica2\Type\Mapping;
+use OldElastica\Aggregation\Min;
+use OldElastica\Aggregation\Nested;
+use OldElastica\Document;
+use OldElastica\Query;
+use OldElastica\Type\Mapping;
 
 class NestedTest extends BaseAggregationTest
 {

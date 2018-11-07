@@ -1,7 +1,7 @@
 <?php
-namespace Elastica2\Test\Exception\Connection;
+namespace OldElastica\Test\Exception\Connection;
 
-use Elastica2\Test\Exception\AbstractExceptionTest;
+use OldElastica\Test\Exception\AbstractExceptionTest;
 
 class GuzzleExceptionTest extends AbstractExceptionTest
 {

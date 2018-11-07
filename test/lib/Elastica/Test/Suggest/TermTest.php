@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Suggest;
+namespace OldElastica\Test\Suggest;
 
-use Elastica2\Document;
-use Elastica2\Index;
-use Elastica2\Suggest;
-use Elastica2\Suggest\Term;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Index;
+use OldElastica\Suggest;
+use OldElastica\Suggest\Term;
+use OldElastica\Test\Base as BaseTest;
 
 class TermTest extends BaseTest
 {

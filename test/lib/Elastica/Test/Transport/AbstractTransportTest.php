@@ -1,9 +1,9 @@
 <?php
-namespace Elastica2\Test\Transport;
+namespace OldElastica\Test\Transport;
 
-use Elastica2\Connection;
-use Elastica2\Transport\AbstractTransport;
-use Elastica2\Transport\Http;
+use OldElastica\Connection;
+use OldElastica\Transport\AbstractTransport;
+use OldElastica\Transport\Http;
 
 class AbstractTransportTest extends \PHPUnit_Framework_TestCase
 {

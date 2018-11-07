@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Filter\Term;
-use Elastica2\Query;
-use Elastica2\Query\Match;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Filter\Term;
+use OldElastica\Query;
+use OldElastica\Query\Match;
+use OldElastica\Test\Base as BaseTest;
 
 class PostFilterTest extends BaseTest
 {

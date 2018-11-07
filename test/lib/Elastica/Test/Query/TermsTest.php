@@ -1,9 +1,9 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Query\Terms;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Query\Terms;
+use OldElastica\Test\Base as BaseTest;
 
 class TermsTest extends BaseTest
 {
@@ -54,7 +54,7 @@ class TermsTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testInvalidParams()
     {

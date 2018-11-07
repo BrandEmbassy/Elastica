@@ -1,7 +1,7 @@
 <?php
-namespace Elastica2\Test\QueryBuilder\DSL;
+namespace OldElastica\Test\QueryBuilder\DSL;
 
-use Elastica2\QueryBuilder\DSL;
+use OldElastica\QueryBuilder\DSL;
 
 class SuggestTest extends AbstractDSLTest
 {

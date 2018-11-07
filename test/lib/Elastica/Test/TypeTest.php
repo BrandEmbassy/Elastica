@@ -1,19 +1,19 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Document;
-use Elastica2\Exception\NotFoundException;
-use Elastica2\Exception\ResponseException;
-use Elastica2\Filter\Term;
-use Elastica2\Index;
-use Elastica2\Query;
-use Elastica2\Query\MatchAll;
-use Elastica2\Query\SimpleQueryString;
-use Elastica2\Script;
-use Elastica2\Search;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type;
-use Elastica2\Type\Mapping;
+use OldElastica\Document;
+use OldElastica\Exception\NotFoundException;
+use OldElastica\Exception\ResponseException;
+use OldElastica\Filter\Term;
+use OldElastica\Index;
+use OldElastica\Query;
+use OldElastica\Query\MatchAll;
+use OldElastica\Query\SimpleQueryString;
+use OldElastica\Script;
+use OldElastica\Search;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type;
+use OldElastica\Type\Mapping;
 
 class TypeTest extends BaseTest
 {
@@ -331,7 +331,7 @@ class TypeTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica2\Exception\NotFoundException
+     * @expectedException \OldElastica\Exception\NotFoundException
      */
     public function testGetDocumentNotExist()
     {
@@ -347,7 +347,7 @@ class TypeTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica2\Exception\ResponseException
+     * @expectedException \OldElastica\Exception\ResponseException
      */
     public function testGetDocumentNotExistingIndex()
     {
@@ -730,7 +730,7 @@ class TypeTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testUpdateDocumentWithoutId()
     {
@@ -848,7 +848,7 @@ class TypeTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica2\Exception\RuntimeException
+     * @expectedException \OldElastica\Exception\RuntimeException
      */
     public function testAddDocumentWithoutSerializer()
     {

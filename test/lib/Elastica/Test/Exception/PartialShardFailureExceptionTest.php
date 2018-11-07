@@ -1,10 +1,10 @@
 <?php
-namespace Elastica2\Test\Exception;
+namespace OldElastica\Test\Exception;
 
-use Elastica2\Document;
-use Elastica2\Exception\PartialShardFailureException;
-use Elastica2\Query;
-use Elastica2\ResultSet;
+use OldElastica\Document;
+use OldElastica\Exception\PartialShardFailureException;
+use OldElastica\Query;
+use OldElastica\ResultSet;
 
 class PartialShardFailureExceptionTest extends AbstractExceptionTest
 {

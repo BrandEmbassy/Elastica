@@ -1,18 +1,18 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Document;
-use Elastica2\Exception\InvalidException;
-use Elastica2\Facet\Terms;
-use Elastica2\Query;
-use Elastica2\Query\Builder;
-use Elastica2\Query\Term;
-use Elastica2\Query\Text;
-use Elastica2\Script;
-use Elastica2\ScriptFields;
-use Elastica2\Suggest;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type;
+use OldElastica\Document;
+use OldElastica\Exception\InvalidException;
+use OldElastica\Facet\Terms;
+use OldElastica\Query;
+use OldElastica\Query\Builder;
+use OldElastica\Query\Term;
+use OldElastica\Query\Text;
+use OldElastica\Script;
+use OldElastica\ScriptFields;
+use OldElastica\Suggest;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type;
 
 class QueryTest extends BaseTest
 {
@@ -365,7 +365,7 @@ class QueryTest extends BaseTest
     public function testAddAggregationToArrayCast()
     {
         $query = new Query();
-        $aggregation = new \Elastica2\Aggregation\Terms('text');
+        $aggregation = new \OldElastica\Aggregation\Terms('text');
 
         $query->addAggregation($aggregation);
 
@@ -402,7 +402,7 @@ class QueryTest extends BaseTest
     public function testSetRescoreToArrayCast()
     {
         $query = new Query();
-        $rescore = new \Elastica2\Rescore\Query();
+        $rescore = new \OldElastica\Rescore\Query();
         $rescore->setQueryWeight(1);
 
         $query->setRescore($rescore);
@@ -421,7 +421,7 @@ class QueryTest extends BaseTest
     public function testSetPostFilterToArrayCast()
     {
         $query = new Query();
-        $postFilter = new \Elastica2\Filter\Terms();
+        $postFilter = new \OldElastica\Filter\Terms();
         $postFilter->setTerms('key', array('term'));
         $query->setPostFilter($postFilter);
 

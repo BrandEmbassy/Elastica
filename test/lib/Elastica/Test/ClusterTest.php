@@ -1,8 +1,8 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Cluster;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Cluster;
+use OldElastica\Test\Base as BaseTest;
 
 class ClusterTest extends BaseTest
 {

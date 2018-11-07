@@ -1,9 +1,9 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Query\SimpleQueryString;
-use Elastica2\Test\Base;
+use OldElastica\Document;
+use OldElastica\Query\SimpleQueryString;
+use OldElastica\Test\Base;
 
 class SimpleQueryStringTest extends Base
 {

@@ -1,9 +1,9 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Document;
-use Elastica2\Index;
-use Elastica2\Snapshot;
+use OldElastica\Document;
+use OldElastica\Index;
+use OldElastica\Snapshot;
 
 class SnapshotTest extends Base
 {

@@ -1,13 +1,13 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Document;
-use Elastica2\Index;
-use Elastica2\Percolator;
-use Elastica2\Query;
-use Elastica2\Query\Term;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type;
+use OldElastica\Document;
+use OldElastica\Index;
+use OldElastica\Percolator;
+use OldElastica\Query;
+use OldElastica\Query\Term;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type;
 
 class PercolatorTest extends BaseTest
 {

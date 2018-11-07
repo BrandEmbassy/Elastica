@@ -1,8 +1,8 @@
 <?php
-namespace Elastica2\Test\Index;
+namespace OldElastica\Test\Index;
 
-use Elastica2\Index\Status as IndexStatus;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Index\Status as IndexStatus;
+use OldElastica\Test\Base as BaseTest;
 
 class StatusTest extends BaseTest
 {

@@ -1,10 +1,10 @@
 <?php
-namespace Elastica2\Test\Bulk;
+namespace OldElastica\Test\Bulk;
 
-use Elastica2\Bulk\Action;
-use Elastica2\Index;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type;
+use OldElastica\Bulk\Action;
+use OldElastica\Index;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type;
 
 class ActionTest extends BaseTest
 {

@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Transport;
+namespace OldElastica\Test\Transport;
 
-use Elastica2\Document;
-use Elastica2\Query;
-use Elastica2\Query\QueryString;
-use Elastica2\Request;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Query;
+use OldElastica\Query\QueryString;
+use OldElastica\Request;
+use OldElastica\Test\Base as BaseTest;
 
 class MemcacheTest extends BaseTest
 {

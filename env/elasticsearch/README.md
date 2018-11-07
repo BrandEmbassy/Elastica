@@ -1,1 +1,1 @@
-elasticsearch base image used for the integration testing of Elastica2.
+elasticsearch base image used for the integration testing of OldElastica.

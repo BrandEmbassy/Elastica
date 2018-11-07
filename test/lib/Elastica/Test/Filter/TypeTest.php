@@ -1,8 +1,8 @@
 <?php
-namespace Elastica2\Test\Filter;
+namespace OldElastica\Test\Filter;
 
-use Elastica2\Filter\Type;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Filter\Type;
+use OldElastica\Test\Base as BaseTest;
 
 class TypeTest extends BaseTest
 {

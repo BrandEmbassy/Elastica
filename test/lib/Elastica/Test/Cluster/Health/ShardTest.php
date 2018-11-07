@@ -1,13 +1,13 @@
 <?php
-namespace Elastica2\Test\Cluster\Health;
+namespace OldElastica\Test\Cluster\Health;
 
-use Elastica2\Cluster\Health\Shard as HealthShard;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Cluster\Health\Shard as HealthShard;
+use OldElastica\Test\Base as BaseTest;
 
 class ShardTest extends BaseTest
 {
     /**
-     * @var \Elastica2\Cluster\Health\Shard
+     * @var \OldElastica\Cluster\Health\Shard
      */
     protected $_shard;
 

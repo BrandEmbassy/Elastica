@@ -1,13 +1,13 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Index;
-use Elastica2\Query;
-use Elastica2\Query\MultiMatch;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type;
-use Elastica2\Type\Mapping;
+use OldElastica\Document;
+use OldElastica\Index;
+use OldElastica\Query;
+use OldElastica\Query\MultiMatch;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type;
+use OldElastica\Type\Mapping;
 
 class MultiMatchTest extends BaseTest
 {

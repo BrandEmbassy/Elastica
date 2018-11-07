@@ -1,5 +1,5 @@
 <?php
-namespace Elastica2\Test\Exception;
+namespace OldElastica\Test\Exception;
 
 class ClientExceptionTest extends AbstractExceptionTest
 {

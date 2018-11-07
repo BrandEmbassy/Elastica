@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Aggregation;
+namespace OldElastica\Test\Aggregation;
 
-use Elastica2\Aggregation\SignificantTerms;
-use Elastica2\Document;
-use Elastica2\Filter\Terms as TermsFilter;
-use Elastica2\Query;
-use Elastica2\Query\Terms;
+use OldElastica\Aggregation\SignificantTerms;
+use OldElastica\Document;
+use OldElastica\Filter\Terms as TermsFilter;
+use OldElastica\Query;
+use OldElastica\Query\Terms;
 
 class SignificantTermsTest extends BaseAggregationTest
 {

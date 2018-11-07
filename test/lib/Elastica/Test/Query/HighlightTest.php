@@ -1,10 +1,10 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Query;
-use Elastica2\Query\QueryString;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Query;
+use OldElastica\Query\QueryString;
+use OldElastica\Test\Base as BaseTest;
 
 class HighlightTest extends BaseTest
 {

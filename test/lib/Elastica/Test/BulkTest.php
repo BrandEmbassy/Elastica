@@ -1,14 +1,14 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Bulk;
-use Elastica2\Bulk\Action;
-use Elastica2\Bulk\Action\AbstractDocument;
-use Elastica2\Document;
-use Elastica2\Exception\Bulk\ResponseException;
-use Elastica2\Exception\NotFoundException;
-use Elastica2\Filter\Script;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Bulk;
+use OldElastica\Bulk\Action;
+use OldElastica\Bulk\Action\AbstractDocument;
+use OldElastica\Document;
+use OldElastica\Exception\Bulk\ResponseException;
+use OldElastica\Exception\NotFoundException;
+use OldElastica\Filter\Script;
+use OldElastica\Test\Base as BaseTest;
 
 class BulkTest extends BaseTest
 {
@@ -289,7 +289,7 @@ class BulkTest extends BaseTest
     /**
      * @group unit
      * @dataProvider invalidRawDataProvider
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testInvalidRawData($rawData, $failMessage)
     {
@@ -533,7 +533,7 @@ class BulkTest extends BaseTest
         $doc2 = $type->createDocument(2, array('name' => 'The Walrus'));
         $bulk = new Bulk($client);
         $bulk->setType($type);
-        $updateAction = new \Elastica2\Bulk\Action\UpdateDocument($doc2);
+        $updateAction = new \OldElastica\Bulk\Action\UpdateDocument($doc2);
         $bulk->addAction($updateAction);
         $response = $bulk->send();
 
@@ -547,7 +547,7 @@ class BulkTest extends BaseTest
         $this->assertEquals('The Walrus', $docData['name']);
 
         //test updating via script
-        $script = new \Elastica2\Script('ctx._source.name += param1;', array('param1' => ' was Paul'), null, 2);
+        $script = new \OldElastica\Script('ctx._source.name += param1;', array('param1' => ' was Paul'), null, 2);
         $doc2 = new Document();
         $script->setUpsert($doc2);
         $updateAction = Action\AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
@@ -565,7 +565,7 @@ class BulkTest extends BaseTest
         $this->assertEquals('The Walrus was Paul', $doc2->name);
 
         //test upsert
-        $script = new \Elastica2\Script('ctx._scource.counter += count', array('count' => 1), null, 5);
+        $script = new \OldElastica\Script('ctx._scource.counter += count', array('count' => 1), null, 5);
         $doc = new Document('', array('counter' => 1));
         $script->setUpsert($doc);
         $updateAction = Action\AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
@@ -582,7 +582,7 @@ class BulkTest extends BaseTest
         $this->assertEquals(1, $doc->counter);
 
         //test doc_as_upsert
-        $doc = new \Elastica2\Document(6, array('test' => 'test'));
+        $doc = new \OldElastica\Document(6, array('test' => 'test'));
         $doc->setDocAsUpsert(true);
         $updateAction = Action\AbstractDocument::create($doc, Action::OP_TYPE_UPDATE);
         $bulk = new Bulk($client);
@@ -598,14 +598,14 @@ class BulkTest extends BaseTest
         $this->assertEquals('test', $doc->test);
 
         //test doc_as_upsert with set of documents (use of addDocuments)
-        $doc1 = new \Elastica2\Document(7, array('test' => 'test1'));
+        $doc1 = new \OldElastica\Document(7, array('test' => 'test1'));
         $doc1->setDocAsUpsert(true);
-        $doc2 = new \Elastica2\Document(8, array('test' => 'test2'));
+        $doc2 = new \OldElastica\Document(8, array('test' => 'test2'));
         $doc2->setDocAsUpsert(true);
         $docs = array($doc1, $doc2);
         $bulk = new Bulk($client);
         $bulk->setType($type);
-        $bulk->addDocuments($docs, \Elastica2\Bulk\Action::OP_TYPE_UPDATE);
+        $bulk->addDocuments($docs, \OldElastica\Bulk\Action::OP_TYPE_UPDATE);
         $response = $bulk->send();
 
         $this->assertTrue($response->isOk());
@@ -622,7 +622,7 @@ class BulkTest extends BaseTest
         $bulk = new Bulk($client);
         $bulk->setType($type);
         $doc3->setData('{"name" : "Paul it is"}');
-        $updateAction = new \Elastica2\Bulk\Action\UpdateDocument($doc3);
+        $updateAction = new \OldElastica\Bulk\Action\UpdateDocument($doc3);
         $bulk->addAction($updateAction);
         $response = $bulk->send();
 
@@ -679,7 +679,7 @@ class BulkTest extends BaseTest
         $metadata = $actions[0]->getMetadata();
         $this->assertEquals(5, $metadata[ '_retry_on_conflict' ]);
 
-        $script = new \Elastica2\Script('');
+        $script = new \OldElastica\Script('');
         $script->setRetryOnConflict(5);
 
         $bulk = new Bulk($client);

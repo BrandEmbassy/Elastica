@@ -1,5 +1,5 @@
 <?php
-namespace Elastica2\Test\Connection\Strategy;
+namespace OldElastica\Test\Connection\Strategy;
 
 class CallbackStrategyTestHelper
 {

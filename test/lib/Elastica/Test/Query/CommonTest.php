@@ -1,9 +1,9 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Query\Common;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Query\Common;
+use OldElastica\Test\Base as BaseTest;
 
 class CommonTest extends BaseTest
 {

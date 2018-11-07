@@ -1,6 +1,6 @@
 <?php
 
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Test\Base as BaseTest;
 
 /**
  * These tests shuts down node/cluster, so can't be executed with rest testsuite
@@ -55,7 +55,7 @@ class ShutdownTest extends BaseTest
     /**
      * @group shutdown
      * @depends testNodeShutdown
-     * @expectedException \Elastica2\Exception\Connection\HttpException
+     * @expectedException \OldElastica\Exception\Connection\HttpException
      */
     public function testClusterShutdown()
     {

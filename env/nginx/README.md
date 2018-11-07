@@ -1,1 +1,1 @@
-nginx base image used for the integration testing of Elastica2.
+nginx base image used for the integration testing of OldElastica.

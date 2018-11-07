@@ -1,7 +1,7 @@
 <?php
-namespace Elastica2\Test\Connection\Strategy;
+namespace OldElastica\Test\Connection\Strategy;
 
-use Elastica2\Connection\Strategy\StrategyInterface;
+use OldElastica\Connection\Strategy\StrategyInterface;
 
 /**
  * Description of EmptyStrategy.

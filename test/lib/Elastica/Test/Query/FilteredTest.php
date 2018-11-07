@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Filter\Term;
-use Elastica2\Query\Filtered;
-use Elastica2\Query\QueryString;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Filter\Term;
+use OldElastica\Query\Filtered;
+use OldElastica\Query\QueryString;
+use OldElastica\Test\Base as BaseTest;
 
 class FilteredTest extends BaseTest
 {
@@ -68,7 +68,7 @@ class FilteredTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testFilteredWithoutArgumentsShouldRaiseException()
     {

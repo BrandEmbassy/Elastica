@@ -1,12 +1,12 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Index;
-use Elastica2\Query\FuzzyLikeThis;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type;
-use Elastica2\Type\Mapping;
+use OldElastica\Document;
+use OldElastica\Index;
+use OldElastica\Query\FuzzyLikeThis;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type;
+use OldElastica\Type\Mapping;
 
 class FuzzyLikeThisTest extends BaseTest
 {
@@ -240,7 +240,7 @@ class FuzzyLikeThisTest extends BaseTest
 
         $type->addDocuments(array(
             new Document(1000, array('email' => 'testemail@gmail.com', 'content' => 'The Fuzzy Test!')),
-            new Document(1001, array('email' => 'testemail@gmail.com', 'content' => 'Elastica2 Fuzzy Test')),
+            new Document(1001, array('email' => 'testemail@gmail.com', 'content' => 'OldElastica Fuzzy Test')),
         ));
 
         // Refresh index

@@ -1,8 +1,8 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Query\Regexp;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Query\Regexp;
+use OldElastica\Test\Base as BaseTest;
 
 class RegexpTest extends BaseTest
 {

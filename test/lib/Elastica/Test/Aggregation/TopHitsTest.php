@@ -1,14 +1,14 @@
 <?php
-namespace Elastica2\Test\Aggregation;
+namespace OldElastica\Test\Aggregation;
 
-use Elastica2\Aggregation\Terms;
-use Elastica2\Aggregation\TopHits;
-use Elastica2\Document;
-use Elastica2\Query;
-use Elastica2\Query\MatchAll;
-use Elastica2\Query\SimpleQueryString;
-use Elastica2\Script;
-use Elastica2\ScriptFields;
+use OldElastica\Aggregation\Terms;
+use OldElastica\Aggregation\TopHits;
+use OldElastica\Document;
+use OldElastica\Query;
+use OldElastica\Query\MatchAll;
+use OldElastica\Query\SimpleQueryString;
+use OldElastica\Script;
+use OldElastica\ScriptFields;
 
 class TopHitsTest extends BaseAggregationTest
 {

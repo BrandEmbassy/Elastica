@@ -1,7 +1,7 @@
 <?php
-namespace Elastica2\Test\Aggregation;
+namespace OldElastica\Test\Aggregation;
 
-use Elastica2\Test\Base;
+use OldElastica\Test\Base;
 
 abstract class BaseAggregationTest extends Base
 {

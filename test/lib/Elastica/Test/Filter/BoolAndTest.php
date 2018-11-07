@@ -1,10 +1,10 @@
 <?php
-namespace Elastica2\Test\Filter;
+namespace OldElastica\Test\Filter;
 
-use Elastica2\Document;
-use Elastica2\Filter\BoolAnd;
-use Elastica2\Filter\Ids;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Filter\BoolAnd;
+use OldElastica\Filter\Ids;
+use OldElastica\Test\Base as BaseTest;
 
 class BoolAndTest extends BaseTest
 {

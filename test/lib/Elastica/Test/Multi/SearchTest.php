@@ -1,18 +1,18 @@
 <?php
-namespace Elastica2\Test\Multi;
+namespace OldElastica\Test\Multi;
 
-use Elastica2\Document;
-use Elastica2\Multi\Search as MultiSearch;
-use Elastica2\Query;
-use Elastica2\Query\Range;
-use Elastica2\Query\Term;
-use Elastica2\Search;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Multi\Search as MultiSearch;
+use OldElastica\Query;
+use OldElastica\Query\Range;
+use OldElastica\Query\Term;
+use OldElastica\Search;
+use OldElastica\Test\Base as BaseTest;
 
 class SearchTest extends BaseTest
 {
     /**
-     * @return \Elastica2\Type
+     * @return \OldElastica\Type
      */
     protected function _createType()
     {

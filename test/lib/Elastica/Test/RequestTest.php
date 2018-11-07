@@ -1,9 +1,9 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Connection;
-use Elastica2\Request;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Connection;
+use OldElastica\Request;
+use OldElastica\Test\Base as BaseTest;
 
 class RequestTest extends BaseTest
 {
@@ -27,7 +27,7 @@ class RequestTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testInvalidConnection()
     {

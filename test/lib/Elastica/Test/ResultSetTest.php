@@ -1,9 +1,9 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Document;
-use Elastica2\Result;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Result;
+use OldElastica\Test\Base as BaseTest;
 
 class ResultSetTest extends BaseTest
 {
@@ -58,7 +58,7 @@ class ResultSetTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testInvalidOffsetCreation()
     {
@@ -77,7 +77,7 @@ class ResultSetTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testInvalidOffsetGet()
     {

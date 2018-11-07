@@ -1,12 +1,12 @@
 <?php
-namespace Elastica2\Test\Query;
+namespace OldElastica\Test\Query;
 
-use Elastica2\Document;
-use Elastica2\Filter\Term;
-use Elastica2\Query\FunctionScore;
-use Elastica2\Query\MatchAll;
-use Elastica2\Script;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Filter\Term;
+use OldElastica\Query\FunctionScore;
+use OldElastica\Query\MatchAll;
+use OldElastica\Script;
+use OldElastica\Test\Base as BaseTest;
 
 class FunctionScoreTest extends BaseTest
 {

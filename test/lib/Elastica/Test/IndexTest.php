@@ -1,17 +1,17 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Document;
-use Elastica2\Exception\ResponseException;
-use Elastica2\Index;
-use Elastica2\Query\HasChild;
-use Elastica2\Query\QueryString;
-use Elastica2\Query\SimpleQueryString;
-use Elastica2\Query\Term;
-use Elastica2\Status;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type;
-use Elastica2\Type\Mapping;
+use OldElastica\Document;
+use OldElastica\Exception\ResponseException;
+use OldElastica\Index;
+use OldElastica\Query\HasChild;
+use OldElastica\Query\QueryString;
+use OldElastica\Query\SimpleQueryString;
+use OldElastica\Query\Term;
+use OldElastica\Status;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type;
+use OldElastica\Type\Mapping;
 
 class IndexTest extends BaseTest
 {
@@ -283,7 +283,7 @@ class IndexTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica2\Exception\ResponseException
+     * @expectedException \OldElastica\Exception\ResponseException
      */
     public function testAddRemoveAlias()
     {
@@ -620,7 +620,7 @@ class IndexTest extends BaseTest
      *
      * Tests if deleting an index that does not exist in Elasticsearch,
      * correctly returns a boolean true from the hasError() method of
-     * the \Elastica2\Response object
+     * the \OldElastica\Response object
      *
      * @group functional
      */
@@ -716,7 +716,7 @@ class IndexTest extends BaseTest
     }
 
     /**
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      *
      * @group functional
      */
@@ -868,7 +868,7 @@ class IndexTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testThrowExceptionIfNotScalar()
     {

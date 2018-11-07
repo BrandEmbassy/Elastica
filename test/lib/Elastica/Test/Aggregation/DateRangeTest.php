@@ -1,10 +1,10 @@
 <?php
-namespace Elastica2\Test\Aggregation;
+namespace OldElastica\Test\Aggregation;
 
-use Elastica2\Aggregation\DateRange;
-use Elastica2\Document;
-use Elastica2\Query;
-use Elastica2\Type\Mapping;
+use OldElastica\Aggregation\DateRange;
+use OldElastica\Document;
+use OldElastica\Query;
+use OldElastica\Type\Mapping;
 
 class DateRangeTest extends BaseAggregationTest
 {

@@ -1,7 +1,7 @@
 <?php
-namespace Elastica2\Test\Filter;
+namespace OldElastica\Test\Filter;
 
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Test\Base as BaseTest;
 
 class AbstractTest extends BaseTest
 {
@@ -49,7 +49,7 @@ class AbstractTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testSetCacheKeyEmptyKey()
     {

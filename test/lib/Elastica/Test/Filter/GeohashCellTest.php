@@ -1,11 +1,11 @@
 <?php
-namespace Elastica2\Test\Filter;
+namespace OldElastica\Test\Filter;
 
-use Elastica2\Document;
-use Elastica2\Filter\GeohashCell;
-use Elastica2\Query;
-use Elastica2\Test\Base as BaseTest;
-use Elastica2\Type\Mapping;
+use OldElastica\Document;
+use OldElastica\Filter\GeohashCell;
+use OldElastica\Query;
+use OldElastica\Test\Base as BaseTest;
+use OldElastica\Type\Mapping;
 
 class GeohashCellTest extends BaseTest
 {

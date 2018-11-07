@@ -1,12 +1,12 @@
 <?php
-namespace Elastica2\Test\Aggregation;
+namespace OldElastica\Test\Aggregation;
 
-use Elastica2\Aggregation\Nested;
-use Elastica2\Aggregation\ReverseNested;
-use Elastica2\Aggregation\Terms;
-use Elastica2\Document;
-use Elastica2\Query;
-use Elastica2\Type\Mapping;
+use OldElastica\Aggregation\Nested;
+use OldElastica\Aggregation\ReverseNested;
+use OldElastica\Aggregation\Terms;
+use OldElastica\Document;
+use OldElastica\Query;
+use OldElastica\Type\Mapping;
 
 class ReverseNestedTest extends BaseAggregationTest
 {

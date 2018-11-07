@@ -1,9 +1,9 @@
 <?php
-namespace Elastica2\Test;
+namespace OldElastica\Test;
 
-use Elastica2\Connection;
-use Elastica2\Request;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Connection;
+use OldElastica\Request;
+use OldElastica\Test\Base as BaseTest;
 
 class ConnectionTest extends BaseTest
 {
@@ -38,7 +38,7 @@ class ConnectionTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica2\Exception\ConnectionException
+     * @expectedException \OldElastica\Exception\ConnectionException
      */
     public function testInvalidConnection()
     {
@@ -70,8 +70,8 @@ class ConnectionTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica2\Exception\InvalidException
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testCreateInvalid()
     {
@@ -111,7 +111,7 @@ class ConnectionTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \OldElastica\Exception\InvalidException
      */
     public function testGetConfigInvalidValue()
     {
@@ -136,7 +136,7 @@ class ConnectionTest extends BaseTest
      */
     public function testCompressionDefaultWithClient()
     {
-        $client = new \Elastica2\Client();
+        $client = new \OldElastica\Client();
         $connection = $client->getConnection();
         $this->assertFalse($connection->hasCompression());
     }
@@ -146,7 +146,7 @@ class ConnectionTest extends BaseTest
      */
     public function testCompressionEnabledWithClient()
     {
-        $client = new \Elastica2\Client(array('connections' => array(array('compression' => true))));
+        $client = new \OldElastica\Client(array('connections' => array(array('compression' => true))));
         $connection = $client->getConnection();
 
         $this->assertTrue($connection->hasCompression());

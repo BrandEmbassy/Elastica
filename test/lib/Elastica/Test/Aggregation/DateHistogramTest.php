@@ -1,10 +1,10 @@
 <?php
-namespace Elastica2\Test\Aggregation;
+namespace OldElastica\Test\Aggregation;
 
-use Elastica2\Aggregation\DateHistogram;
-use Elastica2\Document;
-use Elastica2\Query;
-use Elastica2\Type\Mapping;
+use OldElastica\Aggregation\DateHistogram;
+use OldElastica\Document;
+use OldElastica\Query;
+use OldElastica\Type\Mapping;
 
 class DateHistogramTest extends BaseAggregationTest
 {

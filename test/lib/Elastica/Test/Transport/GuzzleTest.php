@@ -1,10 +1,10 @@
 <?php
-namespace Elastica2\Test\Transport;
+namespace OldElastica\Test\Transport;
 
-use Elastica2\Document;
-use Elastica2\Query;
-use Elastica2\ResultSet;
-use Elastica2\Test\Base as BaseTest;
+use OldElastica\Document;
+use OldElastica\Query;
+use OldElastica\ResultSet;
+use OldElastica\Test\Base as BaseTest;
 
 class GuzzleTest extends BaseTest
 {
