@@ -1,9 +1,9 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Exception\ResponseException;
-use Elastica\Status;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Exception\ResponseException;
+use Elastica2\Status;
+use Elastica2\Test\Base as BaseTest;
 
 class StatusTest extends BaseTest
 {

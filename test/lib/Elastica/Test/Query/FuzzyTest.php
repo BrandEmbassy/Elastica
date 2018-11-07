@@ -1,9 +1,9 @@
 <?php
-namespace Elastica\Test\Query;
+namespace Elastica2\Test\Query;
 
-use Elastica\Document;
-use Elastica\Query\Fuzzy;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Query\Fuzzy;
+use Elastica2\Test\Base as BaseTest;
 
 class FuzzyTest extends BaseTest
 {
@@ -117,10 +117,10 @@ class FuzzyTest extends BaseTest
         $fuzzyQuery = new Fuzzy();
         $fuzzyQuery->setField($field, 'Baden');
 
-        $facet = new \Elastica\Facet\Terms('test');
+        $facet = new \Elastica2\Facet\Terms('test');
         $facet->setField('name');
 
-        $query = new \Elastica\Query($fuzzyQuery);
+        $query = new \Elastica2\Query($fuzzyQuery);
         $query->addFacet($facet);
 
         $resultSet = $index->search($query);

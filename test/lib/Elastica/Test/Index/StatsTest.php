@@ -1,7 +1,7 @@
 <?php
-namespace Elastica\Test\Index;
+namespace Elastica2\Test\Index;
 
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Test\Base as BaseTest;
 
 class StatsTest extends BaseTest
 {

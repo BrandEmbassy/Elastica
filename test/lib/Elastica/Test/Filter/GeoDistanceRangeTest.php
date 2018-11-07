@@ -1,11 +1,11 @@
 <?php
-namespace Elastica\Test\Filter;
+namespace Elastica2\Test\Filter;
 
-use Elastica\Document;
-use Elastica\Filter\GeoDistanceRange;
-use Elastica\Query;
-use Elastica\Query\MatchAll;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Filter\GeoDistanceRange;
+use Elastica2\Query;
+use Elastica2\Query\MatchAll;
+use Elastica2\Test\Base as BaseTest;
 
 class GeoDistanceRangeTest extends BaseTest
 {
@@ -71,7 +71,7 @@ class GeoDistanceRangeTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testInvalidRange()
     {
@@ -85,7 +85,7 @@ class GeoDistanceRangeTest extends BaseTest
     /**
      * @group unit
      * @dataProvider invalidLocationDataProvider
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testInvalidLocation($location)
     {

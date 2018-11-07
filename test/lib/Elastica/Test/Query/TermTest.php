@@ -1,8 +1,8 @@
 <?php
-namespace Elastica\Test\Query;
+namespace Elastica2\Test\Query;
 
-use Elastica\Query\Term;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Query\Term;
+use Elastica2\Test\Base as BaseTest;
 
 class TermTest extends BaseTest
 {

@@ -1,11 +1,11 @@
 <?php
-namespace Elastica\Test\Facet;
+namespace Elastica2\Test\Facet;
 
-use Elastica\Document;
-use Elastica\Facet\Filter;
-use Elastica\Filter\Term;
-use Elastica\Query;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Facet\Filter;
+use Elastica2\Filter\Term;
+use Elastica2\Query;
+use Elastica2\Test\Base as BaseTest;
 
 class FilterTest extends BaseTest
 {

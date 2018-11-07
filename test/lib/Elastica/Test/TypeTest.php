@@ -1,19 +1,19 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Document;
-use Elastica\Exception\NotFoundException;
-use Elastica\Exception\ResponseException;
-use Elastica\Filter\Term;
-use Elastica\Index;
-use Elastica\Query;
-use Elastica\Query\MatchAll;
-use Elastica\Query\SimpleQueryString;
-use Elastica\Script;
-use Elastica\Search;
-use Elastica\Test\Base as BaseTest;
-use Elastica\Type;
-use Elastica\Type\Mapping;
+use Elastica2\Document;
+use Elastica2\Exception\NotFoundException;
+use Elastica2\Exception\ResponseException;
+use Elastica2\Filter\Term;
+use Elastica2\Index;
+use Elastica2\Query;
+use Elastica2\Query\MatchAll;
+use Elastica2\Query\SimpleQueryString;
+use Elastica2\Script;
+use Elastica2\Search;
+use Elastica2\Test\Base as BaseTest;
+use Elastica2\Type;
+use Elastica2\Type\Mapping;
 
 class TypeTest extends BaseTest
 {
@@ -331,7 +331,7 @@ class TypeTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica\Exception\NotFoundException
+     * @expectedException \Elastica2\Exception\NotFoundException
      */
     public function testGetDocumentNotExist()
     {
@@ -347,7 +347,7 @@ class TypeTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica\Exception\ResponseException
+     * @expectedException \Elastica2\Exception\ResponseException
      */
     public function testGetDocumentNotExistingIndex()
     {
@@ -730,7 +730,7 @@ class TypeTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testUpdateDocumentWithoutId()
     {
@@ -848,7 +848,7 @@ class TypeTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica\Exception\RuntimeException
+     * @expectedException \Elastica2\Exception\RuntimeException
      */
     public function testAddDocumentWithoutSerializer()
     {

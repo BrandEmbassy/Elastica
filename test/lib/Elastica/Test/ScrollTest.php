@@ -1,11 +1,11 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Document;
-use Elastica\Query;
-use Elastica\ResultSet;
-use Elastica\Scroll;
-use Elastica\Search;
+use Elastica2\Document;
+use Elastica2\Query;
+use Elastica2\ResultSet;
+use Elastica2\Scroll;
+use Elastica2\Search;
 
 class ScrollTest extends Base
 {

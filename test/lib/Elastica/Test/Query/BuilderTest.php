@@ -1,15 +1,15 @@
 <?php
-namespace Elastica\Test\Query;
+namespace Elastica2\Test\Query;
 
-use Elastica\Query\Builder;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Query\Builder;
+use Elastica2\Test\Base as BaseTest;
 
 class BuilderTest extends BaseTest
 {
     /**
      * @group unit
-     * @covers \Elastica\Query\Builder::factory
-     * @covers \Elastica\Query\Builder::__construct
+     * @covers \Elastica2\Query\Builder::factory
+     * @covers \Elastica2\Query\Builder::__construct
      */
     public function testFactory()
     {
@@ -58,30 +58,30 @@ class BuilderTest extends BaseTest
     /**
      * @group unit
      * @dataProvider getQueryData
-     * @covers \Elastica\Query\Builder::__toString
-     * @covers \Elastica\Query\Builder::allowLeadingWildcard
-     * @covers \Elastica\Query\Builder::analyzeWildcard
-     * @covers \Elastica\Query\Builder::analyzer
-     * @covers \Elastica\Query\Builder::autoGeneratePhraseQueries
-     * @covers \Elastica\Query\Builder::boost
-     * @covers \Elastica\Query\Builder::defaultField
-     * @covers \Elastica\Query\Builder::defaultOperator
-     * @covers \Elastica\Query\Builder::enablePositionIncrements
-     * @covers \Elastica\Query\Builder::explain
-     * @covers \Elastica\Query\Builder::from
-     * @covers \Elastica\Query\Builder::fuzzyMinSim
-     * @covers \Elastica\Query\Builder::fuzzyPrefixLength
-     * @covers \Elastica\Query\Builder::gt
-     * @covers \Elastica\Query\Builder::gte
-     * @covers \Elastica\Query\Builder::lowercaseExpandedTerms
-     * @covers \Elastica\Query\Builder::lt
-     * @covers \Elastica\Query\Builder::lte
-     * @covers \Elastica\Query\Builder::minimumNumberShouldMatch
-     * @covers \Elastica\Query\Builder::phraseSlop
-     * @covers \Elastica\Query\Builder::size
-     * @covers \Elastica\Query\Builder::tieBreakerMultiplier
-     * @covers \Elastica\Query\Builder::matchAll
-     * @covers \Elastica\Query\Builder::fields
+     * @covers \Elastica2\Query\Builder::__toString
+     * @covers \Elastica2\Query\Builder::allowLeadingWildcard
+     * @covers \Elastica2\Query\Builder::analyzeWildcard
+     * @covers \Elastica2\Query\Builder::analyzer
+     * @covers \Elastica2\Query\Builder::autoGeneratePhraseQueries
+     * @covers \Elastica2\Query\Builder::boost
+     * @covers \Elastica2\Query\Builder::defaultField
+     * @covers \Elastica2\Query\Builder::defaultOperator
+     * @covers \Elastica2\Query\Builder::enablePositionIncrements
+     * @covers \Elastica2\Query\Builder::explain
+     * @covers \Elastica2\Query\Builder::from
+     * @covers \Elastica2\Query\Builder::fuzzyMinSim
+     * @covers \Elastica2\Query\Builder::fuzzyPrefixLength
+     * @covers \Elastica2\Query\Builder::gt
+     * @covers \Elastica2\Query\Builder::gte
+     * @covers \Elastica2\Query\Builder::lowercaseExpandedTerms
+     * @covers \Elastica2\Query\Builder::lt
+     * @covers \Elastica2\Query\Builder::lte
+     * @covers \Elastica2\Query\Builder::minimumNumberShouldMatch
+     * @covers \Elastica2\Query\Builder::phraseSlop
+     * @covers \Elastica2\Query\Builder::size
+     * @covers \Elastica2\Query\Builder::tieBreakerMultiplier
+     * @covers \Elastica2\Query\Builder::matchAll
+     * @covers \Elastica2\Query\Builder::fields
      */
     public function testAllowLeadingWildcard($method, $argument, $result)
     {
@@ -116,42 +116,42 @@ class BuilderTest extends BaseTest
     /**
      * @group unit
      * @dataProvider getQueryTypes
-     * @covers \Elastica\Query\Builder::fieldClose
-     * @covers \Elastica\Query\Builder::close
-     * @covers \Elastica\Query\Builder::bool
-     * @covers \Elastica\Query\Builder::boolClose
-     * @covers \Elastica\Query\Builder::constantScore
-     * @covers \Elastica\Query\Builder::constantScoreClose
-     * @covers \Elastica\Query\Builder::disMax
-     * @covers \Elastica\Query\Builder::disMaxClose
-     * @covers \Elastica\Query\Builder::facets
-     * @covers \Elastica\Query\Builder::facetsClose
-     * @covers \Elastica\Query\Builder::filter
-     * @covers \Elastica\Query\Builder::filterClose
-     * @covers \Elastica\Query\Builder::filteredQuery
-     * @covers \Elastica\Query\Builder::filteredQueryClose
-     * @covers \Elastica\Query\Builder::must
-     * @covers \Elastica\Query\Builder::mustClose
-     * @covers \Elastica\Query\Builder::mustNot
-     * @covers \Elastica\Query\Builder::mustNotClose
-     * @covers \Elastica\Query\Builder::prefix
-     * @covers \Elastica\Query\Builder::prefixClose
-     * @covers \Elastica\Query\Builder::query
-     * @covers \Elastica\Query\Builder::queryClose
-     * @covers \Elastica\Query\Builder::queryString
-     * @covers \Elastica\Query\Builder::queryStringClose
-     * @covers \Elastica\Query\Builder::range
-     * @covers \Elastica\Query\Builder::rangeClose
-     * @covers \Elastica\Query\Builder::should
-     * @covers \Elastica\Query\Builder::shouldClose
-     * @covers \Elastica\Query\Builder::sort
-     * @covers \Elastica\Query\Builder::sortClose
-     * @covers \Elastica\Query\Builder::term
-     * @covers \Elastica\Query\Builder::termClose
-     * @covers \Elastica\Query\Builder::textPhrase
-     * @covers \Elastica\Query\Builder::textPhraseClose
-     * @covers \Elastica\Query\Builder::wildcard
-     * @covers \Elastica\Query\Builder::wildcardClose
+     * @covers \Elastica2\Query\Builder::fieldClose
+     * @covers \Elastica2\Query\Builder::close
+     * @covers \Elastica2\Query\Builder::bool
+     * @covers \Elastica2\Query\Builder::boolClose
+     * @covers \Elastica2\Query\Builder::constantScore
+     * @covers \Elastica2\Query\Builder::constantScoreClose
+     * @covers \Elastica2\Query\Builder::disMax
+     * @covers \Elastica2\Query\Builder::disMaxClose
+     * @covers \Elastica2\Query\Builder::facets
+     * @covers \Elastica2\Query\Builder::facetsClose
+     * @covers \Elastica2\Query\Builder::filter
+     * @covers \Elastica2\Query\Builder::filterClose
+     * @covers \Elastica2\Query\Builder::filteredQuery
+     * @covers \Elastica2\Query\Builder::filteredQueryClose
+     * @covers \Elastica2\Query\Builder::must
+     * @covers \Elastica2\Query\Builder::mustClose
+     * @covers \Elastica2\Query\Builder::mustNot
+     * @covers \Elastica2\Query\Builder::mustNotClose
+     * @covers \Elastica2\Query\Builder::prefix
+     * @covers \Elastica2\Query\Builder::prefixClose
+     * @covers \Elastica2\Query\Builder::query
+     * @covers \Elastica2\Query\Builder::queryClose
+     * @covers \Elastica2\Query\Builder::queryString
+     * @covers \Elastica2\Query\Builder::queryStringClose
+     * @covers \Elastica2\Query\Builder::range
+     * @covers \Elastica2\Query\Builder::rangeClose
+     * @covers \Elastica2\Query\Builder::should
+     * @covers \Elastica2\Query\Builder::shouldClose
+     * @covers \Elastica2\Query\Builder::sort
+     * @covers \Elastica2\Query\Builder::sortClose
+     * @covers \Elastica2\Query\Builder::term
+     * @covers \Elastica2\Query\Builder::termClose
+     * @covers \Elastica2\Query\Builder::textPhrase
+     * @covers \Elastica2\Query\Builder::textPhraseClose
+     * @covers \Elastica2\Query\Builder::wildcard
+     * @covers \Elastica2\Query\Builder::wildcardClose
      */
     public function testQueryTypes($method, $queryType)
     {
@@ -163,10 +163,10 @@ class BuilderTest extends BaseTest
 
     /**
      * @group unit
-     * @covers \Elastica\Query\Builder::fieldOpen
-     * @covers \Elastica\Query\Builder::fieldClose
-     * @covers \Elastica\Query\Builder::open
-     * @covers \Elastica\Query\Builder::close
+     * @covers \Elastica2\Query\Builder::fieldOpen
+     * @covers \Elastica2\Query\Builder::fieldClose
+     * @covers \Elastica2\Query\Builder::open
+     * @covers \Elastica2\Query\Builder::close
      */
     public function testFieldOpenAndClose()
     {
@@ -178,7 +178,7 @@ class BuilderTest extends BaseTest
 
     /**
      * @group unit
-     * @covers \Elastica\Query\Builder::sortField
+     * @covers \Elastica2\Query\Builder::sortField
      */
     public function testSortField()
     {
@@ -189,7 +189,7 @@ class BuilderTest extends BaseTest
 
     /**
      * @group unit
-     * @covers \Elastica\Query\Builder::sortFields
+     * @covers \Elastica2\Query\Builder::sortFields
      */
     public function testSortFields()
     {
@@ -200,7 +200,7 @@ class BuilderTest extends BaseTest
 
     /**
      * @group unit
-     * @covers \Elastica\Query\Builder::queries
+     * @covers \Elastica2\Query\Builder::queries
      */
     public function testQueries()
     {
@@ -231,7 +231,7 @@ class BuilderTest extends BaseTest
     /**
      * @group unit
      * @dataProvider getFieldData
-     * @covers \Elastica\Query\Builder::field
+     * @covers \Elastica2\Query\Builder::field
      */
     public function testField($name, $value, $result)
     {
@@ -242,9 +242,9 @@ class BuilderTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      * @expectedExceptionMessage The produced query is not a valid json string : "{{}"
-     * @covers \Elastica\Query\Builder::toArray
+     * @covers \Elastica2\Query\Builder::toArray
      */
     public function testToArrayWithInvalidData()
     {
@@ -255,7 +255,7 @@ class BuilderTest extends BaseTest
 
     /**
      * @group unit
-     * @covers \Elastica\Query\Builder::toArray
+     * @covers \Elastica2\Query\Builder::toArray
      */
     public function testToArray()
     {

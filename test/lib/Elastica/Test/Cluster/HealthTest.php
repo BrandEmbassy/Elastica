@@ -1,12 +1,12 @@
 <?php
-namespace Elastica\Test\Cluster;
+namespace Elastica2\Test\Cluster;
 
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Test\Base as BaseTest;
 
 class HealthTest extends BaseTest
 {
     /**
-     * @var \Elastica\Cluster\Health
+     * @var \Elastica2\Cluster\Health
      */
     protected $_health;
 

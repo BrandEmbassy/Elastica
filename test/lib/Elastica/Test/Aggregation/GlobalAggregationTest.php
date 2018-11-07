@@ -1,8 +1,8 @@
 <?php
-namespace Elastica\Test\Aggregation;
+namespace Elastica2\Test\Aggregation;
 
-use Elastica\Aggregation\Avg;
-use Elastica\Aggregation\GlobalAggregation;
+use Elastica2\Aggregation\Avg;
+use Elastica2\Aggregation\GlobalAggregation;
 
 class GlobalAggregationTest extends BaseAggregationTest
 {

@@ -1,8 +1,8 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Script;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Script;
+use Elastica2\Test\Base as BaseTest;
 
 class ScriptTest extends BaseTest
 {
@@ -114,7 +114,7 @@ class ScriptTest extends BaseTest
     /**
      * @group unit
      * @dataProvider dataProviderCreateInvalid
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testCreateInvalid($data)
     {

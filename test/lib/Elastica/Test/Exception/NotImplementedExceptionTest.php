@@ -1,7 +1,7 @@
 <?php
-namespace Elastica\Test\Exception;
+namespace Elastica2\Test\Exception;
 
-use Elastica\Exception\NotImplementedException;
+use Elastica2\Exception\NotImplementedException;
 
 class NotImplementedExceptionTest extends AbstractExceptionTest
 {

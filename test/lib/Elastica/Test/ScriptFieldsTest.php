@@ -1,11 +1,11 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Document;
-use Elastica\Query;
-use Elastica\Script;
-use Elastica\ScriptFields;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Query;
+use Elastica2\Script;
+use Elastica2\ScriptFields;
+use Elastica2\Test\Base as BaseTest;
 
 class ScriptFieldsTest extends BaseTest
 {
@@ -57,7 +57,7 @@ class ScriptFieldsTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testNameException()
     {

@@ -1,10 +1,10 @@
 <?php
-namespace Elastica\Test\Filter;
+namespace Elastica2\Test\Filter;
 
-use Elastica\Document;
-use Elastica\Filter\HasChild;
-use Elastica\Query\MatchAll;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Filter\HasChild;
+use Elastica2\Query\MatchAll;
+use Elastica2\Test\Base as BaseTest;
 
 class HasChildTest extends BaseTest
 {
@@ -89,7 +89,7 @@ class HasChildTest extends BaseTest
      */
     public function testFilterInsideHasChild()
     {
-        $f = new \Elastica\Filter\MatchAll();
+        $f = new \Elastica2\Filter\MatchAll();
 
         $type = 'test';
 
@@ -112,11 +112,11 @@ class HasChildTest extends BaseTest
     {
         $index = $this->prepareSearchData();
 
-        $f = new \Elastica\Filter\Term();
+        $f = new \Elastica2\Filter\Term();
         $f->setTerm('user', 'child1');
         $filter = new HasChild($f, 'child');
 
-        $searchQuery = new \Elastica\Query();
+        $searchQuery = new \Elastica2\Query();
         $searchQuery->setPostFilter($filter);
         $searchResults = $index->search($searchQuery);
 
@@ -135,11 +135,11 @@ class HasChildTest extends BaseTest
     {
         $index = $this->prepareSearchData();
 
-        $f = new \Elastica\Query\Term();
+        $f = new \Elastica2\Query\Term();
         $f->setTerm('user', 'child1');
         $filter = new HasChild($f, 'child');
 
-        $searchQuery = new \Elastica\Query();
+        $searchQuery = new \Elastica2\Query();
         $searchQuery->setPostFilter($filter);
         $searchResults = $index->search($searchQuery);
 
@@ -158,11 +158,11 @@ class HasChildTest extends BaseTest
     {
         $index = $this->prepareSearchData();
 
-        $f = new \Elastica\Query\Match();
+        $f = new \Elastica2\Query\Match();
         $f->setField('alt.name', 'testname');
         $filter = new HasChild($f, 'child');
 
-        $searchQuery = new \Elastica\Query();
+        $searchQuery = new \Elastica2\Query();
         $searchQuery->setPostFilter($filter);
         $searchResults = $index->search($searchQuery);
 
@@ -183,7 +183,7 @@ class HasChildTest extends BaseTest
         $parentType = $index->getType('parent');
 
         $childType = $index->getType('child');
-        $childMapping = new \Elastica\Type\Mapping($childType);
+        $childMapping = new \Elastica2\Type\Mapping($childType);
         $childMapping->setParent('parent');
         $childMapping->send();
 

@@ -1,9 +1,9 @@
 <?php
-namespace Elastica\Test\Connection\Strategy;
+namespace Elastica2\Test\Connection\Strategy;
 
-use Elastica\Connection;
-use Elastica\Exception\ConnectionException;
-use Elastica\Test\Base;
+use Elastica2\Connection;
+use Elastica2\Exception\ConnectionException;
+use Elastica2\Test\Base;
 
 /**
  * Description of SimplyTest.
@@ -24,7 +24,7 @@ class SimpleTest extends Base
     {
         $client = $this->_getClient();
         $response = $client->request('/_aliases');
-        /* @var $response \Elastica\Response */
+        /* @var $response \Elastica2\Response */
 
         $this->_checkResponse($response);
 
@@ -33,7 +33,7 @@ class SimpleTest extends Base
 
     /**
      * @group functional
-     * @expectedException \Elastica\Exception\ConnectionException
+     * @expectedException \Elastica2\Exception\ConnectionException
      */
     public function testFailConnection()
     {

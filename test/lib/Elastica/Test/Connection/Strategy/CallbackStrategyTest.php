@@ -1,8 +1,8 @@
 <?php
-namespace Elastica\Test\Connection\Strategy;
+namespace Elastica2\Test\Connection\Strategy;
 
-use Elastica\Connection\Strategy\CallbackStrategy;
-use Elastica\Test\Base;
+use Elastica2\Connection\Strategy\CallbackStrategy;
+use Elastica2\Test\Base;
 
 /**
  * Description of CallbackStrategyTest.
@@ -42,7 +42,7 @@ class CallbackStrategyTest extends Base
         $this->assertTrue($isValid);
 
         // static method as string
-        $isValid = CallbackStrategy::isValid('Elastica\Test\Connection\Strategy\CallbackStrategyTestHelper::getFirstConnectionStatic');
+        $isValid = CallbackStrategy::isValid('Elastica2\Test\Connection\Strategy\CallbackStrategyTestHelper::getFirstConnectionStatic');
         $this->assertTrue($isValid);
 
         // static method as array

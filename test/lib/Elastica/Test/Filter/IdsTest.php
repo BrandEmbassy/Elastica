@@ -1,11 +1,11 @@
 <?php
-namespace Elastica\Test\Filter;
+namespace Elastica2\Test\Filter;
 
-use Elastica\Document;
-use Elastica\Filter\Ids;
-use Elastica\Filter\Type;
-use Elastica\Query;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Filter\Ids;
+use Elastica2\Filter\Type;
+use Elastica2\Query;
+use Elastica2\Test\Base as BaseTest;
 
 class IdsTest extends BaseTest
 {
@@ -215,9 +215,9 @@ class IdsTest extends BaseTest
      */
     public function testFilterTypeAndTypeCollision()
     {
-        // This test ensures that Elastica\Type and Elastica\Filter\Type
+        // This test ensures that Elastica2\Type and Elastica2\Filter\Type
         // do not collide when used together, which at one point
-        // happened because of a use statement in Elastica\Filter\Ids
+        // happened because of a use statement in Elastica2\Filter\Ids
         // Test goal is to make sure a Fatal Error is not triggered
         $filterType = new Type();
         $filter = new Ids();

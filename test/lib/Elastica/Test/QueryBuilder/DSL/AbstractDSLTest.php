@@ -1,9 +1,9 @@
 <?php
-namespace Elastica\Test\QueryBuilder\DSL;
+namespace Elastica2\Test\QueryBuilder\DSL;
 
-use Elastica\Exception\NotImplementedException;
-use Elastica\QueryBuilder\DSL;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Exception\NotImplementedException;
+use Elastica2\QueryBuilder\DSL;
+use Elastica2\Test\Base as BaseTest;
 
 abstract class AbstractDSLTest extends BaseTest
 {

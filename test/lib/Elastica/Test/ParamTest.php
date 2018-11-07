@@ -1,9 +1,9 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Param;
-use Elastica\Test\Base as BaseTest;
-use Elastica\Util;
+use Elastica2\Param;
+use Elastica2\Test\Base as BaseTest;
+use Elastica2\Util;
 
 class ParamTest extends BaseTest
 {
@@ -83,7 +83,7 @@ class ParamTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testGetParamInvalid()
     {

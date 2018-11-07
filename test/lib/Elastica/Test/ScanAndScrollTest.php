@@ -1,12 +1,12 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Document;
-use Elastica\Query;
-use Elastica\ResultSet;
-use Elastica\ScanAndScroll;
-use Elastica\Search;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Query;
+use Elastica2\ResultSet;
+use Elastica2\ScanAndScroll;
+use Elastica2\Search;
+use Elastica2\Test\Base as BaseTest;
 
 class ScanAndScrollTest extends BaseTest
 {

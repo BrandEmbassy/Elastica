@@ -1,13 +1,13 @@
 <?php
-namespace Elastica\Test\Cluster\Health;
+namespace Elastica2\Test\Cluster\Health;
 
-use Elastica\Cluster\Health\Index as HealthIndex;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Cluster\Health\Index as HealthIndex;
+use Elastica2\Test\Base as BaseTest;
 
 class IndexTest extends BaseTest
 {
     /**
-     * @var \Elastica\Cluster\Health\Index
+     * @var \Elastica2\Cluster\Health\Index
      */
     protected $_index;
 

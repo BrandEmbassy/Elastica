@@ -4,7 +4,7 @@
          colors="true">
     <testsuites>
         <testsuite name="Transport">
-            <file>lib/Elastica/Test/Transport/TransportBenchmarkTest.php</file>
+            <file>lib/Elastica2/Test/Transport/TransportBenchmarkTest.php</file>
         </testsuite>
     </testsuites>
     <listeners>
@@ -21,7 +21,7 @@
                         <string>http://xhprof.local/</string>
                     </element>
                     <element key="appNamespace">
-                        <string>Elastica</string>
+                        <string>Elastica2</string>
                     </element>
                     <element key="xhprofFlags">
                         <string>XHPROF_FLAGS_CPU,XHPROF_FLAGS_MEMORY</string>

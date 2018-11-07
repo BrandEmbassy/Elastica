@@ -1,9 +1,9 @@
 <?php
-namespace Elastica\Test\Aggregation;
+namespace Elastica2\Test\Aggregation;
 
-use Elastica\Aggregation\Range;
-use Elastica\Document;
-use Elastica\Query;
+use Elastica2\Aggregation\Range;
+use Elastica2\Document;
+use Elastica2\Query;
 
 class RangeTest extends BaseAggregationTest
 {

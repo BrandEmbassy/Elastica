@@ -1,9 +1,9 @@
 <?php
-namespace Elastica\Test\Aggregation;
+namespace Elastica2\Test\Aggregation;
 
-use Elastica\Aggregation\ExtendedStats;
-use Elastica\Document;
-use Elastica\Query;
+use Elastica2\Aggregation\ExtendedStats;
+use Elastica2\Document;
+use Elastica2\Query;
 
 class ExtendedStatsTest extends BaseAggregationTest
 {

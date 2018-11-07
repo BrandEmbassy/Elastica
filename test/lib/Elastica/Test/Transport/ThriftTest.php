@@ -1,10 +1,10 @@
 <?php
-namespace Elastica\Test\Transport;
+namespace Elastica2\Test\Transport;
 
-use Elastica\Connection;
-use Elastica\Document;
-use Elastica\Index;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Connection;
+use Elastica2\Document;
+use Elastica2\Index;
+use Elastica2\Test\Base as BaseTest;
 
 class ThriftTest extends BaseTest
 {
@@ -70,7 +70,7 @@ class ThriftTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\ConnectionException
+     * @expectedException \Elastica2\Exception\ConnectionException
      */
     public function testInvalidHostRequest()
     {
@@ -82,7 +82,7 @@ class ThriftTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica\Exception\ResponseException
+     * @expectedException \Elastica2\Exception\ResponseException
      */
     public function testInvalidElasticRequest()
     {

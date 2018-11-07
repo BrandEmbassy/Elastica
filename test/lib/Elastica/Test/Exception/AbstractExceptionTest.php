@@ -1,7 +1,7 @@
 <?php
-namespace Elastica\Test\Exception;
+namespace Elastica2\Test\Exception;
 
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Test\Base as BaseTest;
 
 abstract class AbstractExceptionTest extends BaseTest
 {
@@ -9,10 +9,10 @@ abstract class AbstractExceptionTest extends BaseTest
     {
         $reflection = new \ReflectionObject($this);
 
-        // Elastica\Test\Exception\RuntimeExceptionTest => Elastica\Exception\RuntimeExceptionTest
-        $name = preg_replace('/^Elastica\\\\Test/', 'Elastica', $reflection->getName());
+        // Elastica2\Test\Exception\RuntimeExceptionTest => Elastica2\Exception\RuntimeExceptionTest
+        $name = preg_replace('/^Elastica2\\\\Test/', 'Elastica2', $reflection->getName());
 
-        // Elastica\Exception\RuntimeExceptionTest => Elastica\Exception\RuntimeException
+        // Elastica2\Exception\RuntimeExceptionTest => Elastica2\Exception\RuntimeException
         $name = preg_replace('/Test$/', '', $name);
 
         return $name;

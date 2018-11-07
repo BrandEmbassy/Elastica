@@ -1,9 +1,9 @@
 <?php
-namespace Elastica\Test\Query;
+namespace Elastica2\Test\Query;
 
-use Elastica\Document;
-use Elastica\Query\Range;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Query\Range;
+use Elastica2\Test\Base as BaseTest;
 
 class RangeTest extends BaseTest
 {

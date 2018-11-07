@@ -1,10 +1,10 @@
 <?php
-namespace Elastica\Test\Filter;
+namespace Elastica2\Test\Filter;
 
-use Elastica\Document;
-use Elastica\Filter\Prefix;
-use Elastica\Test\Base as BaseTest;
-use Elastica\Type\Mapping;
+use Elastica2\Document;
+use Elastica2\Filter\Prefix;
+use Elastica2\Test\Base as BaseTest;
+use Elastica2\Type\Mapping;
 
 class PrefixTest extends BaseTest
 {

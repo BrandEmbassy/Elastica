@@ -1,10 +1,10 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Exception\QueryBuilderException;
-use Elastica\Query;
-use Elastica\QueryBuilder;
-use Elastica\Suggest;
+use Elastica2\Exception\QueryBuilderException;
+use Elastica2\Query;
+use Elastica2\QueryBuilder;
+use Elastica2\Suggest;
 
 class QueryBuilderTest extends \PHPUnit_Framework_TestCase
 {

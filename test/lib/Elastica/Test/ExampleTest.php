@@ -1,8 +1,8 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Document;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Test\Base as BaseTest;
 
 /**
  * Tests the example code.

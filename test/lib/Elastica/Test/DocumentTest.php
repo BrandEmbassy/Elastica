@@ -1,11 +1,11 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Document;
-use Elastica\Exception\InvalidException;
-use Elastica\Index;
-use Elastica\Test\Base as BaseTest;
-use Elastica\Type;
+use Elastica2\Document;
+use Elastica2\Exception\InvalidException;
+use Elastica2\Index;
+use Elastica2\Test\Base as BaseTest;
+use Elastica2\Type;
 
 class DocumentTest extends BaseTest
 {

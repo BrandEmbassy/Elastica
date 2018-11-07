@@ -1,13 +1,13 @@
 <?php
-namespace Elastica\Test\Filter;
+namespace Elastica2\Test\Filter;
 
-use Elastica\Document;
-use Elastica\Filter\BoolNot;
-use Elastica\Filter\Indices;
-use Elastica\Filter\Term;
-use Elastica\Index;
-use Elastica\Query;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Filter\BoolNot;
+use Elastica2\Filter\Indices;
+use Elastica2\Filter\Term;
+use Elastica2\Index;
+use Elastica2\Query;
+use Elastica2\Test\Base as BaseTest;
 
 class IndicesTest extends BaseTest
 {

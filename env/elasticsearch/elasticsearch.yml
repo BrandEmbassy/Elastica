@@ -29,7 +29,7 @@ bootstrap.mlockall: true
 processors: 1
 
 # All nodes will be called Elastica
-node.name: Elastica
+node.name: Elastica2
 
 # Ports config
 http.port: 9200

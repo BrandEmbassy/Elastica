@@ -1,7 +1,7 @@
 <?php
-namespace Elastica\Test\Exception\Bulk;
+namespace Elastica2\Test\Exception\Bulk;
 
-use Elastica\Test\Exception\AbstractExceptionTest;
+use Elastica2\Test\Exception\AbstractExceptionTest;
 
 class UdpExceptionTest extends AbstractExceptionTest
 {

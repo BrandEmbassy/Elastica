@@ -1,9 +1,9 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Connection;
-use Elastica\Request;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Connection;
+use Elastica2\Request;
+use Elastica2\Test\Base as BaseTest;
 
 class ConnectionTest extends BaseTest
 {
@@ -38,7 +38,7 @@ class ConnectionTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\ConnectionException
+     * @expectedException \Elastica2\Exception\ConnectionException
      */
     public function testInvalidConnection()
     {
@@ -70,8 +70,8 @@ class ConnectionTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testCreateInvalid()
     {
@@ -111,7 +111,7 @@ class ConnectionTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testGetConfigInvalidValue()
     {
@@ -136,7 +136,7 @@ class ConnectionTest extends BaseTest
      */
     public function testCompressionDefaultWithClient()
     {
-        $client = new \Elastica\Client();
+        $client = new \Elastica2\Client();
         $connection = $client->getConnection();
         $this->assertFalse($connection->hasCompression());
     }
@@ -146,7 +146,7 @@ class ConnectionTest extends BaseTest
      */
     public function testCompressionEnabledWithClient()
     {
-        $client = new \Elastica\Client(array('connections' => array(array('compression' => true))));
+        $client = new \Elastica2\Client(array('connections' => array(array('compression' => true))));
         $connection = $client->getConnection();
 
         $this->assertTrue($connection->hasCompression());

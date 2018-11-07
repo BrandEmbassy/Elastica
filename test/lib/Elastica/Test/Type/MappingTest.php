@@ -1,12 +1,12 @@
 <?php
-namespace Elastica\Test\Type;
+namespace Elastica2\Test\Type;
 
-use Elastica\Document;
-use Elastica\Query;
-use Elastica\Query\QueryString;
-use Elastica\Test\Base as BaseTest;
-use Elastica\Type;
-use Elastica\Type\Mapping;
+use Elastica2\Document;
+use Elastica2\Query;
+use Elastica2\Query\QueryString;
+use Elastica2\Test\Base as BaseTest;
+use Elastica2\Type;
+use Elastica2\Type\Mapping;
 
 class MappingTest extends BaseTest
 {

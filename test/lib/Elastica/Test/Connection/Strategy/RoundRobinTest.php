@@ -1,11 +1,11 @@
 <?php
-namespace Elastica\Test\Connection\Strategy;
+namespace Elastica2\Test\Connection\Strategy;
 
-use Elastica\Connection;
-use Elastica\Connection\Strategy\RoundRobin;
-use Elastica\Exception\ConnectionException;
-use Elastica\Response;
-use Elastica\Test\Base;
+use Elastica2\Connection;
+use Elastica2\Connection\Strategy\RoundRobin;
+use Elastica2\Exception\ConnectionException;
+use Elastica2\Response;
+use Elastica2\Test\Base;
 
 /**
  * Description of RoundRobinTest.
@@ -47,7 +47,7 @@ class RoundRobinTest extends Base
 
     /**
      * @group functional
-     * @expectedException \Elastica\Exception\ConnectionException
+     * @expectedException \Elastica2\Exception\ConnectionException
      */
     public function testFailConnection()
     {

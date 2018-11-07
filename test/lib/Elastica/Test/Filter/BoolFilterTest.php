@@ -1,13 +1,13 @@
 <?php
-namespace Elastica\Test\Filter;
+namespace Elastica2\Test\Filter;
 
-use Elastica\Document;
-use Elastica\Filter\BoolFilter;
-use Elastica\Filter\Ids;
-use Elastica\Filter\Term;
-use Elastica\Filter\Terms;
-use Elastica\Query;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Filter\BoolFilter;
+use Elastica2\Filter\Ids;
+use Elastica2\Filter\Term;
+use Elastica2\Filter\Terms;
+use Elastica2\Query;
+use Elastica2\Test\Base as BaseTest;
 
 class BoolFilterTest extends BaseTest
 {
@@ -143,7 +143,7 @@ class BoolFilterTest extends BaseTest
 
         //count compare the id's
         $ids = array();
-        /** @var \Elastica\Result $result **/
+        /** @var \Elastica2\Result $result **/
         foreach ($results as $result) {
             $ids[] = $result->getId();
         }
@@ -154,7 +154,7 @@ class BoolFilterTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testAddMustInvalidException()
     {
@@ -164,7 +164,7 @@ class BoolFilterTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testAddMustNotInvalidException()
     {
@@ -174,7 +174,7 @@ class BoolFilterTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testAddShouldInvalidException()
     {
@@ -186,7 +186,7 @@ class BoolFilterTest extends BaseTest
      * Small unit test to check if also the old object name works.
      *
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testOldObject()
     {
@@ -194,7 +194,7 @@ class BoolFilterTest extends BaseTest
             self::markTestSkipped('These objects are not supported in PHP 7');
         }
 
-        $filter = new \Elastica\Filter\Bool();
+        $filter = new \Elastica2\Filter\Bool();
         $filter->addShould('fail!');
     }
 }

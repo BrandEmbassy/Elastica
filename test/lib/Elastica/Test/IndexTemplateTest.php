@@ -1,11 +1,11 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Client;
-use Elastica\IndexTemplate;
-use Elastica\Request;
-use Elastica\Response;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Client;
+use Elastica2\IndexTemplate;
+use Elastica2\Request;
+use Elastica2\Response;
+use Elastica2\Test\Base as BaseTest;
 
 /**
  * IndexTemplate class tests.
@@ -28,7 +28,7 @@ class IndexTemplateTest extends BaseTest
     }
 
     /**
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      * @group unit
      */
     public function testIncorrectInstantiate()

@@ -1,8 +1,8 @@
 <?php
-namespace Elastica\Test\Filter;
+namespace Elastica2\Test\Filter;
 
-use Elastica\Filter\GeoBoundingBox;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Filter\GeoBoundingBox;
+use Elastica2\Test\Base as BaseTest;
 
 class GeoBoundingBoxTest extends BaseTest
 {
@@ -25,7 +25,7 @@ class GeoBoundingBoxTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testAddCoordinatesInvalidException()
     {

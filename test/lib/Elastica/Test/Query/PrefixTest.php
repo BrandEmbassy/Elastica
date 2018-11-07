@@ -1,8 +1,8 @@
 <?php
-namespace Elastica\Test\Query;
+namespace Elastica2\Test\Query;
 
-use Elastica\Query\Prefix;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Query\Prefix;
+use Elastica2\Test\Base as BaseTest;
 
 class PrefixTest extends BaseTest
 {

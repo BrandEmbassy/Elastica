@@ -1,10 +1,10 @@
 <?php
-namespace Elastica\Test\Tool;
+namespace Elastica2\Test\Tool;
 
-use Elastica\Document;
-use Elastica\Test\Base;
-use Elastica\Tool\CrossIndex;
-use Elastica\Type;
+use Elastica2\Document;
+use Elastica2\Test\Base;
+use Elastica2\Tool\CrossIndex;
+use Elastica2\Type;
 
 class CrossIndexTest extends Base
 {
@@ -44,7 +44,7 @@ class CrossIndexTest extends Base
 
         $newIndex = $this->_createIndex(null, true, 2);
 
-        // \Elastica\Type
+        // \Elastica2\Type
         CrossIndex::reindex($oldIndex, $newIndex, array(
             CrossIndex::OPTION_TYPE => $type1,
         ));

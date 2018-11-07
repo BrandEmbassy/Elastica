@@ -1,18 +1,18 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Aggregation;
-use Elastica\Document;
-use Elastica\Exception\ResponseException;
-use Elastica\Index;
-use Elastica\Query;
-use Elastica\Query\FunctionScore;
-use Elastica\Query\MatchAll;
-use Elastica\Query\QueryString;
-use Elastica\Script;
-use Elastica\Search;
-use Elastica\Test\Base as BaseTest;
-use Elastica\Type;
+use Elastica2\Aggregation;
+use Elastica2\Document;
+use Elastica2\Exception\ResponseException;
+use Elastica2\Index;
+use Elastica2\Query;
+use Elastica2\Query\FunctionScore;
+use Elastica2\Query\MatchAll;
+use Elastica2\Query\QueryString;
+use Elastica2\Script;
+use Elastica2\Search;
+use Elastica2\Test\Base as BaseTest;
+use Elastica2\Type;
 
 class SearchTest extends BaseTest
 {
@@ -134,7 +134,7 @@ class SearchTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testAddTypeInvalid()
     {
@@ -146,7 +146,7 @@ class SearchTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testAddIndexInvalid()
     {
@@ -303,7 +303,7 @@ class SearchTest extends BaseTest
     }
 
     /**
-     * Default Limit tests for \Elastica\Search.
+     * Default Limit tests for \Elastica2\Search.
      *
      * @group functional
      */
@@ -344,7 +344,7 @@ class SearchTest extends BaseTest
 
     /**
      * @group functional
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testArrayConfigSearch()
     {
@@ -398,7 +398,7 @@ class SearchTest extends BaseTest
         $this->assertTrue(($resultSet->count() === 0) && $resultSet->getTotalHits() === 11);
 
         //Timeout - this one is a bit more tricky to test
-        $mockResponse = new \Elastica\Response(json_encode(array('timed_out' => true)));
+        $mockResponse = new \Elastica2\Response(json_encode(array('timed_out' => true)));
         $client = $this->getMockBuilder('Elastica\\Client')
             ->disableOriginalConstructor()
             ->getMock();
@@ -544,10 +544,10 @@ class SearchTest extends BaseTest
         $search->addIndex($index);
         $search->addType($type);
 
-        $result1 = $search->count(new \Elastica\Query\MatchAll());
+        $result1 = $search->count(new \Elastica2\Query\MatchAll());
         $this->assertEquals(1, $result1);
 
-        $result2 = $search->count(new \Elastica\Query\MatchAll(), true);
+        $result2 = $search->count(new \Elastica2\Query\MatchAll(), true);
         $this->assertInstanceOf('\Elastica\ResultSet', $result2);
         $this->assertEquals(1, $result2->getTotalHits());
     }

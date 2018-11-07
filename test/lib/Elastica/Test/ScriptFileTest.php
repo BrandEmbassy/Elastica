@@ -1,13 +1,13 @@
 <?php
-namespace Elastica\Test;
+namespace Elastica2\Test;
 
-use Elastica\Document;
-use Elastica\Exception\ResponseException;
-use Elastica\Query;
-use Elastica\ScriptFile;
-use Elastica\Test\Base as BaseTest;
-use Elastica\Type;
-use Elastica\Type\Mapping;
+use Elastica2\Document;
+use Elastica2\Exception\ResponseException;
+use Elastica2\Query;
+use Elastica2\ScriptFile;
+use Elastica2\Test\Base as BaseTest;
+use Elastica2\Type;
+use Elastica2\Type\Mapping;
 
 class ScriptFileTest extends BaseTest
 {
@@ -142,7 +142,7 @@ class ScriptFileTest extends BaseTest
     /**
      * @group unit
      * @dataProvider dataProviderCreateInvalid
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testCreateInvalid($data)
     {

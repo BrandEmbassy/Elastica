@@ -1,10 +1,10 @@
 <?php
-namespace Elastica\Test\Filter;
+namespace Elastica2\Test\Filter;
 
-use Elastica\Document;
-use Elastica\Filter\Terms;
-use Elastica\Query;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Document;
+use Elastica2\Filter\Terms;
+use Elastica2\Query;
+use Elastica2\Test\Base as BaseTest;
 
 class TermsTest extends BaseTest
 {
@@ -119,7 +119,7 @@ class TermsTest extends BaseTest
 
     /**
      * @group unit
-     * @expectedException \Elastica\Exception\InvalidException
+     * @expectedException \Elastica2\Exception\InvalidException
      */
     public function testToArrayInvalidException()
     {

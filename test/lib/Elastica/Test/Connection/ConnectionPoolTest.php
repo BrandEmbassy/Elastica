@@ -1,10 +1,10 @@
 <?php
-namespace Elastica\Test\Connection;
+namespace Elastica2\Test\Connection;
 
-use Elastica\Connection;
-use Elastica\Connection\ConnectionPool;
-use Elastica\Connection\Strategy\StrategyFactory;
-use Elastica\Test\Base as BaseTest;
+use Elastica2\Connection;
+use Elastica2\Connection\ConnectionPool;
+use Elastica2\Connection\Strategy\StrategyFactory;
+use Elastica2\Test\Base as BaseTest;
 
 /**
  * @author chabior
