@@ -1,8 +1,6 @@
 <?php
 namespace Elastica\Exception;
 
-trigger_error('Elastica\Exception\ElasticsearchException is deprecated. Use Elastica\Exception\ResponseException::getResponse::getFullError instead.', E_USER_DEPRECATED);
-
 /**
  * Elasticsearch exception.
  *
