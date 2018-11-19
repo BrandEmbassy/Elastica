@@ -12,9 +12,20 @@ use Elastica\Transport\NullTransport;
  * Elastica Null Transport Test.
  *
  * @author James Boehmer <james.boehmer@jamesboehmer.com>
+ * @author Jan Domanski <jandom@gmail.com>
  */
 class NullTransportTest extends BaseTest
 {
+
+    /** @var NullTransport NullTransport */
+    protected $transport;
+
+    public function setUp()
+    {
+        parent::setUp();
+        $this->transport = new NullTransport();
+    }
+
     /**
      * @group functional
      */
@@ -76,24 +87,27 @@ class NullTransportTest extends BaseTest
     }
 
     /**
-     * @group functional
+     * @group unit
      */
-    public function testOldObject()
+    public function testResponse()
     {
-        if (version_compare(phpversion(), 7, '>=')) {
-            self::markTestSkipped('These objects are not supported in PHP 7');
-        }
+        $resposeString = '';
+        $response = new Response($resposeString);
+        $this->transport->setResponse($response);
+        $this->assertEquals($response, $this->transport->getResponse());
+    }
 
-        $request = new Request('/test');
-        $params = ['name' => 'ruflin'];
-        $this->hideDeprecated();
-        $transport = new \Elastica\Transport\Null();
-        $this->showDeprecated();
-        $response = $transport->exec($request, $params);
+    /**
+     * @group unit
+     */
+    public function testGenerateDefaultResponse()
+    {
+        $params = [ 'blah' => 123 ];
+        $response = $this->transport->generateDefaultResponse($params);
+        $this->assertEquals([], $response->getTransferInfo());
 
-        $this->assertInstanceOf(Response::class, $response);
-
-        $data = $response->getData();
-        $this->assertEquals($params, $data['params']);
+        $responseData = $response->getData();
+        $this->assertContains('params', $responseData);
+        $this->assertEquals($params, $responseData['params']);
     }
 }

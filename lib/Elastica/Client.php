@@ -37,7 +37,7 @@ class Client
         'transport' => null,
         'persistent' => true,
         'timeout' => null,
-        'connections' => [], // host, port, path, timeout, transport, compression, persistent, timeout, config -> (curl, headers, url)
+        'connections' => [], // host, port, path, timeout, transport, compression, persistent, timeout, username, password, config -> (curl, headers, url)
         'roundRobin' => false,
         'log' => false,
         'retryOnConflict' => 0,
@@ -481,12 +481,13 @@ class Client
      * Bulk deletes documents.
      *
      * @param array|\Elastica\Document[] $docs
+     * @param array                      $requestParams
      *
      * @throws \Elastica\Exception\InvalidException
      *
      * @return \Elastica\Bulk\ResponseSet
      */
-    public function deleteDocuments(array $docs)
+    public function deleteDocuments(array $docs, array $requestParams = [])
     {
         if (empty($docs)) {
             throw new InvalidException('Array has to consist of at least one element');
@@ -494,6 +495,10 @@ class Client
 
         $bulk = new Bulk($this);
         $bulk->addDocuments($docs, Action::OP_TYPE_DELETE);
+
+        foreach ($requestParams as $key => $value) {
+            $bulk->setRequestParam($key, $value);
+        }
 
         return $bulk->send();
     }
@@ -669,7 +674,7 @@ class Client
      * @param array        $query       OPTIONAL Query params
      * @param string       $contentType Content-Type sent with this request
      *
-     * @throws Exception\ConnectionException|\Exception
+     * @throws Exception\ConnectionException|Exception\ClientException
      *
      * @return Response Response object
      */

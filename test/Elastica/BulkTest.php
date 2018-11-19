@@ -257,7 +257,7 @@ class BulkTest extends BaseTest
         $actions = $bulk->getActions();
 
         $this->assertInternalType('array', $actions);
-        $this->assertEquals(5, count($actions));
+        $this->assertCount(5, $actions);
 
         $this->assertInstanceOf(Action::class, $actions[0]);
         $this->assertEquals('index', $actions[0]->getOpType());
@@ -412,7 +412,7 @@ class BulkTest extends BaseTest
 
         foreach (['Mister', 'Invisible', 'Torch'] as $name) {
             $result = $type->search($name);
-            $this->assertEquals(1, count($result->getResults()));
+            $this->assertCount(1, $result->getResults());
         }
     }
 
@@ -547,6 +547,53 @@ class BulkTest extends BaseTest
         $this->assertEquals('Paul it is', $docData['name']);
 
         $index->delete();
+    }
+
+    /**
+     * @group functional
+     */
+    public function testUpsert()
+    {
+        $index = $this->_createIndex();
+        $type = $index->getType('bulk_test');
+        $client = $index->getClient();
+
+        $doc1 = $type->createDocument(1, ['name' => 'Pele']);
+        $doc2 = $type->createDocument(2, ['name' => 'Beckenbauer']);
+        $doc3 = $type->createDocument(3, ['name' => 'Baggio']);
+        $doc4 = $type->createDocument(4, ['name' => 'Cruyff']);
+        $documents = array_map(function ($d) { $d->setDocAsUpsert(true);
+
+return $d;}, [$doc1, $doc2, $doc3, $doc4]);
+
+        //index some documents
+        $bulk = new Bulk($client);
+        $bulk->setType($type);
+        $bulk->addDocuments($documents);
+        $response = $bulk->send();
+
+        $this->assertTrue($response->isOk());
+        $this->assertFalse($response->hasError());
+
+        $index->refresh();
+
+        //test updating via document
+        $doc1 = $type->createDocument(1, ['name' => 'Maradona']);
+        $doc1->setDocAsUpsert(true);
+        $bulk = new Bulk($client);
+        $bulk->setType($type);
+        $updateAction = new UpdateDocument($doc1);
+        $bulk->addAction($updateAction);
+        $response = $bulk->send();
+
+        $this->assertTrue($response->isOk());
+        $this->assertFalse($response->hasError());
+
+        $index->refresh();
+
+        $doc = $type->getDocument(1);
+        $docData = $doc->getData();
+        $this->assertEquals('Maradona', $docData['name']);
     }
 
     /**

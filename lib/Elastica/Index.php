@@ -6,6 +6,7 @@ use Elastica\Exception\ResponseException;
 use Elastica\Index\Settings as IndexSettings;
 use Elastica\Index\Stats as IndexStats;
 use Elastica\ResultSet\BuilderInterface;
+use Elastica\Script\AbstractScript;
 use Elasticsearch\Endpoints\AbstractEndpoint;
 use Elasticsearch\Endpoints\DeleteByQuery;
 use Elasticsearch\Endpoints\Indices\Aliases\Update;
@@ -21,6 +22,7 @@ use Elasticsearch\Endpoints\Indices\Mapping\Get;
 use Elasticsearch\Endpoints\Indices\Open;
 use Elasticsearch\Endpoints\Indices\Refresh;
 use Elasticsearch\Endpoints\Indices\Settings\Put;
+use Elasticsearch\Endpoints\UpdateByQuery;
 
 /**
  * Elastica index object.
@@ -118,44 +120,73 @@ class Index implements SearchableInterface
     /**
      * Uses _bulk to send documents to the server.
      *
-     * @param array|\Elastica\Document[] $docs Array of Elastica\Document
+     * @param array|\Elastica\Document[] $docs    Array of Elastica\Document
+     * @param array                      $options Array of query params to use for query. For possible options check es api
      *
      * @return \Elastica\Bulk\ResponseSet
      *
      * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
      */
-    public function updateDocuments(array $docs)
+    public function updateDocuments(array $docs, array $options = [])
     {
         foreach ($docs as $doc) {
             $doc->setIndex($this->getName());
         }
 
-        return $this->getClient()->updateDocuments($docs);
+        return $this->getClient()->updateDocuments($docs, $options);
+    }
+
+    /**
+     * Update entries in the db based on a query.
+     *
+     * @param \Elastica\Query|string|array $query   Query object or array
+     * @param AbstractScript               $script  Script
+     * @param array                        $options Optional params
+     *
+     * @return \Elastica\Response
+     *
+     * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-update-by-query.html
+     */
+    public function updateByQuery($query, AbstractScript $script, array $options = [])
+    {
+        $query = Query::create($query)->getQuery();
+
+        $endpoint = new UpdateByQuery();
+        $body = ['query' => is_array($query)
+            ? $query
+            : $query->toArray(), ];
+
+        $body['script'] = $script->toArray()['script'];
+        $endpoint->setBody($body);
+        $endpoint->setParams($options);
+
+        return $this->requestEndpoint($endpoint);
     }
 
     /**
      * Uses _bulk to send documents to the server.
      *
-     * @param array|\Elastica\Document[] $docs Array of Elastica\Document
+     * @param array|\Elastica\Document[] $docs    Array of Elastica\Document
+     * @param array                      $options Array of query params to use for query. For possible options check es api
      *
      * @return \Elastica\Bulk\ResponseSet
      *
      * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
      */
-    public function addDocuments(array $docs)
+    public function addDocuments(array $docs, array $options = [])
     {
         foreach ($docs as $doc) {
             $doc->setIndex($this->getName());
         }
 
-        return $this->getClient()->addDocuments($docs);
+        return $this->getClient()->addDocuments($docs, $options);
     }
 
     /**
      * Deletes entries in the db based on a query.
      *
-     * @param \Elastica\Query|string|array $query   Query object or array
-     * @param array                        $options Optional params
+     * @param \Elastica\Query|\Elastica\Query\AbstractQuery|string|array $query   Query object or array
+     * @param array                                                      $options Optional params
      *
      * @return \Elastica\Response
      *

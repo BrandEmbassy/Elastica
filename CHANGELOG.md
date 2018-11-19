@@ -1,19 +1,59 @@
 # Change Log
 All notable changes to this project will be documented in this file based on the [Keep a Changelog](http://keepachangelog.com/) Standard. This project adheres to [Semantic Versioning](http://semver.org/).
 
-
-## [Unreleased](https://github.com/ruflin/Elastica/compare/6.0.0...master)
+## [Unreleased](https://github.com/ruflin/Elastica/compare/6.0.2...master)
 
 ### Backward Compatibility Breaks
 
+* Made result sets adhere to `\Iterator` interface definition that they implement. Specifically, you need to call `valid()` on the result set before calling `current()`. When using `foreach` this is done by PHP automatically. When `valid` returns false, the return value of `current` is undefined instead of false. 
+  * `\Elastica\ResultSet::next` returns `void` instead of `\Elastica\Result|false`
+  * `\Elastica\Bulk\ResponseSet::current` returns `\Elastica\Bulk\Response` instead of `\Elastica\Bulk\Response|false`
+  * `\Elastica\Multi\ResultSet::current` returns `\Elastica\ResultSet` instead of `\Elastica\ResultSet|false`
+* Aggreation\Percentiles updated to a newer version of the Algorithm (T-Digest 3.2) and Percentiles results changed a bit Have a [look at here](https://github.com/elastic/elasticsearch/pull/28305), so updated tests in order not to fail. [#1531]([#1352](https://github.com/ruflin/Elastica/pull/1531))
+
 ### Bugfixes
-- Characters "<" and ">" will be removed when a query term is passed to [`Util::escapeTerm`](https://github.com/ruflin/Elastica/pull/1415/files). Since v5.1 the [documentation](https://www.elastic.co/guide/en/elasticsearch/reference/5.1/query-dsl-query-string-query.html#_reserved_characters) states that these symbols cannot be escaped ever.
 
 ### Added
 
+* Added a transport class for mocking a HTTP 403 error codes, useful for testing response failures in inheriting clients
+* [Field](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html#function-random) param for `Elastica\Query\FunctionScore::addRandomScoreFunction`
+
 ### Improvements
 
+* Using `Elastica\Query\FunctionScore::addRandomScoreFunction` without `$field` parameter is deprecated since ES 6.0 and will fail since ES 7.0
+
 ### Deprecated
+
+
+## [6.0.2](https://github.com/ruflin/Elastica/compare/6.0.1...6.0.2)
+
+### Added
+
+* Added support for pipeline when indexing document. [#1455](https://github.com/ruflin/Elastica/pull/1455)
+* Added support for multiple bucket sort orders for aggregations. [#1480](https://github.com/ruflin/Elastica/pull/1480)
+* Added basic support for the Elasticsearch Task Api
+* Added updateByQuery endpoint. [#1499](https://github.com/ruflin/Elastica/pull/1499)
+
+### Improvements
+
+* Use `source` script field instead of deprecated (since ES 5.6) `inline` field. [#1497](https://github.com/ruflin/Elastica/pull/1497)
+* Updated Elasticsearch testing version to 6.2.4. [#1501](https://github.com/ruflin/Elastica/pull/1501)
+
+
+## [6.0.1](https://github.com/ruflin/Elastica/compare/6.0.0...6.0.1)
+
+### Bugfixes
+- Characters "<" and ">" will be removed when a query term is passed to [`Util::escapeTerm`](https://github.com/ruflin/Elastica/pull/1415/files). Since v5.1 the [documentation](https://www.elastic.co/guide/en/elasticsearch/reference/5.1/query-dsl-query-string-query.html#_reserved_characters) states that these symbols cannot be escaped ever.
+- Remove [`each()`](http://www.php.net/each) usage to fix PHP 7.2 compatibility
+- Fix [#1435](https://github.com/ruflin/Elastica/issues/1435) forcing `doc_as_upsert` to be boolean, acording [Elastic doc-update documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-update.html#_literal_doc_as_upsert_literal)
+- Fix [#1456](https://github.com/ruflin/Elastica/issues/1456) set SSL as connection scheme if it is required
+
+### Added
+
+* Added request parameters to `Client->deleteDocuments()`. [#1419](https://github.com/ruflin/Elastica/pull/1419)
+* Added request parameters to `Type->updateDocuments()`, `Type->addDocuments()`, `Type->addObjects()`, `Index->addDocuments()`, `Index->updateDocuments()`. [#1427](https://github.com/ruflin/Elastica/pull/1427)
+* Added avg_bucket() and sum_bucket() in aggregations [PR#1443](https://github.com/ruflin/Elastica/pull/1443) - (https://github.com/ruflin/Elastica/issues/1279)
+* Added support for [terms lookup mechanism](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html#query-dsl-terms-lookup) on terms query [#1452](https://github.com/ruflin/Elastica/pull/1452)
 
 
 ## [6.0.0](https://github.com/ruflin/Elastica/compare/6.0.0-beta1...6.0.0)
@@ -91,6 +131,7 @@ All notable changes to this project will be documented in this file based on the
  - Added getNumberOfReplicas() for index settings [PR#1324](https://github.com/ruflin/Elastica/pull/1324)
  - Added getNumberOfShards() for index settings [PR#1321](https://github.com/ruflin/Elastica/pull/1331)
  - Added `\Elastica\Query\Span*` for proximity searches [#304](https://github.com/ruflin/Elastica/issues/304)
+ - Added avg_bucket() and sum_bucket() in aggregations [PR#1443](https://github.com/ruflin/Elastica/pull/1443) - (https://github.com/ruflin/Elastica/issues/1279)
 
 
 ## [5.2.1](https://github.com/ruflin/Elastica/compare/5.2.0...5.2.1)

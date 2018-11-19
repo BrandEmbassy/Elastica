@@ -46,7 +46,7 @@ class ResponseSetTest extends BaseTest
             $this->assertNotEquals('AnotherExceptionMessage', $responseSet->getError());
 
             $actionExceptions = $e->getActionExceptions();
-            $this->assertEquals(2, count($actionExceptions));
+            $this->assertCount(2, $actionExceptions);
 
             $this->assertInstanceOf(ActionException::class, $actionExceptions[0]);
             $this->assertSame($actions[1], $actionExceptions[0]->getAction());
@@ -71,7 +71,7 @@ class ResponseSetTest extends BaseTest
 
         $bulkResponses = $responseSet->getBulkResponses();
         $this->assertInternalType('array', $bulkResponses);
-        $this->assertEquals(3, count($bulkResponses));
+        $this->assertCount(3, $bulkResponses);
 
         foreach ($bulkResponses as $i => $bulkResponse) {
             $this->assertInstanceOf(Bulk\Response::class, $bulkResponse);
@@ -93,7 +93,7 @@ class ResponseSetTest extends BaseTest
 
         $responseSet = $this->_createResponseSet($responseData, $actions);
 
-        $this->assertEquals(3, count($responseSet));
+        $this->assertCount(3, $responseSet);
 
         foreach ($responseSet as $i => $bulkResponse) {
             $this->assertInstanceOf(Bulk\Response::class, $bulkResponse);
@@ -106,14 +106,6 @@ class ResponseSetTest extends BaseTest
         }
 
         $this->assertFalse($responseSet->valid());
-        $this->assertNotInstanceOf(Bulk\Response::class, $responseSet->current());
-        $this->assertFalse($responseSet->current());
-
-        $responseSet->next();
-
-        $this->assertFalse($responseSet->valid());
-        $this->assertNotInstanceOf(Bulk\Response::class, $responseSet->current());
-        $this->assertFalse($responseSet->current());
 
         $responseSet->rewind();
 
@@ -126,21 +118,12 @@ class ResponseSetTest extends BaseTest
     {
         list($responseData, $actions) = $this->_getFixture();
 
-        $return = [];
-        $return[] = [$responseData, $actions, true];
+        yield [$responseData, $actions, true];
         $responseData['items'][2]['index']['ok'] = false;
-        $return[] = [$responseData, $actions, false];
-
-        return $return;
+        yield [$responseData, $actions, false];
     }
 
-    /**
-     * @param array $responseData
-     * @param array $actions
-     *
-     * @return ResponseSet
-     */
-    protected function _createResponseSet(array $responseData, array $actions)
+    protected function _createResponseSet(array $responseData, array $actions): ResponseSet
     {
         $client = $this->createMock(Client::class);
 
@@ -155,10 +138,7 @@ class ResponseSetTest extends BaseTest
         return $bulk->send();
     }
 
-    /**
-     * @return array
-     */
-    protected function _getFixture()
+    protected function _getFixture(): array
     {
         $responseData = [
             'took' => 5,
