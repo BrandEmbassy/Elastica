@@ -3,6 +3,7 @@
 namespace Elastica\Cluster;
 
 use Elastica\ClusterConfiguration;
+use PHPUnit\Framework\Assert;
 use RuntimeException;
 use function assert;
 use function current;
@@ -21,7 +22,9 @@ class ClusterConfigurationProvider
      */
     public function __construct(array $clusterConfigurations)
     {
-//        Assertion::allIsInstanceOf($clusterConfigurations, ClusterConfiguration::class);
+        foreach ($clusterConfigurations as $clusterConfiguration) {
+            Assert::assertInstanceOf(ClusterConfiguration::class, $clusterConfiguration);
+        }
         $this->clusterConfigurations = $clusterConfigurations;
     }
 
