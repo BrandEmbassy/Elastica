@@ -7,4 +7,6 @@ interface RequestCounterInterface
     public function incrementCount(): void;
 
     public function getCount(): int;
+
+    public function getId(): string;
 }

@@ -570,7 +570,7 @@ class Client
 
         if ($this->requestCounter !== null) {
             $this->requestCounter->incrementCount();
-            $requestName = sprintf('#%02d %s', $this->requestCounter->getCount(), $requestName);
+            $requestName = sprintf('ID %s #%02d %s', $this->requestCounter->getId(), $this->requestCounter->getCount(), $requestName);
         }
 
         try {
