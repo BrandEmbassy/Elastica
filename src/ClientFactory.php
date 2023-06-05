@@ -9,7 +9,7 @@ class ClientFactory
 {
     private ServerConfiguration $serverConfiguration;
 
-    private RequestCounter $requestCounter;
+    private RequestCounterInterface $requestCounter;
 
     private LoggerInterface $lazyLogger;
 
@@ -18,7 +18,7 @@ class ClientFactory
 
     public function __construct(
         ServerConfiguration $serverConfiguration,
-        RequestCounter $requestCounter,
+        RequestCounterInterface $requestCounter,
         LoggerInterface $lazyLogger,
         bool $isRequestLoggingEnabled
     ) {
