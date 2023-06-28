@@ -580,7 +580,7 @@ class Client
             $this->_logger->error(sprintf('Elastica Request Failure %s', $requestName), [
                 'tags' => $tags,
                 'exception' => $e,
-                'request' => $e->getRequest()->toArray(),
+                'request' => (string)$e->getRequest(),
                 'retry' => $this->hasConnection(),
             ]);
 
