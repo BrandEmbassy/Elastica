@@ -30,7 +30,9 @@
         "phpstan/phpstan": "^1.5",
         "phpstan/phpstan-phpunit": "^1.1",
         "phpunit/phpunit": "^8.5.8 || ^9.4",
-        "symfony/phpunit-bridge": "^6.0"
+        "symfony/phpunit-bridge": "^6.0",
+        "cweagans/composer-patches": "^1.7",
+        "symplify/vendor-patches": "^11.3"
     },
     "suggest": {
         "aws/aws-sdk-php": "Allow using IAM authentication with Amazon ElasticSearch Service",
@@ -48,8 +50,18 @@
         }
     },
     "extra": {
+        "patches": {
+            "elasticsearch/elasticsearch": [
+                "patches/elasticsearch-elasticsearch-src-elasticsearch-utility-php.patch"
+            ]
+        },
         "branch-alias": {
             "dev-master": "7.0.x-dev"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "cweagans/composer-patches": true
         }
     }
 }

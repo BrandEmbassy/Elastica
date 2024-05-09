@@ -1,0 +1,13 @@
+--- /dev/null
++++ ../src/Elasticsearch/Utility.php
+@@ -40,9 +40,6 @@
+      */
+     public static function urlencode(string $url): string
+     {
+-        $plusAsSpace = self::getEnv(self::ENV_URL_PLUS_AS_SPACE);
+-        return $plusAsSpace === false || $plusAsSpace === 'true'
+-            ? urlencode($url)
+-            : rawurlencode($url);
++        return rawurlencode($url);
+     }
+ }
