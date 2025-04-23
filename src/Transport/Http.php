@@ -45,7 +45,7 @@ class Http extends AbstractTransport
      *
      * @return Response Response object
      */
-    public function exec(Request $request, array $params): Response
+    public function exec(Request $request, array $params, int $remainingRetries = 3): Response
     {
         $connection = $this->getConnection();
 
@@ -183,7 +183,26 @@ class Http extends AbstractTransport
         }
 
         if ($errorNumber > 0) {
-            throw new HttpException($errorNumber, $request, $response);
+            $isSearch = \preg_match('/\/_search/', $requestPath) === 1;
+            $isAllowedForRetry = $isSearch || $httpMethod === 'GET';
+            if (!$isAllowedForRetry || $remainingRetries === 0) {
+                throw new HttpException($errorNumber, $request, $response);
+            }
+
+            --$remainingRetries;
+
+            Core_Registry::getContainer()->get('logger')->warning(
+                sprintf(
+                    'Retrying request because of cURL error %s, there will be %d retries remaining',
+                    $errorNumber,
+                    $remainingRetries,
+                )
+            );
+
+            // sleep for 0.5 seconds
+            usleep(5000 * 1000);
+
+            return $this->exec($request, $params, $remainingRetries);
         }
 
         return $response;
