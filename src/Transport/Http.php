@@ -182,10 +182,14 @@ class Http extends AbstractTransport
             throw new PartialShardFailureException($request, $response);
         }
 
+        // TODO: It can be tested on local like this:
+        // $errorNumber = 1;
         if ($errorNumber > 0) {
+            $isRetryFeatureEnabled = Core_Registry::getContainer()->getParameters()['isElasticaTransportRetryEnabled'] ?? false;
+            $isRetryFeatureEnabled = filter_var($isRetryFeatureEnabled, FILTER_VALIDATE_BOOL);
             $isSearch = \preg_match('/\/_search/', $requestPath) === 1;
             $isAllowedForRetry = $isSearch || $httpMethod === 'GET';
-            if (!$isAllowedForRetry || $remainingRetries === 0) {
+            if (!$isRetryFeatureEnabled || !$isAllowedForRetry || $remainingRetries === 0) {
                 throw new HttpException($errorNumber, $request, $response);
             }
 
