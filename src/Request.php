@@ -5,6 +5,7 @@ namespace Elastica;
 use Elastica\Exception\ConnectionException;
 use Elastica\Exception\InvalidException;
 use Elastica\Exception\ResponseException;
+use Psr\Log\LoggerInterface;
 
 /**
  * Elastica Request object.
@@ -175,9 +176,9 @@ class Request extends Param
      * @throws ResponseException
      * @throws ConnectionException
      */
-    public function send(): Response
+    public function send(LoggerInterface $logger): Response
     {
-        $transport = $this->getConnection()->getTransportObject();
+        $transport = $this->getConnection()->getTransportObject($logger);
 
         // Refactor: Not full toArray needed in exec?
         return $transport->exec($this, $this->getConnection()->toArray());

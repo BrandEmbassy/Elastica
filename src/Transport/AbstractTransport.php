@@ -9,6 +9,7 @@ use Elastica\Exception\ResponseException;
 use Elastica\Param;
 use Elastica\Request;
 use Elastica\Response;
+use Psr\Log\LoggerInterface;
 
 /**
  * Elastica Abstract Transport object.
@@ -23,12 +24,20 @@ abstract class AbstractTransport extends Param
     protected $_connection;
 
     /**
+     * @var LoggerInterface
+     */
+    protected $_logger;
+
+    /**
      * Construct transport.
      */
-    public function __construct(?Connection $connection = null)
+    public function __construct(LoggerInterface $logger, ?Connection $connection = null)
     {
         if ($connection) {
             $this->setConnection($connection);
+        }
+        if ($logger) {
+            $this->setLogger($logger);
         }
     }
 
@@ -43,6 +52,21 @@ abstract class AbstractTransport extends Param
     public function setConnection(Connection $connection): AbstractTransport
     {
         $this->_connection = $connection;
+
+        return $this;
+    }
+
+    public function getLogger(): LoggerInterface
+    {
+        return $this->_logger;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger): AbstractTransport
+    {
+        $this->_logger = $logger;
 
         return $this;
     }
@@ -93,7 +117,7 @@ abstract class AbstractTransport extends Param
      *
      * @throws InvalidException
      */
-    public static function create($transport, Connection $connection, array $params = []): AbstractTransport
+    public static function create($transport, Connection $connection, array $params = [], LoggerInterface $logger = null): AbstractTransport
     {
         if (\is_array($transport) && isset($transport['type'])) {
             $transportParams = $transport;
@@ -113,7 +137,11 @@ abstract class AbstractTransport extends Param
             $classNames = ["Elastica\\Transport\\{$transport}", $transport];
             foreach ($classNames as $className) {
                 if (\class_exists($className)) {
-                    $transport = new $className();
+                    if ($transport === 'Http') {
+                        $transport = new $className($logger, $connection);
+                    } else {
+                        $transport = new $className();
+                    }
                     break;
                 }
             }
