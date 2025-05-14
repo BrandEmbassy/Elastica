@@ -254,7 +254,7 @@ class Connection extends Param
     {
         $transport = $this->getTransport();
 
-        return AbstractTransport::create($transport, $this, [], $logger = new NullLogger());
+        return AbstractTransport::create($transport, $this, [], $logger);
     }
 
     /**
