@@ -176,9 +176,9 @@ class Request extends Param
      * @throws ResponseException
      * @throws ConnectionException
      */
-    public function send(LoggerInterface $logger): Response
+    public function send(LoggerInterface $logger, bool $isRetryFeatureEnabled): Response
     {
-        $transport = $this->getConnection()->getTransportObject($logger);
+        $transport = $this->getConnection()->getTransportObject($logger, $isRetryFeatureEnabled);
 
         // Refactor: Not full toArray needed in exec?
         return $transport->exec($this, $this->getConnection()->toArray());

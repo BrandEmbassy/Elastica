@@ -31,7 +31,7 @@ abstract class AbstractTransport extends Param
     /**
      * Construct transport.
      */
-    public function __construct(LoggerInterface $logger, ?Connection $connection = null)
+    public function __construct(LoggerInterface $logger, bool $isRetryFeatureEnabled, ?Connection $connection = null)
     {
         if ($connection) {
             $this->setConnection($connection);
@@ -39,6 +39,7 @@ abstract class AbstractTransport extends Param
         if ($logger) {
             $this->setLogger($logger);
         }
+        $this->setParam('isRetryFeatureEnabled', $isRetryFeatureEnabled);
     }
 
     public function getConnection(): Connection
@@ -117,7 +118,7 @@ abstract class AbstractTransport extends Param
      *
      * @throws InvalidException
      */
-    public static function create($transport, Connection $connection, array $params = [], LoggerInterface $logger = null): AbstractTransport
+    public static function create($transport, Connection $connection, array $params = [], LoggerInterface $logger = null, bool $isRetryFeatureEnabled = false): AbstractTransport
     {
         if (\is_array($transport) && isset($transport['type'])) {
             $transportParams = $transport;
@@ -138,7 +139,7 @@ abstract class AbstractTransport extends Param
             foreach ($classNames as $className) {
                 if (\class_exists($className)) {
                     if ($transport === 'Http') {
-                        $transport = new $className($logger, $connection);
+                        $transport = new $className($logger, $isRetryFeatureEnabled, $connection);
                     } else {
                         $transport = new $className();
                     }

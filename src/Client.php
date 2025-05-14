@@ -578,7 +578,7 @@ class Client
         }
 
         try {
-            $response = $this->_lastResponse = $request->send($this->_logger);
+            $response = $this->_lastResponse = $request->send($this->_logger, $this->isRetryFeatureEnabled);
         } catch (ConnectionException $e) {
             $this->_connectionPool->onFail($connection, $e, $this);
             $this->_logger->error(sprintf('Elastica Request Failure %s', $requestName), [

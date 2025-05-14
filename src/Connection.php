@@ -250,11 +250,11 @@ class Connection extends Param
      *
      * @return AbstractTransport Transport object
      */
-    public function getTransportObject(LoggerInterface $logger)
+    public function getTransportObject(LoggerInterface $logger, bool $isRetryFeatureEnabled)
     {
         $transport = $this->getTransport();
 
-        return AbstractTransport::create($transport, $this, [], $logger);
+        return AbstractTransport::create($transport, $this, [], $logger, $isRetryFeatureEnabled);
     }
 
     /**

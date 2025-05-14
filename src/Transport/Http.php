@@ -185,12 +185,15 @@ class Http extends AbstractTransport
         // TODO: can be tested on local by forcing error here:
 //         $errorNumber = 1;
         if ($errorNumber > 0) {
-            if ($remainingRetries === 0) {
+            $isRetryFeatureEnabled = $this->getParam('isRetryFeatureEnabled');
+            $logger = $this->getLogger();
+
+            if (!$isRetryFeatureEnabled || $remainingRetries === 0) {
                 throw new HttpException($errorNumber, $request, $response);
             }
             --$remainingRetries;
 
-            $this->getLogger()->warning(
+            $logger->warning(
                 sprintf(
                 'Retrying request because of cURL error %s. Remaining retries: %d',
                     $errorNumber,
