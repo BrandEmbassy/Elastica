@@ -45,7 +45,7 @@ class Http extends AbstractTransport
      *
      * @return Response Response object
      */
-    public function exec(Request $request, array $params): Response
+    public function exec(Request $request, array $params, int $remainingRetries = 3): Response
     {
         $connection = $this->getConnection();
 
@@ -182,8 +182,25 @@ class Http extends AbstractTransport
             throw new PartialShardFailureException($request, $response);
         }
 
+        // TODO: can be tested on local by forcing error here:
+//         $errorNumber = 1;
         if ($errorNumber > 0) {
-            throw new HttpException($errorNumber, $request, $response);
+            if ($remainingRetries === 0) {
+                throw new HttpException($errorNumber, $request, $response);
+            }
+            --$remainingRetries;
+
+            $this->getLogger()->warning(
+                sprintf(
+                'Retrying request because of cURL error %s. Remaining retries: %d',
+                    $errorNumber,
+                    $remainingRetries,
+                ));
+
+            // sleep for 0.5 seconds
+            usleep(.5 * 1000000);
+
+            return $this->exec($request, $params, $remainingRetries);
         }
 
         return $response;
