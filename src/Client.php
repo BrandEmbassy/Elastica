@@ -76,6 +76,8 @@ class Client
 
     private int $loggingMode = self::LOG_BASIC;
 
+    private bool $isRetryFeatureEnabled;
+
 
     /**
      * Creates a new Elastica client.
@@ -89,7 +91,8 @@ class Client
         array $config = [],
         $callback = null,
         LoggerInterface $logger = null,
-        RequestCounterInterface $requestCounter = null
+        RequestCounterInterface $requestCounter = null,
+        bool $isRetryFeatureEnabled = false
     ) {
         if (\is_string($config)) {
             $configuration = ClientConfiguration::fromDsn($config);
@@ -103,6 +106,7 @@ class Client
         $this->_callback = $callback;
         $this->_logger = $logger ?? new NullLogger();
         $this->requestCounter = $requestCounter;
+        $this->isRetryFeatureEnabled = $isRetryFeatureEnabled;
 
         $this->_initConnections();
     }
