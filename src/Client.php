@@ -104,7 +104,7 @@ class Client
 
         $this->_config = $configuration;
         $this->_callback = $callback;
-        $this->logger = $logger ?? new NullLogger();
+        $this->setLogger($logger ?? new NullLogger());
         $this->requestCounter = $requestCounter;
         $this->isRetryFeatureEnabled = $isRetryFeatureEnabled;
 
