@@ -182,17 +182,17 @@ class Http extends AbstractTransport
             throw new PartialShardFailureException($request, $response);
         }
 
-        // TODO: can be tested on local by forcing error here:
-//         $errorNumber = 1;
         if ($errorNumber > 0) {
             $isRetryFeatureEnabled = $this->getParam('isRetryFeatureEnabled');
-            $logger = $this->getLogger();
+            $isSearch = preg_match('/\/_search/', $requestPath) === 1;
+            $isAllowedForRetry = $isSearch || $httpMethod === 'GET';
 
-            if (!$isRetryFeatureEnabled || $remainingRetries === 0) {
+            if (!$isRetryFeatureEnabled || !$isAllowedForRetry || $remainingRetries === 0) {
                 throw new HttpException($errorNumber, $request, $response);
             }
             --$remainingRetries;
 
+            $logger = $this->getLogger();
             $logger->warning(
                 sprintf(
                 'Retrying request because of cURL error %s. Remaining retries: %d',

@@ -118,7 +118,7 @@ abstract class AbstractTransport extends Param
      *
      * @throws InvalidException
      */
-    public static function create($transport, Connection $connection, array $params = [], LoggerInterface $logger = null, bool $isRetryFeatureEnabled = false): AbstractTransport
+    public static function create($transport, Connection $connection, array $params = [], ?LoggerInterface $logger = null, bool $isRetryFeatureEnabled = false): AbstractTransport
     {
         if (\is_array($transport) && isset($transport['type'])) {
             $transportParams = $transport;
