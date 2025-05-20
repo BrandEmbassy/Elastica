@@ -254,7 +254,7 @@ class Connection extends Param
     {
         $transport = $this->getTransport();
 
-        return AbstractTransport::create($transport, $this, [], $logger, $isRetryFeatureEnabled);
+        return AbstractTransport::create(transport: $transport, connection: $this, logger: $logger, isRetryFeatureEnabled: $isRetryFeatureEnabled);
     }
 
     /**

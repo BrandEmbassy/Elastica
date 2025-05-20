@@ -10,6 +10,7 @@ use Elastica\Param;
 use Elastica\Request;
 use Elastica\Response;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Elastica Abstract Transport object.
@@ -26,19 +27,17 @@ abstract class AbstractTransport extends Param
     /**
      * @var LoggerInterface
      */
-    protected $_logger;
+    protected $logger;
 
     /**
      * Construct transport.
      */
-    public function __construct(LoggerInterface $logger, bool $isRetryFeatureEnabled, ?Connection $connection = null)
+    public function __construct(?Connection $connection = null, ?LoggerInterface $logger = null, bool $isRetryFeatureEnabled = false)
     {
         if ($connection) {
             $this->setConnection($connection);
         }
-        if ($logger) {
-            $this->setLogger($logger);
-        }
+        $this->setLogger($logger ?? new NullLogger());
         $this->setParam('isRetryFeatureEnabled', $isRetryFeatureEnabled);
     }
 
@@ -59,7 +58,7 @@ abstract class AbstractTransport extends Param
 
     public function getLogger(): LoggerInterface
     {
-        return $this->_logger;
+        return $this->logger;
     }
 
     /**
@@ -67,7 +66,7 @@ abstract class AbstractTransport extends Param
      */
     public function setLogger(LoggerInterface $logger): AbstractTransport
     {
-        $this->_logger = $logger;
+        $this->logger = $logger;
 
         return $this;
     }
@@ -139,7 +138,7 @@ abstract class AbstractTransport extends Param
             foreach ($classNames as $className) {
                 if (\class_exists($className)) {
                     if ($transport === 'Http') {
-                        $transport = new $className($logger, $isRetryFeatureEnabled, $connection);
+                        $transport = new $className($connection, $logger, $isRetryFeatureEnabled);
                     } else {
                         $transport = new $className();
                     }
