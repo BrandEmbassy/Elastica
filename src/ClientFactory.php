@@ -15,17 +15,21 @@ class ClientFactory
 
     private bool $isRequestLoggingEnabled;
 
+    private bool $isRetryFeatureEnabled;
+
 
     public function __construct(
         ServerConfiguration $serverConfiguration,
         RequestCounterInterface $requestCounter,
         LoggerInterface $lazyLogger,
-        bool $isRequestLoggingEnabled
+        bool $isRequestLoggingEnabled,
+        bool $isRetryFeatureEnabled
     ) {
         $this->serverConfiguration = $serverConfiguration;
         $this->requestCounter = $requestCounter;
         $this->lazyLogger = $lazyLogger;
         $this->isRequestLoggingEnabled = $isRequestLoggingEnabled;
+        $this->isRetryFeatureEnabled = $isRetryFeatureEnabled;
     }
 
 
@@ -49,6 +53,7 @@ class ClientFactory
             null,
             null,
             $withRequestCounter ? $this->requestCounter : null,
+            $this->isRetryFeatureEnabled
         );
 
         $client->setLoggingMode($loggingMode);

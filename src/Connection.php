@@ -4,6 +4,8 @@ namespace Elastica;
 
 use Elastica\Exception\InvalidException;
 use Elastica\Transport\AbstractTransport;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Elastica connection instance to an elasticasearch node.
@@ -248,11 +250,11 @@ class Connection extends Param
      *
      * @return AbstractTransport Transport object
      */
-    public function getTransportObject()
+    public function getTransportObject(LoggerInterface $logger, bool $isRetryFeatureEnabled)
     {
         $transport = $this->getTransport();
 
-        return AbstractTransport::create($transport, $this);
+        return AbstractTransport::create(transport: $transport, connection: $this, logger: $logger, isRetryFeatureEnabled: $isRetryFeatureEnabled);
     }
 
     /**

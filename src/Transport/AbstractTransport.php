@@ -9,6 +9,8 @@ use Elastica\Exception\ResponseException;
 use Elastica\Param;
 use Elastica\Request;
 use Elastica\Response;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Elastica Abstract Transport object.
@@ -23,13 +25,20 @@ abstract class AbstractTransport extends Param
     protected $_connection;
 
     /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * Construct transport.
      */
-    public function __construct(?Connection $connection = null)
+    public function __construct(?Connection $connection = null, ?LoggerInterface $logger = null, bool $isRetryFeatureEnabled = false)
     {
         if ($connection) {
             $this->setConnection($connection);
         }
+        $this->setLogger($logger ?? new NullLogger());
+        $this->setParam('isRetryFeatureEnabled', $isRetryFeatureEnabled);
     }
 
     public function getConnection(): Connection
@@ -43,6 +52,21 @@ abstract class AbstractTransport extends Param
     public function setConnection(Connection $connection): AbstractTransport
     {
         $this->_connection = $connection;
+
+        return $this;
+    }
+
+    public function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger): AbstractTransport
+    {
+        $this->logger = $logger;
 
         return $this;
     }
@@ -93,7 +117,7 @@ abstract class AbstractTransport extends Param
      *
      * @throws InvalidException
      */
-    public static function create($transport, Connection $connection, array $params = []): AbstractTransport
+    public static function create($transport, Connection $connection, array $params = [], ?LoggerInterface $logger = null, bool $isRetryFeatureEnabled = false): AbstractTransport
     {
         if (\is_array($transport) && isset($transport['type'])) {
             $transportParams = $transport;
@@ -113,7 +137,11 @@ abstract class AbstractTransport extends Param
             $classNames = ["Elastica\\Transport\\{$transport}", $transport];
             foreach ($classNames as $className) {
                 if (\class_exists($className)) {
-                    $transport = new $className();
+                    if ($transport === 'Https' || $transport === 'Http') {
+                        $transport = new $className($connection, $logger, $isRetryFeatureEnabled);
+                    } else {
+                        $transport = new $className();
+                    }
                     break;
                 }
             }

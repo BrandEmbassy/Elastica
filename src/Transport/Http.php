@@ -45,7 +45,7 @@ class Http extends AbstractTransport
      *
      * @return Response Response object
      */
-    public function exec(Request $request, array $params): Response
+    public function exec(Request $request, array $params, int $remainingRetries = 3): Response
     {
         $connection = $this->getConnection();
 
@@ -183,7 +183,27 @@ class Http extends AbstractTransport
         }
 
         if ($errorNumber > 0) {
-            throw new HttpException($errorNumber, $request, $response);
+            $isRetryFeatureEnabled = $this->getParam('isRetryFeatureEnabled');
+            $isSearch = preg_match('/\/_search/', $requestPath) === 1;
+            $isAllowedForRetry = $isSearch || $httpMethod === 'GET';
+
+            if (!$isRetryFeatureEnabled || !$isAllowedForRetry || $remainingRetries === 0) {
+                throw new HttpException($errorNumber, $request, $response);
+            }
+            --$remainingRetries;
+
+            $logger = $this->getLogger();
+            $logger->warning(
+                sprintf(
+                'Retrying request because of cURL error %s. Remaining retries: %d',
+                    $errorNumber,
+                    $remainingRetries,
+                ));
+
+            // sleep for 0.5 seconds
+            usleep(.5 * 1000000);
+
+            return $this->exec($request, $params, $remainingRetries);
         }
 
         return $response;

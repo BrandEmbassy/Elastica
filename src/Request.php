@@ -5,6 +5,8 @@ namespace Elastica;
 use Elastica\Exception\ConnectionException;
 use Elastica\Exception\InvalidException;
 use Elastica\Exception\ResponseException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Elastica Request object.
@@ -26,6 +28,9 @@ class Request extends Param
      */
     protected $_connection;
 
+    protected LoggerInterface $logger;
+    private bool $isRetryFeatureEnabled;
+
     /**
      * Construct.
      *
@@ -35,7 +40,7 @@ class Request extends Param
      * @param array        $query       OPTIONAL Query params
      * @param string       $contentType Content-Type sent with this request
      */
-    public function __construct(string $path, string $method = self::GET, $data = [], array $query = [], ?Connection $connection = null, string $contentType = self::DEFAULT_CONTENT_TYPE)
+    public function __construct(string $path, string $method = self::GET, $data = [], array $query = [], ?Connection $connection = null, string $contentType = self::DEFAULT_CONTENT_TYPE, ?LoggerInterface $logger = null, bool $isRetryFeatureEnabled = false)
     {
         $this->setPath($path);
         $this->setMethod($method);
@@ -46,6 +51,9 @@ class Request extends Param
             $this->setConnection($connection);
         }
         $this->setContentType($contentType);
+        $logger = $logger ?? new NullLogger();
+        $this->setLogger($logger);
+        $this->isRetryFeatureEnabled = $isRetryFeatureEnabled;
     }
 
     public function __toString(): string
@@ -169,6 +177,13 @@ class Request extends Param
         return $this->getParam('contentType');
     }
 
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
+
     /**
      * Sends request to server.
      *
@@ -177,7 +192,7 @@ class Request extends Param
      */
     public function send(): Response
     {
-        $transport = $this->getConnection()->getTransportObject();
+        $transport = $this->getConnection()->getTransportObject($this->logger, $this->isRetryFeatureEnabled);
 
         // Refactor: Not full toArray needed in exec?
         return $transport->exec($this, $this->getConnection()->toArray());

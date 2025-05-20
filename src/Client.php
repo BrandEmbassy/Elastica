@@ -61,7 +61,7 @@ class Client
     /**
      * @var LoggerInterface
      */
-    protected $_logger;
+    protected LoggerInterface $logger;
 
     /**
      * @var string
@@ -76,6 +76,8 @@ class Client
 
     private int $loggingMode = self::LOG_BASIC;
 
+    private bool $isRetryFeatureEnabled;
+
 
     /**
      * Creates a new Elastica client.
@@ -89,7 +91,8 @@ class Client
         array $config = [],
         $callback = null,
         LoggerInterface $logger = null,
-        RequestCounterInterface $requestCounter = null
+        RequestCounterInterface $requestCounter = null,
+        bool $isRetryFeatureEnabled = false
     ) {
         if (\is_string($config)) {
             $configuration = ClientConfiguration::fromDsn($config);
@@ -101,8 +104,9 @@ class Client
 
         $this->_config = $configuration;
         $this->_callback = $callback;
-        $this->_logger = $logger ?? new NullLogger();
+        $this->setLogger($logger ?? new NullLogger());
         $this->requestCounter = $requestCounter;
+        $this->isRetryFeatureEnabled = $isRetryFeatureEnabled;
 
         $this->_initConnections();
     }
@@ -563,7 +567,7 @@ class Client
     public function request(string $path, string $method = Request::GET, $data = [], array $query = [], string $contentType = Request::DEFAULT_CONTENT_TYPE, array $tags = []): Response
     {
         $connection = $this->getConnection();
-        $request = $this->_lastRequest = new Request($path, $method, $data, $query, $connection, $contentType);
+        $request = $this->_lastRequest = new Request($path, $method, $data, $query, $connection, $contentType, $this->logger, $this->isRetryFeatureEnabled);
         $this->_lastResponse = null;
 
         $requestName = sprintf('[%s]', $tags === [] ? 'untagged' : implode('.', $tags));
@@ -577,7 +581,7 @@ class Client
             $response = $this->_lastResponse = $request->send();
         } catch (ConnectionException $e) {
             $this->_connectionPool->onFail($connection, $e, $this);
-            $this->_logger->error(sprintf('Elastica Request Failure %s', $requestName), [
+            $this->logger->error(sprintf('Elastica Request Failure %s', $requestName), [
                 'tags' => $tags,
                 'exception' => $e,
                 'request' => (string)$e->getRequest(),
@@ -608,7 +612,7 @@ class Client
                 $context['response'] = $response->getData();
             }
 
-            $this->_logger->debug(
+            $this->logger->debug(
                 sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
                 $context
             );
@@ -704,7 +708,7 @@ class Client
      */
     public function setLogger(LoggerInterface $logger)
     {
-        $this->_logger = $logger;
+        $this->logger = $logger;
 
         return $this;
     }
