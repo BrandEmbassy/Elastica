@@ -145,10 +145,8 @@ class Client
         return $this->loggingMode & self::LOG_SLOW_REQUESTS;
     }
 
-    private function isSlowRequest(Response $response): bool
+    private function isSlow(int $elapsedTimeMs): bool
     {
-        $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
-
         return $elapsedTimeMs > $this->slowRequestThresholdMs;
     }
 
@@ -673,13 +671,13 @@ class Client
             return $this->request($path, $method, $data, $query);
         }
 
-        if ($this->shouldLogSlowRequests() && $this->isSlowRequest($response)) {
-            $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
+        $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
+
+        if ($this->shouldLogSlowRequests() && $this->isSlow($elapsedTimeMs)) {
             $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
         }
 
         if ($this->shouldLog()) {
-            $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
             $this->logRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
         }
 
