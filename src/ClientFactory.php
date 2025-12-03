@@ -26,7 +26,7 @@ class ClientFactory
         LoggerInterface $lazyLogger,
         bool $isRequestLoggingEnabled,
         bool $isRetryFeatureEnabled,
-        int $slowRequestThresholdMs = 500
+        int $slowRequestThresholdMs = Client::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS
     ) {
         $this->serverConfiguration = $serverConfiguration;
         $this->requestCounter = $requestCounter;

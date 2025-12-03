@@ -35,6 +35,8 @@ class Client
 
     public const LOG_SLOW_REQUESTS = 0b1000;
 
+    public const DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS = 500;
+
     /**
      * @var ClientConfiguration
      */
@@ -80,7 +82,7 @@ class Client
 
     private bool $isRetryFeatureEnabled;
 
-    private int $slowRequestThresholdMs = 500;
+    private int $slowRequestThresholdMs;
 
 
     /**
@@ -98,7 +100,7 @@ class Client
         LoggerInterface $logger = null,
         RequestCounterInterface $requestCounter = null,
         bool $isRetryFeatureEnabled = false,
-        int $slowRequestThresholdMs = 500
+        int $slowRequestThresholdMs = self::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS
     ) {
         if (\is_string($config)) {
             $configuration = ClientConfiguration::fromDsn($config);
@@ -141,6 +143,62 @@ class Client
     public function shouldLogSlowRequests(): bool
     {
         return $this->loggingMode & self::LOG_SLOW_REQUESTS;
+    }
+
+    private function logSlowRequest(
+        string $method,
+        string $path,
+        string $requestName,
+        int $elapsedTimeMs,
+        Request $request,
+        Response $response,
+        array $tags
+    ): void {
+        $context = [
+            'tags' => $tags,
+            'responseStatus' => $response->getStatus(),
+            'execution_time' => $elapsedTimeMs,
+            'request' => $request->toArray(),
+            'exception' => new \RuntimeException('slow query'),
+        ];
+
+        if ($this->shouldLogResponseBody()) {
+            $context['response'] = $response->getData();
+        }
+
+        $this->logger->warning(
+            sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            $context
+        );
+    }
+
+    private function logRequest(
+        string $method,
+        string $path,
+        string $requestName,
+        int $elapsedTimeMs,
+        Request $request,
+        Response $response,
+        array $tags
+    ): void {
+        $context = [
+            'tags' => $tags,
+            'responseStatus' => $response->getStatus(),
+            'execution_time' => $elapsedTimeMs,
+        ];
+
+        if ($this->shouldLogRequestBody()) {
+            $context['request'] = $request->toArray();
+        }
+
+        if ($this->shouldLogResponseBody()) {
+            $context['response'] = $response->getData();
+        }
+
+        $this->logger->debug(
+            sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            $context
+        );
     }
 
     /**
@@ -610,40 +668,20 @@ class Client
 
         $shouldLogSlowRequests = $this->shouldLogSlowRequests();
 
-        if ($this->shouldLog() || $shouldLogSlowRequests) {
-            $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
-            $isSlowRequest = $shouldLogSlowRequests && $elapsedTimeMs > $this->slowRequestThresholdMs;
-
-            $context = [
-                'tags' => $tags,
-                'responseStatus' => $response->getStatus(),
-                'execution_time' => $elapsedTimeMs,
-            ];
-
-            // For slow requests, always log request body and add call stack
-            if ($isSlowRequest) {
-                $context['request'] = $request->toArray();
-                $context['exception'] = new \RuntimeException('slow query');
-            } elseif ($this->shouldLogRequestBody()) {
-                $context['request'] = $request->toArray();
-            }
-
-            if ($this->shouldLogResponseBody()) {
-                $context['response'] = $response->getData();
-            }
-
-            if ($isSlowRequest) {
-                $this->logger->warning(
-                    sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
-                    $context
-                );
-            } else {
-                $this->logger->debug(
-                    sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
-                    $context
-                );
-            }
+        if (!$this->shouldLog() && !$shouldLogSlowRequests) {
+            return $response;
         }
+
+        $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
+        $isSlowRequest = $shouldLogSlowRequests && $elapsedTimeMs > $this->slowRequestThresholdMs;
+
+        if ($isSlowRequest) {
+            $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
+
+            return $response;
+        }
+
+        $this->logRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
 
         return $response;
     }
