@@ -675,6 +675,8 @@ class Client
 
         if ($this->shouldLogSlowRequests() && $this->isSlow($elapsedTimeMs)) {
             $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
+
+            return $response;
         }
 
         if ($this->shouldLog()) {
