@@ -17,19 +17,23 @@ class ClientFactory
 
     private bool $isRetryFeatureEnabled;
 
+    private int $slowRequestThresholdMs;
+
 
     public function __construct(
         ServerConfiguration $serverConfiguration,
         RequestCounterInterface $requestCounter,
         LoggerInterface $lazyLogger,
         bool $isRequestLoggingEnabled,
-        bool $isRetryFeatureEnabled
+        bool $isRetryFeatureEnabled,
+        int $slowRequestThresholdMs = 500
     ) {
         $this->serverConfiguration = $serverConfiguration;
         $this->requestCounter = $requestCounter;
         $this->lazyLogger = $lazyLogger;
         $this->isRequestLoggingEnabled = $isRequestLoggingEnabled;
         $this->isRetryFeatureEnabled = $isRetryFeatureEnabled;
+        $this->slowRequestThresholdMs = $slowRequestThresholdMs;
     }
 
 
@@ -53,7 +57,8 @@ class ClientFactory
             null,
             null,
             $withRequestCounter ? $this->requestCounter : null,
-            $this->isRetryFeatureEnabled
+            $this->isRetryFeatureEnabled,
+            $this->slowRequestThresholdMs
         );
 
         $client->setLoggingMode($loggingMode);
