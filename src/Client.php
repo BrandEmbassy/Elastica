@@ -608,9 +608,11 @@ class Client
             return $this->request($path, $method, $data, $query);
         }
 
-        if ($this->shouldLog()) {
+        $shouldLogSlowRequests = $this->shouldLogSlowRequests();
+
+        if ($this->shouldLog() || $shouldLogSlowRequests) {
             $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
-            $isSlowRequest = $this->shouldLogSlowRequests() && $elapsedTimeMs > $this->slowRequestThresholdMs;
+            $isSlowRequest = $shouldLogSlowRequests && $elapsedTimeMs > $this->slowRequestThresholdMs;
 
             $context = [
                 'tags' => $tags,
