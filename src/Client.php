@@ -33,6 +33,10 @@ class Client
 
     public const LOG_RESPONSE_BODY = 0b0100;
 
+    public const LOG_SLOW_REQUESTS = 0b1000;
+
+    public const DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS = 500;
+
     /**
      * @var ClientConfiguration
      */
@@ -78,12 +82,15 @@ class Client
 
     private bool $isRetryFeatureEnabled;
 
+    private int $slowRequestThresholdMs;
+
 
     /**
      * Creates a new Elastica client.
      *
      * @param array|string  $config   OPTIONAL Additional config or DSN of options
      * @param callable|null $callback OPTIONAL Callback function which can be used to be notified about errors (for example connection down)
+     * @param int           $slowRequestThresholdMs OPTIONAL Threshold in milliseconds for slow request logging (default: 500)
      *
      * @throws InvalidException
      */
@@ -92,7 +99,8 @@ class Client
         $callback = null,
         LoggerInterface $logger = null,
         RequestCounterInterface $requestCounter = null,
-        bool $isRetryFeatureEnabled = false
+        bool $isRetryFeatureEnabled = false,
+        int $slowRequestThresholdMs = self::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS
     ) {
         if (\is_string($config)) {
             $configuration = ClientConfiguration::fromDsn($config);
@@ -107,6 +115,7 @@ class Client
         $this->setLogger($logger ?? new NullLogger());
         $this->requestCounter = $requestCounter;
         $this->isRetryFeatureEnabled = $isRetryFeatureEnabled;
+        $this->slowRequestThresholdMs = $slowRequestThresholdMs;
 
         $this->_initConnections();
     }
@@ -129,6 +138,72 @@ class Client
     public function shouldLogResponseBody(): bool
     {
         return $this->loggingMode & self::LOG_RESPONSE_BODY;
+    }
+
+    public function shouldLogSlowRequests(): bool
+    {
+        return $this->loggingMode & self::LOG_SLOW_REQUESTS;
+    }
+
+    private function isSlow(int $elapsedTimeMs): bool
+    {
+        return $elapsedTimeMs > $this->slowRequestThresholdMs;
+    }
+
+    private function logSlowRequest(
+        string $method,
+        string $path,
+        string $requestName,
+        int $elapsedTimeMs,
+        Request $request,
+        Response $response,
+        array $tags
+    ): void {
+        $context = [
+            'tags' => $tags,
+            'responseStatus' => $response->getStatus(),
+            'execution_time' => $elapsedTimeMs,
+            'request' => $request->toArray(),
+            'exception' => new \RuntimeException('slow query'),
+        ];
+
+        if ($this->shouldLogResponseBody()) {
+            $context['response'] = $response->getData();
+        }
+
+        $this->logger->warning(
+            sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            $context
+        );
+    }
+
+    private function logRequest(
+        string $method,
+        string $path,
+        string $requestName,
+        int $elapsedTimeMs,
+        Request $request,
+        Response $response,
+        array $tags
+    ): void {
+        $context = [
+            'tags' => $tags,
+            'responseStatus' => $response->getStatus(),
+            'execution_time' => $elapsedTimeMs,
+        ];
+
+        if ($this->shouldLogRequestBody()) {
+            $context['request'] = $request->toArray();
+        }
+
+        if ($this->shouldLogResponseBody()) {
+            $context['response'] = $response->getData();
+        }
+
+        $this->logger->debug(
+            sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            $context
+        );
     }
 
     /**
@@ -596,26 +671,16 @@ class Client
             return $this->request($path, $method, $data, $query);
         }
 
+        $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
+
+        if ($this->shouldLogSlowRequests() && $this->isSlow($elapsedTimeMs)) {
+            $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
+
+            return $response;
+        }
+
         if ($this->shouldLog()) {
-            $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
-            $context = [
-                'tags' => $tags,
-                'responseStatus' => $response->getStatus(),
-                'execution_time' => $elapsedTimeMs,
-            ];
-
-            if ($this->shouldLogRequestBody()) {
-                $context['request'] = $request->toArray();
-            }
-
-            if ($this->shouldLogResponseBody()) {
-                $context['response'] = $response->getData();
-            }
-
-            $this->logger->debug(
-                sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
-                $context
-            );
+            $this->logRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
         }
 
         return $response;
