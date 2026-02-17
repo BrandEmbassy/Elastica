@@ -12,13 +12,15 @@ class ClusterConfiguration
 
     private int $port;
 
-    private ?string $transport = null;
+    private ?string $transport;
 
-    private ?string $username = null;
+    private ?string $username;
 
-    private ?string $password = null;
+    private ?string $password;
 
-    private ?string $authType = null;
+    private ?string $authType;
+
+    private ?string $dataType;
 
     private ElasticSearchVersion $version;
 
@@ -31,7 +33,8 @@ class ClusterConfiguration
         ?string $transport = null,
         ?string $username = null,
         ?string $password = null,
-        ?string $authType = null
+        ?string $authType = null,
+        ?string $dataType = null
     ) {
         $this->id = $id;
         $this->host = $host;
@@ -41,6 +44,7 @@ class ClusterConfiguration
         $this->username = $username;
         $this->password = $password;
         $this->authType = $authType;
+        $this->dataType = $dataType;
     }
 
 
@@ -89,5 +93,11 @@ class ClusterConfiguration
     public function getAuthType(): ?string
     {
         return $this->authType;
+    }
+
+
+    public function getDataType(): ?string
+    {
+        return $this->dataType;
     }
 }
