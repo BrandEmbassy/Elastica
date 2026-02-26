@@ -2,10 +2,12 @@
 
 namespace Elastica\Test\Bulk\Action;
 
-use Elastica\Bulk\Action\UpdateDocument;
+use Elastica\ApiVersion;
+use Elastica\Bulk\Action\AbstractDocument;
 use Elastica\Document;
 use Elastica\Index;
 use Elastica\Test\Base as BaseTest;
+use Elastica\Type;
 
 /**
  * @internal
@@ -18,7 +20,12 @@ class UpdateDocumentTest extends BaseTest
     public function testUpdateDocument(): void
     {
         $document = new Document(null, ['foo' => 'bar']);
-        $action = new UpdateDocument($document);
+        $action = AbstractDocument::create(
+            $document,
+            AbstractDocument::OP_TYPE_UPDATE,
+            ApiVersion::API_VERSION_9,
+            static fn () => Type::DOC
+        );
         $this->assertEquals('update', $action->getOpType());
         $this->assertTrue($action->hasSource());
 
@@ -61,7 +68,12 @@ class UpdateDocumentTest extends BaseTest
         $document = (new Document('1', ['foo' => 'bar'], 'index'))
             ->setDocAsUpsert(true)
         ;
-        $action = new UpdateDocument($document);
+        $action = AbstractDocument::create(
+            $document,
+            AbstractDocument::OP_TYPE_UPDATE,
+            ApiVersion::API_VERSION_9,
+            static fn () => Type::DOC
+        );
 
         $this->assertSame('update', $action->getOpType());
         $this->assertTrue($action->hasSource());
