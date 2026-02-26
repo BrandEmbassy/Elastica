@@ -2,10 +2,11 @@
 
 namespace Elastica;
 
+use Elastic\Elasticsearch\Client as ElasticsearchClient;
+use Elastic\Elasticsearch\ClientBuilder;
 use Elastica\Exception\InvalidException;
 use Elastica\Transport\AbstractTransport;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * Elastica connection instance to an elasticasearch node.
@@ -14,6 +15,11 @@ use Psr\Log\NullLogger;
  */
 class Connection extends Param
 {
+    /**
+     * Cached elasticsearch-php v9 client instance.
+     */
+    private ?ElasticsearchClient $_client = null;
+
     /**
      * Default elastic search port.
      */
@@ -61,7 +67,6 @@ class Connection extends Param
         $this->setParams($params);
         $this->setEnabled(true);
 
-        // Set empty config param if not exists
         if (!$this->hasParam('config')) {
             $this->setParam('config', []);
         }
@@ -258,6 +263,47 @@ class Connection extends Param
     }
 
     /**
+     * Get or create elasticsearch-php v9 Client instance.
+     *
+     * V9: This method provides access to the native elasticsearch-php v9 client.
+     * Used for direct API method calls like $client->indices()->refresh().
+     */
+    public function getClient(): ElasticsearchClient
+    {
+        if (null !== $this->_client) {
+            return $this->_client;
+        }
+
+        $hosts = [];
+        $scheme = $this->hasParam('ssl') && $this->getParam('ssl') ? 'https' : 'http';
+        $host = $this->getHost();
+        $port = $this->getPort();
+        $path = $this->getPath();
+
+        $hostString = \sprintf('%s://%s:%d%s', $scheme, $host, $port, $path);
+        $hosts[] = $hostString;
+
+        $builder = ClientBuilder::create()
+            ->setHosts($hosts)
+        ;
+
+        if ($this->hasParam('username') && $this->hasParam('password')) {
+            $builder->setBasicAuthentication(
+                $this->getParam('username'),
+                $this->getParam('password')
+            );
+        }
+
+        if ($this->hasParam('api_key')) {
+            $builder->setApiKey($this->getParam('api_key'));
+        }
+
+        $this->_client = $builder->build();
+
+        return $this->_client;
+    }
+
+    /**
      * @return bool Returns true if connection is persistent. True by default
      */
     public function isPersistent()
@@ -275,7 +321,6 @@ class Connection extends Param
 
     /**
      * @param string $key
-     * @param mixed  $value
      *
      * @return $this
      */
@@ -325,7 +370,7 @@ class Connection extends Param
     /**
      * @param array|Connection $params Params to create a connection
      *
-     * @throws Exception\InvalidException
+     * @throws InvalidException
      *
      * @return self
      */

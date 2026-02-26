@@ -2,8 +2,6 @@
 
 namespace Elastica;
 
-use Elasticsearch\Endpoints\Tasks;
-
 /**
  * Represents elasticsearch task.
  *
@@ -86,12 +84,12 @@ class Task extends Param
      */
     public function refresh(array $options = []): void
     {
-        $endpoint = (new Tasks\Get())
-            ->setTaskId($this->_id)
-            ->setParams($options)
-        ;
+        $params = \array_merge($options, [
+            'task_id' => $this->_id,
+        ]);
 
-        $this->_response = $this->_client->requestEndpoint($endpoint);
+        $esResponse = $this->_client->getConnection()->getClient()->tasks()->get($params);
+        $this->_response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $this->_data = $this->getResponse()->getData();
     }
 
@@ -108,10 +106,10 @@ class Task extends Param
             throw new \Exception('No task id given');
         }
 
-        $endpoint = (new Tasks\Cancel())
-            ->setTaskId($this->_id)
-        ;
+        $esResponse = $this->_client->getConnection()->getClient()->tasks()->cancel([
+            'task_id' => $this->_id,
+        ]);
 
-        return $this->_client->requestEndpoint($endpoint);
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 }

@@ -2,10 +2,8 @@
 
 namespace Elastica;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Exception\ResponseException;
-use Elasticsearch\Endpoints\Indices\Alias\Get;
-use Elasticsearch\Endpoints\Indices\GetAlias;
-use Elasticsearch\Endpoints\Indices\Stats;
 
 /**
  * Elastica general status.
@@ -95,22 +93,23 @@ class Status
      */
     public function getIndicesWithAlias(string $alias)
     {
-        // TODO: Use only GetAlias when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(GetAlias::class) ? new GetAlias() : new Get();
-        $endpoint->setName($alias);
-
-        $response = null;
-
         try {
-            $response = $this->_client->requestEndpoint($endpoint);
+            $esResponse = $this->_client->getConnection()->getClient()->indices()->getAlias([
+                'name' => $alias,
+            ]);
+            $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         } catch (ResponseException $e) {
-            // 404 means the index alias doesn't exist which means no indexes have it.
             if (404 === $e->getResponse()->getStatus()) {
                 return [];
             }
-            // If we don't have a 404 then this is still unexpected so rethrow the exception.
+            throw $e;
+        } catch (ClientResponseException $e) {
+            if (404 === $e->getCode()) {
+                return [];
+            }
             throw $e;
         }
+
         $indices = [];
         foreach ($response->getData() as $name => $unused) {
             $indices[] = new Index($this->_client, $name);
@@ -150,7 +149,8 @@ class Status
      */
     public function refresh(): void
     {
-        $this->_response = $this->_client->requestEndpoint(new Stats());
+        $esResponse = $this->_client->getConnection()->getClient()->indices()->stats();
+        $this->_response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $this->_data = $this->getResponse()->getData();
     }
 }

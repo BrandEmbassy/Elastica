@@ -15,7 +15,7 @@ class Reindex extends Param
     public const OPERATION_TYPE_CREATE = 'create';
     public const CONFLICTS = 'conflicts';
     public const CONFLICTS_PROCEED = 'proceed';
-    public const SIZE = 'size';
+    public const SIZE = 'max_docs'; // renamed from 'size' in ES 9.x
     public const QUERY = 'query';
     public const SORT = 'sort';
     public const SCRIPT = 'script';
@@ -67,12 +67,20 @@ class Reindex extends Param
     {
         $body = $this->_getBody($this->_oldIndex, $this->_newIndex, $this->getParams());
 
-        $reindexEndpoint = new \Elasticsearch\Endpoints\Reindex();
-        $params = \array_intersect_key($this->getParams(), \array_fill_keys($reindexEndpoint->getParamWhitelist(), null));
-        $reindexEndpoint->setParams($params);
-        $reindexEndpoint->setBody($body);
+        $allowedParams = [
+            self::WAIT_FOR_COMPLETION,
+            self::WAIT_FOR_ACTIVE_SHARDS,
+            self::TIMEOUT,
+            self::SCROLL,
+            self::REQUESTS_PER_SECOND,
+            self::REFRESH,
+            self::SLICES,
+        ];
+        $params = \array_intersect_key($this->getParams(), \array_fill_keys($allowedParams, null));
+        $params['body'] = $body;
 
-        $this->_lastResponse = $this->_oldIndex->getClient()->requestEndpoint($reindexEndpoint);
+        $esResponse = $this->_oldIndex->getClient()->getConnection()->getClient()->reindex($params);
+        $this->_lastResponse = new Response($esResponse->asArray(), $esResponse->getStatusCode());
 
         return $this->_lastResponse;
     }
@@ -166,7 +174,6 @@ class Reindex extends Param
             'index' => $index->getName(),
         ], $this->_resolveDestOptions($params));
 
-        // Resolves the pipeline name
         $pipeline = $destBody[self::PIPELINE] ?? null;
         if ($pipeline instanceof Pipeline) {
             $destBody[self::PIPELINE] = $pipeline->getId();

@@ -2,6 +2,7 @@
 
 namespace Elastica\Test\Exception;
 
+use Elastica\ApiVersion;
 use Elastica\Document;
 use Elastica\Exception\PartialShardFailureException;
 use Elastica\JSON;
@@ -58,7 +59,7 @@ class PartialShardFailureExceptionTest extends AbstractExceptionTest
             $this->fail('PartialShardFailureException should have been thrown');
         } catch (PartialShardFailureException $e) {
             $builder = new DefaultBuilder();
-            $resultSet = $builder->buildResultSet($e->getResponse(), $query);
+            $resultSet = $builder->buildResultSet($e->getResponse(), $query, ApiVersion::API_VERSION_9);
             $this->assertCount(0, $resultSet->getResults());
 
             $message = JSON::parse($e->getMessage());

@@ -2,6 +2,7 @@
 
 namespace Elastica\Test\Exception;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Document;
 use Elastica\Exception\ResponseException;
 use Elastica\Mapping;
@@ -27,6 +28,11 @@ class ResponseExceptionTest extends AbstractExceptionTest
             $this->assertNotEquals('index_already_exists_exception', $error['type']);
             $this->assertEquals('resource_already_exists_exception', $error['type']);
             $this->assertEquals(400, $ex->getResponse()->getStatus());
+        } catch (ClientResponseException $ex) {
+            $body = \json_decode((string) $ex->getResponse()->getBody(), true);
+            $this->assertNotEquals('index_already_exists_exception', $body['error']['type']);
+            $this->assertEquals('resource_already_exists_exception', $body['error']['type']);
+            $this->assertEquals(400, $ex->getResponse()->getStatusCode());
         }
     }
 
@@ -50,8 +56,12 @@ class ResponseExceptionTest extends AbstractExceptionTest
             $this->fail('Indexing with wrong type should fail');
         } catch (ResponseException $ex) {
             $error = $ex->getResponse()->getFullError();
-            $this->assertEquals('mapper_parsing_exception', $error['type']);
+            $this->assertEquals('document_parsing_exception', $error['type']);
             $this->assertEquals(400, $ex->getResponse()->getStatus());
+        } catch (ClientResponseException $ex) {
+            $body = \json_decode((string) $ex->getResponse()->getBody(), true);
+            $this->assertEquals('document_parsing_exception', $body['error']['type']);
+            $this->assertEquals(400, $ex->getResponse()->getStatusCode());
         }
     }
 
@@ -69,6 +79,10 @@ class ResponseExceptionTest extends AbstractExceptionTest
             $error = $ex->getResponse()->getFullError();
             $this->assertEquals('index_not_found_exception', $error['type']);
             $this->assertEquals(404, $ex->getResponse()->getStatus());
+        } catch (ClientResponseException $ex) {
+            $body = \json_decode((string) $ex->getResponse()->getBody(), true);
+            $this->assertEquals('index_not_found_exception', $body['error']['type']);
+            $this->assertEquals(404, $ex->getResponse()->getStatusCode());
         }
     }
 }

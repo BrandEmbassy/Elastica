@@ -2,6 +2,7 @@
 
 namespace Elastica\Test\Cluster;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Cluster\Settings;
 use Elastica\Document;
 use Elastica\Exception\ResponseException;
@@ -25,13 +26,13 @@ class SettingsTest extends BaseTest
 
         $settings = new Settings($index->getClient());
 
-        $settings->setTransient('discovery.zen.minimum_master_nodes', 2);
+        $settings->setTransient('cluster.max_shards_per_node', 500);
         $data = $settings->get();
-        $this->assertEquals(2, $data['transient']['discovery']['zen']['minimum_master_nodes']);
+        $this->assertEquals(500, $data['transient']['cluster']['max_shards_per_node']);
 
-        $settings->setTransient('discovery.zen.minimum_master_nodes', 1);
+        $settings->setTransient('cluster.max_shards_per_node', 1000);
         $data = $settings->get();
-        $this->assertEquals(1, $data['transient']['discovery']['zen']['minimum_master_nodes']);
+        $this->assertEquals(1000, $data['transient']['cluster']['max_shards_per_node']);
     }
 
     /**
@@ -47,13 +48,13 @@ class SettingsTest extends BaseTest
 
         $settings = new Settings($index->getClient());
 
-        $settings->setPersistent('discovery.zen.minimum_master_nodes', 2);
+        $settings->setPersistent('cluster.max_shards_per_node', 500);
         $data = $settings->get();
-        $this->assertEquals(2, $data['persistent']['discovery']['zen']['minimum_master_nodes']);
+        $this->assertEquals(500, $data['persistent']['cluster']['max_shards_per_node']);
 
-        $settings->setPersistent('discovery.zen.minimum_master_nodes', 1);
+        $settings->setPersistent('cluster.max_shards_per_node', 1000);
         $data = $settings->get();
-        $this->assertEquals(1, $data['persistent']['discovery']['zen']['minimum_master_nodes']);
+        $this->assertEquals(1000, $data['persistent']['cluster']['max_shards_per_node']);
     }
 
     /**
@@ -61,7 +62,6 @@ class SettingsTest extends BaseTest
      */
     public function testSetReadOnly(): void
     {
-        // Create two indices to check that the complete cluster is read only
         $settings = new Settings($this->_getClient());
         $settings->setReadOnly(false);
         $index = $this->_createIndex();
@@ -69,7 +69,6 @@ class SettingsTest extends BaseTest
         $doc1 = new Document(null, ['hello' => 'world']);
         $doc2 = new Document(null, ['hello' => 'world']);
 
-        // Check that adding documents work
         $index->addDocument($doc1);
 
         $response = $settings->setReadOnly(true);
@@ -77,7 +76,6 @@ class SettingsTest extends BaseTest
         $setting = $settings->getTransient('cluster.blocks.read_only');
         $this->assertEquals('true', $setting);
 
-        // Make sure both index are read only
         try {
             $index->addDocument($doc2);
             $this->fail('should throw read only exception');
@@ -85,6 +83,11 @@ class SettingsTest extends BaseTest
             $error = $e->getResponse()->getFullError();
             $this->assertSame('cluster_block_exception', $error['type']);
             $this->assertStringContainsString('cluster read-only', $error['reason']);
+        } catch (ClientResponseException $e) {
+            $this->assertStringContainsString('cluster_block_exception', (string) $e->getResponse()->getBody());
+            $this->assertStringContainsString('cluster read-only', (string) $e->getResponse()->getBody());
+        } finally {
+            $settings->setReadOnly(false);
         }
 
         $response = $settings->setReadOnly(false);
@@ -92,12 +95,10 @@ class SettingsTest extends BaseTest
         $setting = $settings->getTransient('cluster.blocks.read_only');
         $this->assertEquals('false', $setting);
 
-        // Check that adding documents works again
         $index->addDocument($doc2);
 
         $index->refresh();
 
-        // 2 docs should be in each index
         $this->assertEquals(2, $index->count());
     }
 }

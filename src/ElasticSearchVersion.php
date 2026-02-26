@@ -12,4 +12,6 @@ class ElasticSearchVersion extends Enum
     public const VERSION_6 = 6;
 
     public const VERSION_7 = 7;
+
+    public const VERSION_9 = 9;
 }
