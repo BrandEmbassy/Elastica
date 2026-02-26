@@ -14,7 +14,7 @@ use Elastica\Snapshot;
  */
 class SnapshotTest extends Base
 {
-    private const SNAPSHOT_PATH = '/tmp/esrepository';
+    private const SNAPSHOT_PATH = '/usr/share/elasticsearch/repository';
     private const REPOSITORY_NAME = 'repo-name';
 
     /**

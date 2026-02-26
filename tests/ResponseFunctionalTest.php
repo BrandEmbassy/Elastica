@@ -71,24 +71,6 @@ class ResponseFunctionalTest extends BaseTest
 
     public function testGetDataEmpty(): void
     {
-        $index = $this->_createIndex();
-        $gotException = false;
-
-        try {
-            $index->request(
-                'non-existent-type/_mapping',
-                Request::GET,
-                [],
-                ['include_type_name' => true]
-            );
-        } catch (ResponseException $e) {
-            $error = $e->getResponse()->getFullError();
-            $this->assertEquals('type_missing_exception', $error['type']);
-            $this->assertStringContainsString('non-existent-type', $error['reason']);
-
-            $gotException = true;
-        }
-
-        $this->assertTrue($gotException);
+        $this->markTestSkipped('Type-based mapping API (include_type_name) and type_missing_exception were removed in ES 8.x.');
     }
 }

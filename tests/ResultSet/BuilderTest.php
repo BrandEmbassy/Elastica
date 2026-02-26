@@ -2,6 +2,7 @@
 
 namespace Elastica\Test\ResultSet;
 
+use Elastica\ApiVersion;
 use Elastica\Query;
 use Elastica\Response;
 use Elastica\ResultSet\DefaultBuilder;
@@ -31,7 +32,7 @@ class BuilderTest extends BaseTest
         $response = new Response('');
         $query = new Query();
 
-        $resultSet = $this->builder->buildResultSet($response, $query);
+        $resultSet = $this->builder->buildResultSet($response, $query, ApiVersion::API_VERSION_9);
 
         $this->assertSame($response, $resultSet->getResponse());
         $this->assertSame($query, $resultSet->getQuery());
@@ -51,7 +52,7 @@ class BuilderTest extends BaseTest
         ]);
         $query = new Query();
 
-        $resultSet = $this->builder->buildResultSet($response, $query);
+        $resultSet = $this->builder->buildResultSet($response, $query, ApiVersion::API_VERSION_9);
 
         $this->assertSame($response, $resultSet->getResponse());
         $this->assertSame($query, $resultSet->getQuery());

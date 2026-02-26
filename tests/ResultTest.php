@@ -110,14 +110,14 @@ class ResultTest extends BaseTest
         $index->addDocument(new Document('3', ['username' => 'hans']));
         $index->refresh();
 
-        $query = (Query::create(null)->addSort(['_id' => 'desc']));
+        $query = (Query::create(null)->addSort(['username.keyword' => 'desc']));
         $resultSet = $index->search($query);
 
         $this->assertCount(1, $resultSet->getResults());
         $result = $resultSet->getResults()[0];
 
         $this->assertIsArray($result->getSort());
-        $this->assertSame(['3'], $result->getSort());
+        $this->assertSame(['hans'], $result->getSort());
     }
 
     /**

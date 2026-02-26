@@ -13,6 +13,15 @@ use Elastica\Test\BasePipeline as BasePipelineTest;
  */
 class AttachmentProcessorTest extends BasePipelineTest
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if ($this->_isFunctionalGroup()) {
+            $this->_checkPlugin('ingest-attachment');
+        }
+    }
+
     /**
      * @group unit
      */
@@ -86,11 +95,9 @@ class AttachmentProcessorTest extends BasePipelineTest
         $resultSet = $index->search('test');
         $this->assertEquals(2, $resultSet->count());
 
-        // Author is ruflin
         $resultSet = $index->search('ruflin');
         $this->assertEquals(1, $resultSet->count());
 
-        // String does not exist in file
         $resultSet = $index->search('guschti');
         $this->assertEquals(0, $resultSet->count());
     }
@@ -131,11 +138,9 @@ class AttachmentProcessorTest extends BasePipelineTest
         $resultSet = $index->search('basel');
         $this->assertEquals(2, $resultSet->count());
 
-        // Author is ruflin
         $resultSet = $index->search('ruflin');
         $this->assertEquals(1, $resultSet->count());
 
-        // String does not exist in file
         $resultSet = $index->search('guschti');
         $this->assertEquals(0, $resultSet->count());
     }
@@ -178,7 +183,6 @@ class AttachmentProcessorTest extends BasePipelineTest
         $resultSet = $index->search('Xodoa');
         $this->assertEquals(1, $resultSet->count());
 
-        // String does not exist in file
         $resultSet = $index->search('guschti');
         $this->assertEquals(0, $resultSet->count());
     }
@@ -218,7 +222,6 @@ class AttachmentProcessorTest extends BasePipelineTest
         $bulk->addDocuments([$doc1]);
         $bulk->setRequestParam('pipeline', 'my_custom_pipeline_attachment');
 
-        // Optimization necessary, as otherwise source still in realtime get
         $bulk->send();
         $index->forcemerge();
 
