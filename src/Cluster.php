@@ -4,7 +4,6 @@ namespace Elastica;
 
 use Elastica\Cluster\Health;
 use Elastica\Cluster\Settings;
-use Elasticsearch\Endpoints\Cluster\State;
 
 /**
  * Cluster information for elasticsearch.
@@ -50,7 +49,8 @@ class Cluster
      */
     public function refresh(): void
     {
-        $this->_response = $this->_client->requestEndpoint(new State());
+        $esResponse = $this->_client->getConnection()->getClient()->cluster()->state();
+        $this->_response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $this->_data = $this->getResponse()->getData();
     }
 

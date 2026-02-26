@@ -2,6 +2,7 @@
 
 namespace Elastica\Test;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Document;
 use Elastica\Exception\ResponseException;
 use Elastica\Index;
@@ -82,10 +83,14 @@ class ReindexTest extends Base
             Reindex::OPERATION_TYPE => Reindex::OPERATION_TYPE_CREATE,
         ]);
 
-        $response = $reindex->run();
-        $newIndex->refresh();
-
-        $this->assertEquals(5, $response->getData()['version_conflicts']);
+        try {
+            $response = $reindex->run();
+            $newIndex->refresh();
+            $this->assertEquals(5, $response->getData()['version_conflicts']);
+        } catch (ClientResponseException $e) {
+            $body = \json_decode((string) $e->getResponse()->getBody(), true);
+            $this->assertEquals(5, $body['version_conflicts']);
+        }
     }
 
     /**
@@ -212,6 +217,8 @@ class ReindexTest extends Base
             $this->fail('Elasticsearch should have thrown an Exception, maybe the remote option has not been sent.');
         } catch (ResponseException $exception) {
             $this->assertStringContainsString('reindex.remote.whitelist', $exception->getMessage());
+        } catch (ClientResponseException $exception) {
+            $this->assertStringContainsString('reindex.remote.whitelist', (string) $exception->getResponse()->getBody());
         }
     }
 

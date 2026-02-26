@@ -98,7 +98,10 @@ class Stats
      */
     public function refresh(): void
     {
-        $this->_response = $this->getIndex()->requestEndpoint(new \Elasticsearch\Endpoints\Indices\Stats());
+        $esResponse = $this->getIndex()->getClient()->getConnection()->getClient()->indices()->stats([
+            'index' => $this->getIndex()->getName(),
+        ]);
+        $this->_response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $this->_data = $this->getResponse()->getData();
     }
 }

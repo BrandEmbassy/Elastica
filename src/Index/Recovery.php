@@ -4,7 +4,6 @@ namespace Elastica\Index;
 
 use Elastica\Index as BaseIndex;
 use Elastica\Response;
-use Elasticsearch\Endpoints\Indices\Recovery as RecoveryEndpoint;
 
 /**
  * Elastica index recovery object.
@@ -94,9 +93,10 @@ class Recovery
      */
     protected function getRecoveryData()
     {
-        $endpoint = new RecoveryEndpoint();
-
-        $this->_response = $this->getIndex()->requestEndpoint($endpoint);
+        $esResponse = $this->getIndex()->getClient()->getConnection()->getClient()->indices()->recovery([
+            'index' => $this->getIndex()->getName(),
+        ]);
+        $this->_response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
 
         return $this->getResponse()->getData();
     }

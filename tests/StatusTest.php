@@ -2,6 +2,7 @@
 
 namespace Elastica\Test;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Exception\ResponseException;
 use Elastica\Response;
 use Elastica\Status;
@@ -58,9 +59,8 @@ class StatusTest extends BaseTest
         $index = $client->getIndex($indexName);
 
         try {
-            // Make sure index is deleted first
             $index->delete();
-        } catch (ResponseException $e) {
+        } catch (ResponseException|ClientResponseException $e) {
         }
 
         $status = new Status($client);
