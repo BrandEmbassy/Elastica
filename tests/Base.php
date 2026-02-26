@@ -156,7 +156,7 @@ class Base extends TestCase
             $allocated = true;
             foreach ($indexState['shards'] as $shards) {
                 foreach ($shards as $shard) {
-                    if ($shard['primary'] && 'STARTED' !== $shard['state']) {
+                    if ('STARTED' !== $shard['state']) {
                         $allocated = false;
                     }
                 }

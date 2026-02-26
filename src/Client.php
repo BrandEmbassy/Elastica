@@ -11,6 +11,11 @@ use Elastica\Exception\ResponseException;
 use Elastica\Script\AbstractScript;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use RuntimeException;
+use function sprintf;
+use function array_merge;
+use function implode;
+use function round;
 
 /**
  * Client to connect the the elasticsearch server.
@@ -56,6 +61,9 @@ class Client
      */
     protected $_lastResponse;
 
+    /**
+     * @var LoggerInterface
+     */
     protected LoggerInterface $logger;
 
     /**
@@ -153,7 +161,7 @@ class Client
             'responseStatus' => $response->getStatus(),
             'execution_time' => $elapsedTimeMs,
             'request' => $request->toArray(),
-            'exception' => new \RuntimeException('slow query'),
+            'exception' => new RuntimeException('slow query'),
         ];
 
         if ($this->shouldLogResponseBody()) {
@@ -161,7 +169,7 @@ class Client
         }
 
         $this->logger->warning(
-            \sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
             $context
         );
     }
@@ -190,7 +198,7 @@ class Client
         }
 
         $this->logger->debug(
-            \sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
             $context
         );
     }
@@ -248,6 +256,8 @@ class Client
     /**
      * @param array|string $keys    config key or path of config keys
      * @param mixed        $default default value will be returned if key was not found
+     *
+     * @return mixed
      */
     public function getConfigValue($keys, $default = null)
     {
@@ -408,13 +418,14 @@ class Client
             $requestData = $data;
         }
 
+        // If an upsert document exists
         if ($data instanceof AbstractScript || $data instanceof Document) {
             if ($data->hasUpsert()) {
                 $requestData['upsert'] = $data->getUpsert()->getData();
             }
         }
 
-        $params = \array_merge($options, [
+        $params = array_merge($options, [
             'id' => $id,
             'index' => $index,
             'body' => $requestData,
@@ -631,24 +642,25 @@ class Client
         $request = $this->_lastRequest = new Request($path, $method, $data, $query, $connection, $contentType, $this->logger, $this->isRetryFeatureEnabled);
         $this->_lastResponse = null;
 
-        $requestName = \sprintf('[%s]', [] === $tags ? 'untagged' : \implode('.', $tags));
+        $requestName = sprintf('[%s]', [] === $tags ? 'untagged' : implode('.', $tags));
 
         if (null !== $this->requestCounter) {
             $this->requestCounter->incrementCount();
-            $requestName = \sprintf('#%02d %s', $this->requestCounter->getCount(), $requestName);
+            $requestName = sprintf('#%02d %s', $this->requestCounter->getCount(), $requestName);
         }
 
         try {
             $response = $this->_lastResponse = $request->send();
         } catch (ConnectionException $e) {
             $this->_connectionPool->onFail($connection, $e, $this);
-            $this->logger->error(\sprintf('Elastica Request Failure %s', $requestName), [
+            $this->logger->error(sprintf('Elastica Request Failure %s', $requestName), [
                 'tags' => $tags,
                 'exception' => $e,
                 'request' => (string) $e->getRequest(),
                 'retry' => $this->hasConnection(),
             ]);
 
+            // In case there is no valid connection left, throw exception which caused the disabling of the connection.
             if (!$this->hasConnection()) {
                 throw $e;
             }
@@ -656,7 +668,7 @@ class Client
             return $this->request($path, $method, $data, $query);
         }
 
-        $elapsedTimeMs = (int) \round($response->getQueryTime() * 1000);
+        $elapsedTimeMs = (int) round($response->getQueryTime() * 1000);
 
         if ($this->shouldLogSlowRequests() && $this->isSlow($elapsedTimeMs)) {
             $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
@@ -694,7 +706,7 @@ class Client
      */
     public function requestEndpoint($endpoint, array $tags = []): Response
     {
-        throw new \RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->indices()->refresh() instead.');
+        throw new RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->indices()->refresh() instead.');
     }
 
     /**
@@ -733,6 +745,26 @@ class Client
     public function refreshAll(): Response
     {
         $esResponse = $this->getConnection()->getClient()->indices()->refresh();
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
+    }
+
+    /**
+     * Sends a mapping update for a given index.
+     *
+     * @param array<string, mixed> $body   Mapping body (e.g. ['properties' => [...]])
+     * @param array<string, mixed> $query  Optional query string parameters
+     *
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-put-mapping.html
+     */
+    public function putIndexMapping(string $indexName, array $body, array $query = []): Response
+    {
+        $params = array_merge($query, [
+            'index' => $indexName,
+            'body' => $body,
+        ]);
+
+        $esResponse = $this->getConnection()->getClient()->indices()->putMapping($params);
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -777,6 +809,7 @@ class Client
             }
         }
 
+        // If no connections set, create default connection
         if (!$connections) {
             $connections[] = Connection::create($this->_prepareConnectionParams($this->getConfig()));
         }

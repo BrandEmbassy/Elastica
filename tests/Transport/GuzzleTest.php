@@ -4,6 +4,7 @@ namespace Elastica\Test\Transport;
 
 use Elastica\Exception\Connection\GuzzleException;
 use Elastica\Test\Base as BaseTest;
+use function class_exists;
 
 /**
  * @internal
@@ -12,7 +13,7 @@ class GuzzleTest extends BaseTest
 {
     public static function setUpbeforeClass(): void
     {
-        if (!\class_exists('GuzzleHttp\Client')) {
+        if (!class_exists('GuzzleHttp\Client')) {
             self::markTestSkipped('guzzlehttp/guzzle package should be installed to run guzzle transport tests');
         }
     }

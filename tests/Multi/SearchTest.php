@@ -301,10 +301,14 @@ class SearchTest extends BaseTest
             $this->assertArrayHasKey(0, $resultSets);
             $this->assertInstanceOf(ResultSet::class, $resultSets[0]);
             $this->assertSame($searchGood->getQuery(), $resultSets[0]->getQuery());
+            $this->assertSame(6, $resultSets[0]->getTotalHits());
+            $this->assertCount(6, $resultSets[0]);
 
             $this->assertArrayHasKey(1, $resultSets);
             $this->assertInstanceOf(ResultSet::class, $resultSets[1]);
             $this->assertSame($searchBad->getQuery(), $resultSets[1]->getQuery());
+            $this->assertSame(0, $resultSets[1]->getTotalHits());
+            $this->assertCount(0, $resultSets[1]);
             $this->assertTrue($resultSets[1]->getResponse()->hasError());
             $this->assertTrue($multiResultSet->hasError());
         } catch (ResponseException $e) {
@@ -342,10 +346,14 @@ class SearchTest extends BaseTest
             $this->assertArrayHasKey('search1', $resultSets);
             $this->assertInstanceOf(ResultSet::class, $resultSets['search1']);
             $this->assertSame($searchGood->getQuery(), $resultSets['search1']->getQuery());
+            $this->assertSame(6, $resultSets['search1']->getTotalHits());
+            $this->assertCount(6, $resultSets['search1']);
 
             $this->assertArrayHasKey(0, $resultSets);
             $this->assertInstanceOf(ResultSet::class, $resultSets[0]);
             $this->assertSame($searchBad->getQuery(), $resultSets[0]->getQuery());
+            $this->assertSame(0, $resultSets[0]->getTotalHits());
+            $this->assertCount(0, $resultSets[0]);
             $this->assertTrue($resultSets[0]->getResponse()->hasError());
             $this->assertTrue($multiResultSet->hasError());
         } catch (ResponseException $e) {

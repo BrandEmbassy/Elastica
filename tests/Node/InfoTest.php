@@ -25,6 +25,7 @@ class InfoTest extends BaseTest
 
         $this->assertNull($info->get('os', 'mem', 'total'));
 
+        // Load os infos
         $info = new NodeInfo($node, ['os', 'process', 'jvm']);
 
         $this->assertNotNull($info->get('os', 'name'));
@@ -46,11 +47,11 @@ class InfoTest extends BaseTest
 
         $this->assertFalse($info->hasPlugin('foo'));
 
-        if ($info->hasPlugin('ingest-attachment')) {
-            $this->assertTrue($info->hasPlugin('ingest-attachment'));
-        } else {
+        if (!$info->hasPlugin('ingest-attachment')) {
             $this->markTestSkipped('ingest-attachment plugin not installed.');
         }
+
+        $this->assertTrue($info->hasPlugin('ingest-attachment'));
     }
 
     /**
@@ -66,6 +67,7 @@ class InfoTest extends BaseTest
         foreach ($nodes as $node) {
             $id = $node->getInfo()->getId();
 
+            // Checks that the ids are unique
             $this->assertNotContains($id, $ids);
             $ids[] = $id;
         }

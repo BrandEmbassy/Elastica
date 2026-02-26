@@ -58,6 +58,7 @@ class ConnectionTest extends BaseTest
         $request = new Request('_stats', Request::GET);
         $request->setConnection($connection);
 
+        // Throws exception because no valid connection
         $request->send();
     }
 

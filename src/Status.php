@@ -99,9 +99,11 @@ class Status
             ]);
             $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         } catch (ResponseException $e) {
+            // 404 means the index alias doesn't exist which means no indexes have it.
             if (404 === $e->getResponse()->getStatus()) {
                 return [];
             }
+            // If we don't have a 404 then this is still unexpected so rethrow the exception.
             throw $e;
         } catch (ClientResponseException $e) {
             if (404 === $e->getCode()) {

@@ -59,6 +59,7 @@ class StatusTest extends BaseTest
         $index = $client->getIndex($indexName);
 
         try {
+            // Make sure index is deleted first
             $index->delete();
         } catch (ResponseException|ClientResponseException $e) {
         }

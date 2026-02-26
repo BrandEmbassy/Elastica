@@ -219,6 +219,7 @@ class Bulk
                 $opType = \key($row);
                 $metadata = \reset($row);
                 if (Action::isValidOpType($opType)) {
+                    // add previous action
                     if (isset($action)) {
                         $this->addAction($action);
                     }
@@ -235,6 +236,7 @@ class Bulk
             }
         }
 
+        // add last action if available
         if (isset($action)) {
             $this->addAction($action);
         }

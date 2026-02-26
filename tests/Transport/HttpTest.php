@@ -28,6 +28,7 @@ class HttpTest extends BaseTest
         ]);
         $this->_waitForAllocation($index);
 
+        // Force HEAD request to set CURLOPT_NOBODY = true
         $index->exists();
 
         $id = '1';
@@ -40,6 +41,7 @@ class HttpTest extends BaseTest
 
         $doc = $index->getDocument($id);
 
+        // Document should be retrieved correctly
         $this->assertSame($data, $doc->getData());
         $this->assertEquals($id, $doc->getId());
     }
@@ -56,6 +58,7 @@ class HttpTest extends BaseTest
         ]);
         $this->_waitForAllocation($index);
 
+        // Force HEAD request to set CURLOPT_NOBODY = true
         $index->exists();
 
         $id = '22';
@@ -73,6 +76,7 @@ class HttpTest extends BaseTest
 
         $doc = $index->getDocument($id);
 
+        // Document should be retrieved correctly
         $this->assertSame($data, $doc->getData());
         $this->assertEquals($id, $doc->getId());
     }

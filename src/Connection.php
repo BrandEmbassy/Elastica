@@ -7,6 +7,7 @@ use Elastic\Elasticsearch\ClientBuilder;
 use Elastica\Exception\InvalidException;
 use Elastica\Transport\AbstractTransport;
 use Psr\Log\LoggerInterface;
+use function sprintf;
 
 /**
  * Elastica connection instance to an elasticasearch node.
@@ -67,6 +68,7 @@ class Connection extends Param
         $this->setParams($params);
         $this->setEnabled(true);
 
+        // Set empty config param if not exists
         if (!$this->hasParam('config')) {
             $this->setParam('config', []);
         }
@@ -280,7 +282,7 @@ class Connection extends Param
         $port = $this->getPort();
         $path = $this->getPath();
 
-        $hostString = \sprintf('%s://%s:%d%s', $scheme, $host, $port, $path);
+        $hostString = sprintf('%s://%s:%d%s', $scheme, $host, $port, $path);
         $hosts[] = $hostString;
 
         $builder = ClientBuilder::create()
@@ -321,6 +323,7 @@ class Connection extends Param
 
     /**
      * @param string $key
+     * @param mixed  $value
      *
      * @return $this
      */

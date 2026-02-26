@@ -12,6 +12,7 @@ use Elastica\Processor\UppercaseProcessor;
 use Elastica\Query\MatchQuery;
 use Elastica\Reindex;
 use Elastica\Script\Script;
+use function json_decode;
 
 /**
  * @internal
@@ -88,7 +89,7 @@ class ReindexTest extends Base
             $newIndex->refresh();
             $this->assertEquals(5, $response->getData()['version_conflicts']);
         } catch (ClientResponseException $e) {
-            $body = \json_decode((string) $e->getResponse()->getBody(), true);
+            $body = json_decode((string) $e->getResponse()->getBody(), true);
             $this->assertEquals(5, $body['version_conflicts']);
         }
     }

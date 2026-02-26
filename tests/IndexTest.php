@@ -69,12 +69,16 @@ class IndexTest extends BaseTest
 
         $client = $index->getClient();
 
+        // Index mapping
         $mapping1 = $client->getIndex($indexName)->getMapping();
 
+        // Alias mapping
         $mapping2 = $client->getIndex($aliasName)->getMapping();
 
+        // Make sure, a mapping is set
         $this->assertNotEmpty($mapping1);
 
+        // Alias and index mapping should be identical
         $this->assertEquals($mapping1, $mapping2);
     }
 
@@ -133,6 +137,7 @@ class IndexTest extends BaseTest
     {
         $index = $this->_createIndex();
 
+        // Add document to normal index
         $doc1 = new Document(null, ['name' => 'ruflin']);
         $doc2 = new Document(null, ['name' => 'nicolas']);
 
@@ -158,6 +163,7 @@ class IndexTest extends BaseTest
     {
         $index = $this->_createIndex();
 
+        // Add document to normal index
         $doc1 = new Document(null, ['name' => 'ruflin']);
         $doc2 = new Document(null, ['name' => 'nicolas']);
 
@@ -194,11 +200,13 @@ class IndexTest extends BaseTest
         $response = $index->search('nicolas');
         $this->assertEquals(1, $response->count());
 
+        // Delete first document
         $response = $index->deleteByQuery('nicolas');
         $this->assertTrue($response->isOk());
 
         $index->refresh();
 
+        // Makes sure, document is deleted
         $response = $index->search('ruflin*');
         $this->assertEquals(1, $response->count());
 
@@ -224,11 +232,13 @@ class IndexTest extends BaseTest
         $response = $index->search('nicolas');
         $this->assertEquals(1, $response->count());
 
+        // Delete first document
         $response = $index->deleteByQuery(new SimpleQueryString('nicolas'));
         $this->assertTrue($response->isOk());
 
         $index->refresh();
 
+        // Makes sure, document is deleted
         $response = $index->search('ruflin*');
         $this->assertEquals(1, $response->count());
 
@@ -254,11 +264,13 @@ class IndexTest extends BaseTest
         $response = $index->search('nicolas');
         $this->assertEquals(1, $response->count());
 
+        // Delete first document
         $response = $index->deleteByQuery(['query' => ['query_string' => ['query' => 'nicolas']]]);
         $this->assertTrue($response->isOk());
 
         $index->refresh();
 
+        // Makes sure, document is deleted
         $response = $index->search('ruflin*');
         $this->assertEquals(1, $response->count());
 
@@ -299,6 +311,7 @@ class IndexTest extends BaseTest
         $response = $index->search('nicolas');
         $this->assertEquals(1, $response->count());
 
+        // Route to the wrong document id; should not delete
         $response = $index->deleteByQuery(new SimpleQueryString('nicolas'), ['routing' => $routing2]);
         $this->assertTrue($response->isOk());
 
@@ -310,11 +323,13 @@ class IndexTest extends BaseTest
         $response = $index->search('nicolas');
         $this->assertEquals(1, $response->count());
 
+        // Delete first document
         $response = $index->deleteByQuery(new SimpleQueryString('nicolas'), ['routing' => $routing1]);
         $this->assertTrue($response->isOk());
 
         $index->refresh();
 
+        // Makes sure, document is deleted
         $response = $index->search('ruflin*');
         $this->assertEquals(1, $response->count());
 
@@ -340,11 +355,13 @@ class IndexTest extends BaseTest
         $response = $index->search('nicolas');
         $this->assertEquals(1, $response->count());
 
+        // Update the element, searched by specific word. Should match first one
         $response = $index->updateByQuery('nicolas', new Script('ctx._source.name = "marc"'));
         $this->assertTrue($response->isOk());
 
         $index->refresh();
 
+        // Makes sure first element is updated and renamed to marc. Should match only second
         $response = $index->search('ruflin*');
         $this->assertEquals(1, $response->count());
 
@@ -373,11 +390,13 @@ class IndexTest extends BaseTest
         $response = $index->search('nicolas');
         $this->assertEquals(1, $response->count());
 
+        // Update all elements to name "marc"
         $response = $index->updateByQuery('*', new Script('ctx._source.name = "marc"'));
         $this->assertTrue($response->isOk());
 
         $index->refresh();
 
+        // Because all documents have changed to marc, searching by "ruflin*" should match 0
         $response = $index->search('ruflin*');
         $this->assertEquals(0, $response->count());
 
@@ -408,6 +427,7 @@ class IndexTest extends BaseTest
         $this->assertTrue($status->indexExists($indexName));
         $this->assertTrue($status->aliasExists($aliasName));
 
+        // Deleting index should also remove alias
         $index->delete();
 
         $status->refresh();
@@ -649,9 +669,11 @@ class IndexTest extends BaseTest
         $index->addDocuments($docs);
         $index->refresh();
 
+        // default limit results  (default limit is 10)
         $resultSet = $index->search('farrelley');
         $this->assertEquals(10, $resultSet->count());
 
+        // limit = 1
         $resultSet = $index->search('farrelley', ['limit' => 1]);
         $this->assertEquals(1, $resultSet->count());
     }
@@ -776,6 +798,7 @@ class IndexTest extends BaseTest
         $count = $index->count('rolf');
         $this->assertEquals(1, $count);
 
+        // Test if source is returned
         $result = $resultSet->current();
         $this->assertEquals(3, $result->getId());
         $data = $result->getData();

@@ -162,14 +162,7 @@ class Mapping
      */
     public function send(Index $index, array $query = []): Response
     {
-        $params = \array_merge($query, [
-            'index' => $index->getName(),
-            'body' => $this->toArray(),
-        ]);
-
-        $esResponse = $index->getClient()->getConnection()->getClient()->indices()->putMapping($params);
-
-        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
+        return $index->getClient()->putIndexMapping($index->getName(), $this->toArray(), $query);
     }
 
     /**
@@ -178,6 +171,8 @@ class Mapping
      * @param array|Mapping $mapping Mapping object or properties array
      *
      * @throws InvalidException If invalid type
+     *
+     * @return self
      */
     public static function create($mapping): Mapping
     {

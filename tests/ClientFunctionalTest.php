@@ -57,18 +57,21 @@ class ClientFunctionalTest extends BaseTest
 
     public function testConnectionsArray(): void
     {
+        // Creates a new index 'xodoa' and a type 'user' inside this index
         $client = $this->_getClient(['connections' => [['host' => $this->_getHost(), 'port' => 9200]]]);
         $index = $client->getIndex('elastica_test1');
         $index->create([], [
             'recreate' => true,
         ]);
 
+        // Adds 1 document to the index
         $doc1 = new Document(
             '1',
             ['username' => 'hans', 'test' => ['2', '3', '5']]
         );
         $index->addDocument($doc1);
 
+        // Adds a list of documents with _bulk upload to the index
         $docs = [];
         $docs[] = new Document(
             '2',
@@ -80,6 +83,7 @@ class ClientFunctionalTest extends BaseTest
         );
         $index->addDocuments($docs);
 
+        // Refresh index
         $index->refresh();
 
         $index->search('rolf');
@@ -87,6 +91,7 @@ class ClientFunctionalTest extends BaseTest
 
     public function testTwoServersSame(): void
     {
+        // Creates a new index 'xodoa' and a type 'user' inside this index
         $client = $this->_getClient(['connections' => [
             ['host' => $this->_getHost(), 'port' => 9200],
             ['host' => $this->_getHost(), 'port' => 9200],
@@ -96,12 +101,14 @@ class ClientFunctionalTest extends BaseTest
             'recreate' => true,
         ]);
 
+        // Adds 1 document to the index
         $doc1 = new Document(
             '1',
             ['username' => 'hans', 'test' => ['2', '3', '5']]
         );
         $index->addDocument($doc1);
 
+        // Adds a list of documents with _bulk upload to the index
         $docs = [];
         $docs[] = new Document(
             '2',
@@ -113,6 +120,7 @@ class ClientFunctionalTest extends BaseTest
         );
         $index->addDocuments($docs);
 
+        // Refresh index
         $index->refresh();
 
         $index->search('rolf');
@@ -260,28 +268,37 @@ class ClientFunctionalTest extends BaseTest
 
         $index = $this->_createIndex();
 
+        // Create the index, deleting it first if it already exists
         $index->create([], [
             'recreate' => true,
         ]);
 
+        // Adds 1 document to the index
         $doc = new Document(null, $data);
         $result = $index->addDocument($doc);
 
+        // Refresh index
         $index->refresh();
 
         $resultData = $result->getData();
         $ids = [$resultData['_id']];
 
+        // Check to make sure the document is in the index
         $resultSet = $index->search($userSearch);
         $totalHits = $resultSet->getTotalHits();
         $this->assertEquals(1, $totalHits);
 
+        // And verify that the variables we are doing to send to
+        // deleteIds are the type we are testing for
         $idxString = $index->getName();
 
+        // Using the existing $index variable that is a string
         $index->getClient()->deleteIds($ids, $idxString);
 
+        // Refresh the index to clear out deleted ID information
         $index->refresh();
 
+        // Research the index to verify that the items have been deleted
         $resultSet = $index->search($userSearch);
         $totalHits = $resultSet->getTotalHits();
         $this->assertEquals(0, $totalHits);
@@ -312,26 +329,33 @@ class ClientFunctionalTest extends BaseTest
 
         $index = $this->_createIndex();
 
+        // Create the index, deleting it first if it already exists
         $index->create([], [
             'recreate' => true,
         ]);
 
+        // Adds 1 document to the index
         $doc = new Document(null, $data);
         $result = $index->addDocument($doc);
 
+        // Refresh index
         $index->refresh();
 
         $resultData = $result->getData();
         $ids = [$resultData['_id']];
 
+        // Check to make sure the document is in the index
         $resultSet = $index->search($userSearch);
         $totalHits = $resultSet->getTotalHits();
         $this->assertEquals(1, $totalHits);
 
+        // Using the existing $index variable which is \Elastica\Index object
         $index->getClient()->deleteIds($ids, $index);
 
+        // Refresh the index to clear out deleted ID information
         $index->refresh();
 
+        // Research the index to verify that the items have been deleted
         $resultSet = $index->search($userSearch);
         $totalHits = $resultSet->getTotalHits();
         $this->assertEquals(0, $totalHits);
@@ -341,6 +365,7 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->_getClient();
 
+        // First connection work, second should not work
         $connection1 = new Connection(['port' => '9100', 'timeout' => 2, 'host' => $this->_getHost()]);
         $connection2 = new Connection(['port' => '9200', 'timeout' => 2, 'host' => $this->_getHost()]);
 
@@ -350,8 +375,10 @@ class ClientFunctionalTest extends BaseTest
 
         $connections = $client->getConnections();
 
+        // two connections are setup
         $this->assertCount(2, $connections);
 
+        // One connection has to be disabled
         $this->assertTrue(false === $connections[0]->isEnabled() || false === $connections[1]->isEnabled());
     }
 
@@ -359,6 +386,7 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->_getClient();
 
+        // First connection work, second should not work
         $connection1 = new Connection(['port' => '9101', 'timeout' => 2]);
         $connection2 = new Connection(['port' => '9102', 'timeout' => 2]);
 
@@ -372,8 +400,10 @@ class ClientFunctionalTest extends BaseTest
 
         $connections = $client->getConnections();
 
+        // two connections are setup
         $this->assertCount(2, $connections);
 
+        // One connection has to be disabled
         $this->assertTrue(false === $connections[0]->isEnabled() || false === $connections[1]->isEnabled());
     }
 
@@ -384,6 +414,7 @@ class ClientFunctionalTest extends BaseTest
     {
         $count = 0;
 
+        // Callback function which verifies that disabled connection objects are returned
         $callback = function (Connection $connection, \Exception $exception, Client $client) use (&$count): void {
             $this->assertInstanceOf(Connection::class, $connection);
             $this->assertInstanceOf(ConnectionException::class, $exception);
@@ -394,6 +425,7 @@ class ClientFunctionalTest extends BaseTest
 
         $client = $this->_getClient([], $callback);
 
+        // First connection work, second should not work
         $connection1 = new Connection(['port' => '9101', 'timeout' => 2]);
         $connection2 = new Connection(['port' => '9102', 'timeout' => 2]);
 
@@ -408,6 +440,7 @@ class ClientFunctionalTest extends BaseTest
             $this->assertTrue(true);
         }
 
+        // Two disabled connections (from closure call)
         $this->assertEquals(2, $count);
     }
 
@@ -415,6 +448,7 @@ class ClientFunctionalTest extends BaseTest
     {
         $url = 'http://'.$this->_getHost().':9200/';
 
+        // Url should overwrite invalid host
         $client = $this->_getClient(['url' => $url, 'port' => '9101', 'timeout' => 2]);
 
         $response = $client->request('_stats');
@@ -476,6 +510,7 @@ class ClientFunctionalTest extends BaseTest
         $script->setParam('count', 5);
         $script->setUpsert(['field1' => 'value1', 'field2' => 10, 'field3' => 'should be removed', 'field4' => 'value4']);
 
+        // should use document fields because document does not exist, script is avoided
         $client->updateDocument(1, $script, $index->getName());
 
         $document = $index->getDocument(1);
@@ -491,6 +526,7 @@ class ClientFunctionalTest extends BaseTest
         $this->assertArrayHasKey('field4', $data);
         $this->assertEquals('value4', $data['field4']);
 
+        // should use script because document exists, document values are ignored
         $client->updateDocument(1, $script, $index->getName());
 
         $document = $index->getDocument(1);
@@ -550,6 +586,7 @@ class ClientFunctionalTest extends BaseTest
         $this->assertArrayHasKey('field2', $data);
         $this->assertEquals('value2', $data['field2']);
 
+        // should use update document because document exists, upsert document values are ignored
         $client->updateDocument(1, $newDocument, $index->getName());
 
         $document = $index->getDocument(1);
@@ -566,10 +603,12 @@ class ClientFunctionalTest extends BaseTest
         $index = $this->_createIndex();
         $client = $index->getClient();
 
+        // Confirm document one does not exist
         try {
             $index->getDocument(1);
             $this->fail('Exception was not thrown. Maybe the document exists?');
         } catch (\Exception $e) {
+            // Ignore the exception because we expect the document to not exist.
         }
 
         $newDocument = new Document('1', ['field1' => 'value1', 'field2' => 'value2']);
@@ -589,12 +628,14 @@ class ClientFunctionalTest extends BaseTest
         $index = $this->_createIndex();
         $client = $index->getClient();
 
+        // Try to update using a stdClass object
         $badDocument = new \stdClass();
 
         try {
             $client->updateDocument(1, $badDocument, $index->getName());
             $this->fail('Tried to update using an object that is not a Document or a Script but no exception was thrown');
         } catch (\Throwable $e) {
+            // Good. An exception was thrown.
         }
     }
 
@@ -899,19 +940,24 @@ class ClientFunctionalTest extends BaseTest
 
         $now = new \DateTime();
 
+        // e.g. test-2018.01.01
         $staticIndex = $client->getIndex('test-'.$now->format('Y.m.d'));
         $staticIndex->create();
 
         $dynamicIndex = $client->getIndex('<test-{now/d}>');
 
+        // Index name goes through URI, should be escaped
+        // Also, index should exist (matches $staticIndex)
         $dynamicIndex->refresh();
 
         $doc1 = $dynamicIndex->createDocument('1', ['name' => 'one']);
         $doc2 = $dynamicIndex->createDocument('2', ['name' => 'two']);
 
+        // Index name goes through JSON body, should remain unescaped
         $bulk = new Bulk($client);
         $bulk->setIndex($dynamicIndex);
         $bulk->addDocuments([$doc1, $doc2]);
+        // Should be sent successfully without exceptions
         $bulk->send();
     }
 
@@ -921,9 +967,11 @@ class ClientFunctionalTest extends BaseTest
 
         $now = new \DateTime();
 
+        // e.g. test-2018.01.01
         $staticIndex = $client->getIndex('test-'.$now->format('Y.m.d'));
         $staticIndex->create();
 
+        // It should not double escape the index name, since it came already escaped.
         $client->request('<test-{now%2Fd}>/_refresh');
     }
 
@@ -955,6 +1003,9 @@ class ClientFunctionalTest extends BaseTest
 
     /**
      * @dataProvider endpointQueryRequestDataProvider
+     *
+     * @param mixed $query
+     * @param mixed $totalHits
      */
     public function testEndpointQueryRequest($query, $totalHits): void
     {

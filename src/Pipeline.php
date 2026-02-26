@@ -4,6 +4,7 @@ namespace Elastica;
 
 use Elastica\Exception\InvalidException;
 use Elastica\Processor\AbstractProcessor;
+use RuntimeException;
 
 /**
  * Elastica Pipeline object.
@@ -170,6 +171,6 @@ class Pipeline extends Param
      */
     public function requestEndpoint($endpoint): Response
     {
-        throw new \RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->ingest()->putPipeline() instead.');
+        throw new RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->ingest()->putPipeline() instead.');
     }
 }

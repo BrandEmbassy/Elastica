@@ -93,6 +93,7 @@ class Info
      */
     public function getPort(): string
     {
+        // Returns string in format: inet[/192.168.1.115:9201]
         $data = $this->get('http_address');
         $data = \substr($data, 6, -1);
         $data = \explode(':', $data);
@@ -107,6 +108,7 @@ class Info
      */
     public function getIp(): string
     {
+        // Returns string in format: inet[/192.168.1.115:9201]
         $data = $this->get('http_address');
         $data = \substr($data, 6, -1);
         $data = \explode(':', $data);
@@ -124,6 +126,7 @@ class Info
     public function getPlugins(): array
     {
         if (!\in_array('plugins', $this->_params, true)) {
+            // Plugin data was not retrieved when refresh() was called last. Get it now.
             $this->_params[] = 'plugins';
             $this->refresh($this->_params);
         }

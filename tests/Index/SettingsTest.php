@@ -109,11 +109,13 @@ class SettingsTest extends BaseTest
         ]);
         $settings = $index->getSettings();
 
+        // Check for zero replicas
         $settings->setNumberOfReplicas(0);
         $index->refresh();
         $this->assertEquals(0, $settings->get('number_of_replicas'));
         $this->assertEquals(0, $settings->getNumberOfReplicas());
 
+        // Check with 3 replicas
         $settings->setNumberOfReplicas(3);
         $index->refresh();
         $this->assertEquals(3, $settings->get('number_of_replicas'));
@@ -134,6 +136,7 @@ class SettingsTest extends BaseTest
 
         $settings = $index->getSettings();
 
+        // Test with default number of replicas
         $this->assertEquals(IndexSettings::DEFAULT_NUMBER_OF_REPLICAS, $settings->get('number_of_replicas'));
         $this->assertEquals(IndexSettings::DEFAULT_NUMBER_OF_REPLICAS, $settings->getNumberOfReplicas());
 
@@ -152,6 +155,7 @@ class SettingsTest extends BaseTest
 
         $settings = $index->getSettings();
 
+        // Test with default number of replicas
         $this->assertEquals(1, $settings->get('number_of_shards'));
         $this->assertEquals(1, $settings->getNumberOfShards());
 
@@ -171,6 +175,7 @@ class SettingsTest extends BaseTest
 
         $settings = $index->getSettings();
 
+        // Test with default number of shards
         $this->assertEquals(IndexSettings::DEFAULT_NUMBER_OF_SHARDS, $settings->get('number_of_shards'));
         $this->assertEquals(IndexSettings::DEFAULT_NUMBER_OF_SHARDS, $settings->getNumberOfShards());
 
@@ -232,6 +237,7 @@ class SettingsTest extends BaseTest
         $index->create([], [
             'recreate' => true,
         ]);
+        // wait for the shards to be allocated
         $this->_waitForAllocation($index);
 
         $settings = $index->getSettings();
@@ -255,6 +261,7 @@ class SettingsTest extends BaseTest
             'recreate' => true,
         ]);
 
+        // wait for the shards to be allocated
         $this->_waitForAllocation($index);
 
         $settings = $index->getSettings();
@@ -275,9 +282,11 @@ class SettingsTest extends BaseTest
     public function testSetReadOnly(): void
     {
         $index = $this->_createIndex();
+        // wait for the shards to be allocated
         $this->_waitForAllocation($index);
         $index->getSettings()->setReadOnly(false);
 
+        // Add document to normal index
         $doc1 = new Document(null, ['hello' => 'world']);
         $doc2 = new Document(null, ['hello' => 'world']);
         $doc3 = new Document(null, ['hello' => 'world']);
@@ -285,6 +294,7 @@ class SettingsTest extends BaseTest
         $index->addDocument($doc1);
         $this->assertFalse($index->getSettings()->getReadOnly());
 
+        // Try to add doc to read only index
         $index->getSettings()->setReadOnly(true);
         try {
             $this->assertTrue($index->getSettings()->getReadOnly());
@@ -306,6 +316,7 @@ class SettingsTest extends BaseTest
             $index->getSettings()->setReadOnly(false);
         }
 
+        // Remove read only, add document
         $response = $index->getSettings()->setReadOnly(false);
         $this->assertTrue($response->isOk());
 

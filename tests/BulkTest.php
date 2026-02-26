@@ -19,6 +19,8 @@ use Elastica\Response as ElasticaResponse;
 use Elastica\Script\Script;
 use Elastica\Test\Base as BaseTest;
 use PHPUnit\Framework\MockObject\MockObject;
+use function str_replace;
+use function strpos;
 
 /**
  * @internal
@@ -95,8 +97,8 @@ class BulkTest extends BaseTest
 {"name":"The Thing"}
 ';
 
-            $expected = \str_replace(\PHP_EOL, "\n", $expected);
-            $this->assertEquals($expected, (string) \str_replace(\PHP_EOL, "\n", (string) $bulk));
+            $expected = str_replace(\PHP_EOL, "\n", $expected);
+            $this->assertEquals($expected, (string) str_replace(\PHP_EOL, "\n", (string) $bulk));
 
             $response = $bulk->send();
 
@@ -137,7 +139,7 @@ class BulkTest extends BaseTest
                 $this->assertTrue(true);
             }
         } catch (ClientResponseException $e) {
-            if (false !== \strpos($e->getMessage(), 'read-only') || false !== \strpos($e->getMessage(), 'Connection')) {
+            if (false !== strpos($e->getMessage(), 'read-only') || false !== strpos($e->getMessage(), 'Connection')) {
                 $this->markTestSkipped('Elasticsearch not writable: '.$e->getMessage());
             }
             throw $e;
@@ -284,8 +286,10 @@ class BulkTest extends BaseTest
 
     /**
      * @group unit
-     *
      * @dataProvider invalidRawDataProvider
+     *
+     * @param mixed $rawData
+     * @param mixed $failMessage
      */
     public function testInvalidRawData($rawData, $failMessage): void
     {
@@ -397,7 +401,7 @@ class BulkTest extends BaseTest
 {"name":"The Human Torch"}
 JSON;
 
-        $expectedJson = \str_replace(\PHP_EOL, "\n", $expectedJson);
+        $expectedJson = str_replace(\PHP_EOL, "\n", $expectedJson);
         $this->assertSame($expectedJson, \trim((string) $bulk));
 
         $response = $bulk->send();
@@ -428,6 +432,7 @@ JSON;
         $doc4 = new Document('4', ['name' => 'Ringo'], $index);
         $documents = [$doc1, $doc2, $doc3, $doc4];
 
+        // index some documents
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
         $bulk->addDocuments($documents);
@@ -439,6 +444,7 @@ JSON;
         $index->refresh();
         $index->getDocument(2);
 
+        // test updating via document
         $doc2 = new Document('2', ['name' => 'The Walrus'], $index);
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
@@ -460,6 +466,7 @@ JSON;
         $docData = $doc->getData();
         $this->assertEquals('The Walrus', $docData['name']);
 
+        // test updating via script
         $script = new Script('ctx._source.name += params.param1;', ['param1' => ' was Paul'], Script::LANG_PAINLESS, '2');
         $updateAction = AbstractDocument::create(
             $script,
@@ -480,6 +487,7 @@ JSON;
         $doc2 = $index->getDocument(2);
         $this->assertEquals('The Walrus was Paul', $doc2->name);
 
+        // test upsert
         $script = new Script('', [], null, '5');
         $doc = new Document('', ['counter' => 1]);
         $script->setUpsert($doc);
@@ -501,6 +509,7 @@ JSON;
         $doc = $index->getDocument(5);
         $this->assertEquals(1, $doc->counter);
 
+        // test doc_as_upsert
         $doc = new Document('6', ['test' => 'test']);
         $doc->setDocAsUpsert(true);
         $updateAction = AbstractDocument::create(
@@ -521,6 +530,7 @@ JSON;
         $doc = $index->getDocument(6);
         $this->assertEquals('test', $doc->test);
 
+        // test doc_as_upsert with set of documents (use of addDocuments)
         $doc1 = new Document('7', ['test' => 'test1']);
         $doc1->setDocAsUpsert(true);
         $doc2 = new Document('8', ['test' => 'test2']);
@@ -540,6 +550,7 @@ JSON;
         $doc = $index->getDocument(8);
         $this->assertEquals('test2', $doc->test);
 
+        // test updating via document with json string as data
         $doc3 = new Document('2', [], $index);
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
@@ -583,6 +594,7 @@ JSON;
             return $d;
         }, [$doc1, $doc2, $doc3, $doc4]);
 
+        // index some documents
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
         $bulk->addDocuments($documents);
@@ -593,6 +605,7 @@ JSON;
 
         $index->refresh();
 
+        // test updating via document
         $doc1 = new Document('1', ['name' => 'Maradona'], $index);
         $doc1->setDocAsUpsert(true);
         $bulk = new Bulk($client);
@@ -638,6 +651,7 @@ JSON;
             'sub_field_2' => [],
         ];
 
+        // insert doc and update field
         $script = new Script('ctx._source.field = params.field', ['field' => $field]);
         $script->setUpsert($defaultData);
         $script->setId($id);
@@ -651,6 +665,7 @@ JSON;
         );
         $bulk->addAction($action);
 
+        // update sub_field
         $script = new Script('if ( !ctx._source.sub_field.contains(params) ) ctx._source.sub_field.add(params)', $subField);
         $script->setUpsert($defaultData);
         $script->setId($id);
@@ -664,6 +679,7 @@ JSON;
         );
         $bulk->addAction($action);
 
+        // update sub_field_2
         $script = new Script('if ( !ctx._source.sub_field_2.contains(params) ) ctx._source.sub_field_2.add(params)', $subField2);
         $script->setUpsert($defaultData);
         $script->setId($id);
@@ -792,7 +808,7 @@ JSON;
 
         $endMemory = \memory_get_usage();
 
-        $this->assertLessThan(1.35, $endMemory / $startMemory);
+        $this->assertLessThan(1.31, $endMemory / $startMemory);
     }
 
     /**

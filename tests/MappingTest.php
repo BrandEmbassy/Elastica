@@ -27,6 +27,7 @@ class MappingTest extends BaseTest
 
         $mapping = new Mapping([
             'firstname' => ['type' => 'text', 'store' => true],
+            // default is store => no expected
             'lastname' => ['type' => 'text'],
         ]);
         $mapping->disableSource();
@@ -254,8 +255,10 @@ class MappingTest extends BaseTest
 
         $index->setMapping($mapping);
 
+        // when running the tests, the mapping sometimes isn't available yet. Force merge index to enforce reload mapping.
         $index->forcemerge();
 
+        // create a document which should create a mapping for the field: multiname.
         $testDoc = new Document('person1', ['multiname' => 'Jasper van Wanrooy']);
         $index->addDocuments([$testDoc]);
         $index->refresh();

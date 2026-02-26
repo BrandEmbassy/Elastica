@@ -5,6 +5,7 @@ namespace Elastica\Test\Aggregation;
 use Elastica\Aggregation\Percentiles;
 use Elastica\Document;
 use Elastica\Query;
+use function count;
 
 /**
  * @internal
@@ -128,6 +129,7 @@ class PercentilesTest extends BaseAggregationTest
      */
     public function testActualWork(): void
     {
+        // prepare
         $index = $this->_createIndex();
         $index->addDocuments([
             new Document('1', ['price' => 100]),
@@ -143,6 +145,7 @@ class PercentilesTest extends BaseAggregationTest
         ]);
         $index->refresh();
 
+        // execute
         $query = new Query();
         $query->addAggregation(new Percentiles('price_percentile', 'price'));
 
@@ -163,6 +166,7 @@ class PercentilesTest extends BaseAggregationTest
      */
     public function testKeyed(): void
     {
+        // prepare
         $index = $this->_createIndex();
         $index->addDocuments([
             new Document('1', ['price' => 100]),
@@ -178,6 +182,7 @@ class PercentilesTest extends BaseAggregationTest
         ]);
         $index->refresh();
 
+        // execute
         $agg = (new Percentiles('price_percentile', 'price'))
             ->setKeyed(false)
         ;
@@ -198,7 +203,7 @@ class PercentilesTest extends BaseAggregationTest
             ['key' => 99.0, 'value' => 1000.0],
         ];
 
-        $this->assertCount(\count($expected), $aggResult['values']);
+        $this->assertCount(count($expected), $aggResult['values']);
         foreach ($expected as $i => $expectedEntry) {
             $this->assertEqualsWithDelta($expectedEntry['key'], $aggResult['values'][$i]['key'], 0.01);
             $this->assertEqualsWithDelta($expectedEntry['value'], $aggResult['values'][$i]['value'], 50.0);

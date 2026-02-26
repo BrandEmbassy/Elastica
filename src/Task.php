@@ -2,6 +2,8 @@
 
 namespace Elastica;
 
+use function array_merge;
+
 /**
  * Represents elasticsearch task.
  *
@@ -84,7 +86,7 @@ class Task extends Param
      */
     public function refresh(array $options = []): void
     {
-        $params = \array_merge($options, [
+        $params = array_merge($options, [
             'task_id' => $this->_id,
         ]);
 
