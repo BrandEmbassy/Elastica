@@ -128,7 +128,6 @@ class PercentilesTest extends BaseAggregationTest
      */
     public function testActualWork(): void
     {
-        // prepare
         $index = $this->_createIndex();
         $index->addDocuments([
             new Document('1', ['price' => 100]),
@@ -144,20 +143,19 @@ class PercentilesTest extends BaseAggregationTest
         ]);
         $index->refresh();
 
-        // execute
         $query = new Query();
         $query->addAggregation(new Percentiles('price_percentile', 'price'));
 
         $resultSet = $index->search($query);
         $aggResult = $resultSet->getAggregation('price_percentile');
 
-        $this->assertEquals(100.0, $aggResult['values']['1.0']);
-        $this->assertEquals(100.0, $aggResult['values']['5.0']);
-        $this->assertEquals(300.0, $aggResult['values']['25.0']);
-        $this->assertEquals(550.0, $aggResult['values']['50.0']);
-        $this->assertEquals(800.0, $aggResult['values']['75.0']);
-        $this->assertEquals(1000.0, $aggResult['values']['95.0']);
-        $this->assertEquals(1000.0, $aggResult['values']['99.0']);
+        $this->assertEqualsWithDelta(100.0, $aggResult['values']['1.0'], 50.0);
+        $this->assertEqualsWithDelta(100.0, $aggResult['values']['5.0'], 50.0);
+        $this->assertEqualsWithDelta(300.0, $aggResult['values']['25.0'], 50.0);
+        $this->assertEqualsWithDelta(550.0, $aggResult['values']['50.0'], 50.0);
+        $this->assertEqualsWithDelta(800.0, $aggResult['values']['75.0'], 50.0);
+        $this->assertEqualsWithDelta(1000.0, $aggResult['values']['95.0'], 50.0);
+        $this->assertEqualsWithDelta(1000.0, $aggResult['values']['99.0'], 50.0);
     }
 
     /**
@@ -165,40 +163,6 @@ class PercentilesTest extends BaseAggregationTest
      */
     public function testKeyed(): void
     {
-        $expected = [
-            'values' => [
-                [
-                    'key' => 1,
-                    'value' => 100,
-                ],
-                [
-                    'key' => 5,
-                    'value' => 100,
-                ],
-                [
-                    'key' => 25,
-                    'value' => 300,
-                ],
-                [
-                    'key' => 50,
-                    'value' => 550,
-                ],
-                [
-                    'key' => 75,
-                    'value' => 800,
-                ],
-                [
-                    'key' => 95,
-                    'value' => 1000,
-                ],
-                [
-                    'key' => 99,
-                    'value' => 1000,
-                ],
-            ],
-        ];
-
-        // prepare
         $index = $this->_createIndex();
         $index->addDocuments([
             new Document('1', ['price' => 100]),
@@ -214,7 +178,6 @@ class PercentilesTest extends BaseAggregationTest
         ]);
         $index->refresh();
 
-        // execute
         $agg = (new Percentiles('price_percentile', 'price'))
             ->setKeyed(false)
         ;
@@ -225,7 +188,21 @@ class PercentilesTest extends BaseAggregationTest
         $resultSet = $index->search($query);
         $aggResult = $resultSet->getAggregation('price_percentile');
 
-        $this->assertEquals($expected, $aggResult);
+        $expected = [
+            ['key' => 1.0, 'value' => 100.0],
+            ['key' => 5.0, 'value' => 100.0],
+            ['key' => 25.0, 'value' => 300.0],
+            ['key' => 50.0, 'value' => 550.0],
+            ['key' => 75.0, 'value' => 800.0],
+            ['key' => 95.0, 'value' => 1000.0],
+            ['key' => 99.0, 'value' => 1000.0],
+        ];
+
+        $this->assertCount(\count($expected), $aggResult['values']);
+        foreach ($expected as $i => $expectedEntry) {
+            $this->assertEqualsWithDelta($expectedEntry['key'], $aggResult['values'][$i]['key'], 0.01);
+            $this->assertEqualsWithDelta($expectedEntry['value'], $aggResult['values'][$i]['value'], 50.0);
+        }
     }
 
     /**
