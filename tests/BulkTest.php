@@ -19,8 +19,9 @@ use Elastica\Response as ElasticaResponse;
 use Elastica\Script\Script;
 use Elastica\Test\Base as BaseTest;
 use PHPUnit\Framework\MockObject\MockObject;
+use function str_contains;
 use function str_replace;
-use function strpos;
+use const PHP_EOL;
 
 /**
  * @internal
@@ -97,8 +98,8 @@ class BulkTest extends BaseTest
 {"name":"The Thing"}
 ';
 
-            $expected = str_replace(\PHP_EOL, "\n", $expected);
-            $this->assertEquals($expected, (string) str_replace(\PHP_EOL, "\n", (string) $bulk));
+            $expected = str_replace(PHP_EOL, "\n", $expected);
+            $this->assertEquals($expected, (string) str_replace(PHP_EOL, "\n", (string) $bulk));
 
             $response = $bulk->send();
 
@@ -139,10 +140,16 @@ class BulkTest extends BaseTest
                 $this->assertTrue(true);
             }
         } catch (ClientResponseException $e) {
-            if (false !== strpos($e->getMessage(), 'read-only') || false !== strpos($e->getMessage(), 'Connection')) {
-                $this->markTestSkipped('Elasticsearch not writable: '.$e->getMessage());
-            }
+            $this->skipIfElasticsearchNotWritable($e);
             throw $e;
+        }
+    }
+
+
+    private function skipIfElasticsearchNotWritable(ClientResponseException $e): void
+    {
+        if (str_contains($e->getMessage(), 'read-only') || str_contains($e->getMessage(), 'Connection')) {
+            $this->markTestSkipped('Elasticsearch not writable: '.$e->getMessage());
         }
     }
 
@@ -401,7 +408,7 @@ class BulkTest extends BaseTest
 {"name":"The Human Torch"}
 JSON;
 
-        $expectedJson = str_replace(\PHP_EOL, "\n", $expectedJson);
+        $expectedJson = str_replace(PHP_EOL, "\n", $expectedJson);
         $this->assertSame($expectedJson, \trim((string) $bulk));
 
         $response = $bulk->send();

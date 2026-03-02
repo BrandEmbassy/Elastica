@@ -45,12 +45,9 @@ class InfoTest extends BaseTest
         $node = $nodes[0];
         $info = $node->getInfo();
 
+        $this->_checkPlugin('ingest-attachment');
+
         $this->assertFalse($info->hasPlugin('foo'));
-
-        if (!$info->hasPlugin('ingest-attachment')) {
-            $this->markTestSkipped('ingest-attachment plugin not installed.');
-        }
-
         $this->assertTrue($info->hasPlugin('ingest-attachment'));
     }
 

@@ -5,7 +5,7 @@ namespace Elastica\Test\Aggregation;
 use Elastica\Aggregation\Percentiles;
 use Elastica\Document;
 use Elastica\Query;
-use function count;
+use Iterator;
 
 /**
  * @internal
@@ -125,9 +125,52 @@ class PercentilesTest extends BaseAggregationTest
     }
 
     /**
-     * @group functional
+     * @return Iterator<string, array{expectedValue: float, percentileKey: string}>
      */
-    public function testActualWork(): void
+    public function actualWorkDataProvider(): Iterator
+    {
+        yield '1st percentile' => [
+            'expectedValue' => 100.0,
+            'percentileKey' => '1.0',
+        ];
+
+        yield '5th percentile' => [
+            'expectedValue' => 100.0,
+            'percentileKey' => '5.0',
+        ];
+
+        yield '25th percentile' => [
+            'expectedValue' => 300.0,
+            'percentileKey' => '25.0',
+        ];
+
+        yield '50th percentile' => [
+            'expectedValue' => 550.0,
+            'percentileKey' => '50.0',
+        ];
+
+        yield '75th percentile' => [
+            'expectedValue' => 800.0,
+            'percentileKey' => '75.0',
+        ];
+
+        yield '95th percentile' => [
+            'expectedValue' => 1000.0,
+            'percentileKey' => '95.0',
+        ];
+
+        yield '99th percentile' => [
+            'expectedValue' => 1000.0,
+            'percentileKey' => '99.0',
+        ];
+    }
+
+
+    /**
+     * @group functional
+     * @dataProvider actualWorkDataProvider
+     */
+    public function testActualWork(float $expectedValue, string $percentileKey): void
     {
         // prepare
         $index = $this->_createIndex();
@@ -149,26 +192,69 @@ class PercentilesTest extends BaseAggregationTest
         $query = new Query();
         $query->addAggregation(new Percentiles('price_percentile', 'price'));
 
-        $resultSet = $index->search($query);
-        $aggResult = $resultSet->getAggregation('price_percentile');
+        $aggResult = $index->search($query)->getAggregation('price_percentile');
 
-        $this->assertEqualsWithDelta(100.0, $aggResult['values']['1.0'], 50.0);
-        $this->assertEqualsWithDelta(100.0, $aggResult['values']['5.0'], 50.0);
-        $this->assertEqualsWithDelta(300.0, $aggResult['values']['25.0'], 50.0);
-        $this->assertEqualsWithDelta(550.0, $aggResult['values']['50.0'], 50.0);
-        $this->assertEqualsWithDelta(800.0, $aggResult['values']['75.0'], 50.0);
-        $this->assertEqualsWithDelta(1000.0, $aggResult['values']['95.0'], 50.0);
-        $this->assertEqualsWithDelta(1000.0, $aggResult['values']['99.0'], 50.0);
+        $this->assertEqualsWithDelta($expectedValue, $aggResult['values'][$percentileKey], 50.0);
     }
 
     /**
-     * @group functional
+     * @return Iterator<string, array{expectedKey: float, expectedValue: float, index: int}>
      */
-    public function testKeyed(): void
+    public function keyedDataProvider(): Iterator
+    {
+        yield '1st percentile' => [
+            'expectedKey'   => 1.0,
+            'expectedValue' => 100.0,
+            'index'         => 0,
+        ];
+
+        yield '5th percentile' => [
+            'expectedKey'   => 5.0,
+            'expectedValue' => 100.0,
+            'index'         => 1,
+        ];
+
+        yield '25th percentile' => [
+            'expectedKey'   => 25.0,
+            'expectedValue' => 300.0,
+            'index'         => 2,
+        ];
+
+        yield '50th percentile' => [
+            'expectedKey'   => 50.0,
+            'expectedValue' => 550.0,
+            'index'         => 3,
+        ];
+
+        yield '75th percentile' => [
+            'expectedKey'   => 75.0,
+            'expectedValue' => 800.0,
+            'index'         => 4,
+        ];
+
+        yield '95th percentile' => [
+            'expectedKey'   => 95.0,
+            'expectedValue' => 1000.0,
+            'index'         => 5,
+        ];
+
+        yield '99th percentile' => [
+            'expectedKey'   => 99.0,
+            'expectedValue' => 1000.0,
+            'index'         => 6,
+        ];
+    }
+
+
+    /**
+     * @group functional
+     * @dataProvider keyedDataProvider
+     */
+    public function testKeyed(float $expectedKey, float $expectedValue, int $index): void
     {
         // prepare
-        $index = $this->_createIndex();
-        $index->addDocuments([
+        $esIndex = $this->_createIndex();
+        $esIndex->addDocuments([
             new Document('1', ['price' => 100]),
             new Document('2', ['price' => 200]),
             new Document('3', ['price' => 300]),
@@ -180,7 +266,7 @@ class PercentilesTest extends BaseAggregationTest
             new Document('9', ['price' => 900]),
             new Document('10', ['price' => 1000]),
         ]);
-        $index->refresh();
+        $esIndex->refresh();
 
         // execute
         $agg = (new Percentiles('price_percentile', 'price'))
@@ -190,24 +276,10 @@ class PercentilesTest extends BaseAggregationTest
         $query = new Query();
         $query->addAggregation($agg);
 
-        $resultSet = $index->search($query);
-        $aggResult = $resultSet->getAggregation('price_percentile');
+        $aggResult = $esIndex->search($query)->getAggregation('price_percentile');
 
-        $expected = [
-            ['key' => 1.0, 'value' => 100.0],
-            ['key' => 5.0, 'value' => 100.0],
-            ['key' => 25.0, 'value' => 300.0],
-            ['key' => 50.0, 'value' => 550.0],
-            ['key' => 75.0, 'value' => 800.0],
-            ['key' => 95.0, 'value' => 1000.0],
-            ['key' => 99.0, 'value' => 1000.0],
-        ];
-
-        $this->assertCount(count($expected), $aggResult['values']);
-        foreach ($expected as $i => $expectedEntry) {
-            $this->assertEqualsWithDelta($expectedEntry['key'], $aggResult['values'][$i]['key'], 0.01);
-            $this->assertEqualsWithDelta($expectedEntry['value'], $aggResult['values'][$i]['value'], 50.0);
-        }
+        $this->assertEqualsWithDelta($expectedKey, $aggResult['values'][$index]['key'], 0.01);
+        $this->assertEqualsWithDelta($expectedValue, $aggResult['values'][$index]['value'], 50.0);
     }
 
     /**

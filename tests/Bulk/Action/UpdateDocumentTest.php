@@ -24,7 +24,7 @@ class UpdateDocumentTest extends BaseTest
             $document,
             AbstractDocument::OP_TYPE_UPDATE,
             ApiVersion::API_VERSION_9,
-            static fn () => Type::DOC
+            static fn() => Type::DOC
         );
         $this->assertEquals('update', $action->getOpType());
         $this->assertTrue($action->hasSource());
@@ -72,7 +72,7 @@ class UpdateDocumentTest extends BaseTest
             $document,
             AbstractDocument::OP_TYPE_UPDATE,
             ApiVersion::API_VERSION_9,
-            static fn () => Type::DOC
+            static fn() => Type::DOC
         );
 
         $this->assertSame('update', $action->getOpType());

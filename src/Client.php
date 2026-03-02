@@ -11,6 +11,7 @@ use Elastica\Exception\ResponseException;
 use Elastica\Script\AbstractScript;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Closure;
 use RuntimeException;
 use function sprintf;
 use function array_merge;
@@ -688,9 +689,9 @@ class Client
         return $this->getConfigValue('apiVersion', ApiVersion::API_VERSION_9);
     }
 
-    public function getDocumentTypeResolver(): \Closure
+    public function getDocumentTypeResolver(): Closure
     {
-        return $this->getConfigValue('documentTypeResolver', static fn () => Type::DOC);
+        return $this->getConfigValue('documentTypeResolver', static fn() => Type::DOC);
     }
 
     /**

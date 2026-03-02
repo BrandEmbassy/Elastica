@@ -996,7 +996,7 @@ class ClientFunctionalTest extends BaseTest
         $this->assertArrayHasKey('index_total', $responseData['indices'][$index->getName()]['total']['indexing']);
 
         $this->assertSame(
-            1,
+            2,
             $responseData['indices'][$index->getName()]['total']['indexing']['index_total']
         );
     }

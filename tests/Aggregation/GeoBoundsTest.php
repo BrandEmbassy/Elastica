@@ -7,6 +7,7 @@ use Elastica\Document;
 use Elastica\Index;
 use Elastica\Mapping;
 use Elastica\Query;
+use Iterator;
 
 /**
  * @internal
@@ -14,9 +15,41 @@ use Elastica\Query;
 class GeoBoundsTest extends BaseAggregationTest
 {
     /**
-     * @group functional
+     * @return Iterator<string, array{expectedValue: float, position: string, coordinate: string}>
      */
-    public function testGeoBoundsAggregation(): void
+    public function geoBoundsDataProvider(): Iterator
+    {
+        yield 'top left latitude' => [
+            'expectedValue' => 37.782438984141,
+            'position'      => 'top_left',
+            'coordinate'    => 'lat',
+        ];
+
+        yield 'top left longitude' => [
+            'expectedValue' => -122.39256000146,
+            'position'      => 'top_left',
+            'coordinate'    => 'lon',
+        ];
+
+        yield 'bottom right latitude' => [
+            'expectedValue' => 32.798319971189,
+            'position'      => 'bottom_right',
+            'coordinate'    => 'lat',
+        ];
+
+        yield 'bottom right longitude' => [
+            'expectedValue' => -117.24664804526,
+            'position'      => 'bottom_right',
+            'coordinate'    => 'lon',
+        ];
+    }
+
+
+    /**
+     * @group functional
+     * @dataProvider geoBoundsDataProvider
+     */
+    public function testGeoBoundsAggregation(float $expectedValue, string $position, string $coordinate): void
     {
         $agg = new GeoBounds('viewport', 'location');
 
@@ -24,10 +57,7 @@ class GeoBoundsTest extends BaseAggregationTest
         $query->addAggregation($agg);
         $results = $this->getIndexForTest()->search($query)->getAggregation('viewport');
 
-        $this->assertEqualsWithDelta(37.782438984141, $results['bounds']['top_left']['lat'], 0.000001);
-        $this->assertEqualsWithDelta(-122.39256000146, $results['bounds']['top_left']['lon'], 0.000001);
-        $this->assertEqualsWithDelta(32.798319971189, $results['bounds']['bottom_right']['lat'], 0.000001);
-        $this->assertEqualsWithDelta(-117.24664804526, $results['bounds']['bottom_right']['lon'], 0.000001);
+        $this->assertEqualsWithDelta($expectedValue, $results['bounds'][$position][$coordinate], 0.000001);
     }
 
     private function getIndexForTest(): Index

@@ -4,6 +4,7 @@ namespace Elastica\Test;
 
 use Elastica\Document;
 use Elastica\Exception\NotFoundException;
+use Exception;
 use Elastica\Index;
 use Elastica\Snapshot;
 
@@ -67,7 +68,7 @@ class SnapshotTest extends Base
         $snapshotName = 'test_snapshot_1';
         try {
             $this->snapshot->deleteSnapshot(self::REPOSITORY_NAME, $snapshotName);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
 
         $response = $this->snapshot->createSnapshot(self::REPOSITORY_NAME, $snapshotName, ['indices' => $this->index->getName()], true);

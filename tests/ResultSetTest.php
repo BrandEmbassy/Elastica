@@ -6,6 +6,7 @@ use Elastica\Document;
 use Elastica\Exception\InvalidException;
 use Elastica\Result;
 use Elastica\Test\Base as BaseTest;
+use GuzzleHttp\Exception\RequestException;
 
 /**
  * @internal
@@ -90,7 +91,7 @@ class ResultSetTest extends BaseTest
         try {
             $index->addDocument(new Document('1', ['name' => 'elastica search']));
             $index->refresh();
-        } catch (\GuzzleHttp\Exception\RequestException $e) {
+        } catch (RequestException $e) {
             $this->markTestSkipped('Elasticsearch connection failed: '.$e->getMessage());
         }
 
@@ -110,7 +111,7 @@ class ResultSetTest extends BaseTest
             $doc = new Document('1', ['name' => 'elastica search']);
             $index->addDocument($doc);
             $index->refresh();
-        } catch (\GuzzleHttp\Exception\RequestException $e) {
+        } catch (RequestException $e) {
             $this->markTestSkipped('Elasticsearch connection failed: '.$e->getMessage());
         }
 

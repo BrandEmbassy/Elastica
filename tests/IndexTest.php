@@ -16,6 +16,7 @@ use Elastica\Request;
 use Elastica\Script\Script;
 use Elastica\Status;
 use Elastica\Test\Base as BaseTest;
+use GuzzleHttp\Exception\RequestException;
 use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
 
 /**
@@ -109,7 +110,7 @@ class IndexTest extends BaseTest
             );
             $index->addDocument(new Document('1', ['id' => 1, 'email' => 'test@test.com', 'username' => 'ruflin']));
             $index->refresh();
-        } catch (\GuzzleHttp\Exception\RequestException $e) {
+        } catch (RequestException $e) {
             $this->markTestSkipped('Elasticsearch connection failed: '.$e->getMessage());
         }
 
