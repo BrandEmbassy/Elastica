@@ -2,6 +2,7 @@
 
 namespace Elastica\Test\Transport;
 
+use Elastica\Request;
 use Elastica\Response;
 use Elastica\Test\Base as BaseTest;
 use Elastica\Transport\NullTransport;
@@ -38,7 +39,13 @@ class NullTransportTest extends BaseTest
      */
     public function testExec(): void
     {
-        $this->markTestSkipped('NullTransport functional test fails with v9 client NoNodeAvailableException in tearDown.');
+        $request = new Request('/test');
+        $params = ['name' => 'ruflin'];
+        $transport = new NullTransport();
+        $response = $transport->exec($request, $params);
+
+        $data = $response->getData();
+        $this->assertEquals($params, $data['params']);
     }
 
     /**

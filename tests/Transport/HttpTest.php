@@ -10,10 +10,16 @@ use Elastica\Test\Base as BaseTest;
  */
 class HttpTest extends BaseTest
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \putenv('http_proxy=');
+    }
+
     protected function tearDown(): void
     {
-        parent::tearDown();
         \putenv('http_proxy=');
+        parent::tearDown();
     }
 
     /**
@@ -86,7 +92,17 @@ class HttpTest extends BaseTest
      */
     public function testWithEnvironmentalProxy(): void
     {
-        $this->markTestSkipped('Requires a proxy server running on port 8000 - not available in this environment.');
+        \putenv('http_proxy='.$this->_getProxyUrl().'/');
+
+        $client = $this->_getClient();
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(200, $transferInfo['http_code']);
+
+        $client->getConnection()->setProxy(null); // will not change anything
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(200, $transferInfo['http_code']);
+
+        \putenv('http_proxy=');
     }
 
     /**
@@ -94,7 +110,15 @@ class HttpTest extends BaseTest
      */
     public function testWithEnabledEnvironmentalProxy(): void
     {
-        $this->markTestSkipped('Requires a proxy server running on port 8001 - not available in this environment.');
+        \putenv('http_proxy='.$this->_getProxyUrl403().'/');
+        $client = $this->_getClient();
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(403, $transferInfo['http_code']);
+        $client = $this->_getClient();
+        $client->getConnection()->setProxy('');
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(200, $transferInfo['http_code']);
+        \putenv('http_proxy=');
     }
 
     /**
@@ -102,7 +126,11 @@ class HttpTest extends BaseTest
      */
     public function testWithProxy(): void
     {
-        $this->markTestSkipped('Requires a proxy server running on port 8000 - not available in this environment.');
+        $client = $this->_getClient();
+        $client->getConnection()->setProxy($this->_getProxyUrl());
+
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(200, $transferInfo['http_code']);
     }
 
     /**
@@ -110,7 +138,11 @@ class HttpTest extends BaseTest
      */
     public function testWithoutProxy(): void
     {
-        $this->markTestSkipped('setProxy() on Connection does not propagate to the ES v9 client - needs transport layer refactoring.');
+        $client = $this->_getClient();
+        $client->getConnection()->setProxy('');
+
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(200, $transferInfo['http_code']);
     }
 
     /**
@@ -126,7 +158,16 @@ class HttpTest extends BaseTest
      */
     public function testRequestSuccessWithHttpCompressionEnabled(): void
     {
-        $this->markTestSkipped('Custom transport options (type, compression, curl) not supported by ES v9 client builder.');
+        $client = $this->_getClient(['transport' => ['type' => 'Http', 'compression' => true], 'curl' => [\CURLINFO_HEADER_OUT => true]]);
+
+        $response = $client->request('/_nodes');
+        $transferInfo = $response->getTransferInfo();
+
+        if (\method_exists($this, 'assertMatchesRegularExpression')) {
+            $this->assertMatchesRegularExpression('/Accept-Encoding:\ (gzip|deflate)/', $transferInfo['request_header']);
+        } else {
+            $this->assertRegExp('/Accept-Encoding:\ (gzip|deflate)/', $transferInfo['request_header']);
+        }
     }
 
     /**
@@ -134,6 +175,15 @@ class HttpTest extends BaseTest
      */
     public function testRequestSuccessWithHttpCompressionDisabled(): void
     {
-        $this->markTestSkipped('Custom transport options (type, compression, curl) not supported by ES v9 client builder.');
+        $client = $this->_getClient(['transport' => ['type' => 'Http', 'compression' => false], 'curl' => [\CURLINFO_HEADER_OUT => true]]);
+
+        $response = $client->request('/_nodes');
+        $transferInfo = $response->getTransferInfo();
+
+        if (\method_exists($this, 'assertMatchesRegularExpression')) {
+            $this->assertMatchesRegularExpression('/Accept-Encoding:\ (gzip|deflate)/', $transferInfo['request_header']);
+        } else {
+            $this->assertRegExp('/Accept-Encoding:\ (gzip|deflate)/', $transferInfo['request_header']);
+        }
     }
 }

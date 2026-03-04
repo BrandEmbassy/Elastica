@@ -5,6 +5,7 @@ namespace Elastica\Test\Transport;
 use Elastica\Exception\Connection\GuzzleException;
 use Elastica\Test\Base as BaseTest;
 use function class_exists;
+use function putenv;
 
 /**
  * @internal
@@ -34,7 +35,17 @@ class GuzzleTest extends BaseTest
      */
     public function testWithEnvironmentalProxy(): void
     {
-        $this->markTestSkipped('Requires a proxy server running on port 8000 - not available in this environment.');
+        putenv('http_proxy='.$this->_getProxyUrl().'/');
+
+        $client = $this->_getClient(['transport' => 'Guzzle', 'persistent' => false]);
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(200, $transferInfo['http_code']);
+
+        $client->getConnection()->setProxy(null); // will not change anything
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(200, $transferInfo['http_code']);
+
+        putenv('http_proxy=');
     }
 
     /**
@@ -42,7 +53,18 @@ class GuzzleTest extends BaseTest
      */
     public function testWithEnabledEnvironmentalProxy(): void
     {
-        $this->markTestSkipped('Requires a proxy server running on port 8001 - not available in this environment.');
+        putenv('http_proxy='.$this->_getProxyUrl403().'/');
+
+        $client = $this->_getClient(['transport' => 'Guzzle', 'persistent' => false]);
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(403, $transferInfo['http_code']);
+
+        $client = $this->_getClient(['transport' => 'Guzzle', 'persistent' => false]);
+        $client->getConnection()->setProxy('');
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(200, $transferInfo['http_code']);
+
+        putenv('http_proxy=');
     }
 
     /**
@@ -50,7 +72,11 @@ class GuzzleTest extends BaseTest
      */
     public function testWithProxy(): void
     {
-        $this->markTestSkipped('Requires a proxy server running on port 8000 - not available in this environment.');
+        $client = $this->_getClient(['transport' => 'Guzzle', 'persistent' => false]);
+        $client->getConnection()->setProxy($this->_getProxyUrl());
+
+        $transferInfo = $client->request('/_nodes')->getTransferInfo();
+        $this->assertEquals(200, $transferInfo['http_code']);
     }
 
     /**
