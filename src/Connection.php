@@ -282,6 +282,10 @@ class Connection extends Param
         $port = $this->getPort();
         $path = $this->getPath();
 
+        if (\is_string($path) && $path !== '' && $path[0] !== '/') {
+            $path = '/' . $path;
+        }
+
         $hostString = sprintf('%s://%s:%d%s', $scheme, $host, $port, $path);
         $hosts[] = $hostString;
 

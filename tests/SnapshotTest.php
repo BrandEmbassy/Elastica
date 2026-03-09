@@ -78,8 +78,6 @@ class SnapshotTest extends Base
         $this->assertArrayHasKey('snapshot', $response->getData());
         $data = $response->getData();
         $this->assertContains($this->index->getName(), $data['snapshot']['indices']);
-
-        $this->assertContains($this->index->getName(), $data['snapshot']['indices']);
         $this->assertEquals($snapshotName, $data['snapshot']['snapshot']);
 
         // retrieve data regarding the snapshot
