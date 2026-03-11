@@ -2,6 +2,8 @@
 
 namespace Elastica;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException as ElasticsearchClientResponseException;
+use Elastic\Elasticsearch\Exception\ServerResponseException as ElasticsearchServerResponseException;
 use Elastica\Bulk\Action;
 use Elastica\Bulk\ResponseSet;
 use Elastica\Exception\ClientException;
@@ -432,7 +434,22 @@ class Client
             'body' => $requestData,
         ]);
 
-        $esResponse = $this->getConnection()->getClient()->update($params);
+        try {
+            $esResponse = $this->getConnection()->getClient()->update($params);
+        } catch (ElasticsearchClientResponseException | ElasticsearchServerResponseException $e) {
+            // ES9 throws ClientResponseException (4xx) / ServerResponseException (5xx) instead of
+            // returning an error response. Wrap them into Elastica's ResponseException so that
+            // callers that catch ResponseException (e.g. for version-conflict handling) still work.
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $bodyContent = (string) $bodyStream;
+            $elasticaResponse = new Response($bodyContent, $psrResponse->getStatusCode());
+            $elasticaRequest = new Request($index . '/_update/' . (string) $id);
+            throw new ResponseException($elasticaRequest, $elasticaResponse);
+        }
         $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
 
         if ($response->isOk()

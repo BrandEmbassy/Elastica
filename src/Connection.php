@@ -6,6 +6,10 @@ use Elastic\Elasticsearch\Client as ElasticsearchClient;
 use Elastic\Elasticsearch\ClientBuilder;
 use Elastica\Exception\InvalidException;
 use Elastica\Transport\AbstractTransport;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use function sprintf;
 
@@ -289,8 +293,19 @@ class Connection extends Param
         $hostString = sprintf('%s://%s:%d%s', $scheme, $host, $port, $path);
         $hosts[] = $hostString;
 
+        // Inject X-Elastic-Product header into all responses so the elasticsearch-php v9
+        // product check passes when connecting to OpenSearch (which does not send this header).
+        $stack = HandlerStack::create();
+        $stack->push(Middleware::mapResponse(
+            static function (ResponseInterface $response): ResponseInterface {
+                return $response->withHeader('X-Elastic-Product', 'Elasticsearch');
+            }
+        ));
+        $httpClient = new GuzzleClient(['handler' => $stack]);
+
         $builder = ClientBuilder::create()
             ->setHosts($hosts)
+            ->setHttpClient($httpClient)
         ;
 
         if ($this->hasParam('username') && $this->hasParam('password')) {
