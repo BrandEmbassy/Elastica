@@ -782,7 +782,19 @@ class Client
             'body' => $body,
         ]);
 
-        $esResponse = $this->getConnection()->getClient()->indices()->putMapping($params);
+        try {
+            $esResponse = $this->getConnection()->getClient()->indices()->putMapping($params);
+        } catch (ElasticsearchClientResponseException | ElasticsearchServerResponseException $e) {
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $bodyContent = (string) $bodyStream;
+            $elasticaResponse = new Response($bodyContent, $psrResponse->getStatusCode());
+            $elasticaRequest = new Request($indexName . '/_mapping');
+            throw new ResponseException($elasticaRequest, $elasticaResponse);
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }

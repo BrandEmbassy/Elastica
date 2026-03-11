@@ -7,6 +7,7 @@ use Aws\Credentials\Credentials;
 use Aws\Sdk;
 use Elastica\Exception\Connection\GuzzleException;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 
 /**
  * @internal
@@ -168,7 +169,9 @@ class AwsAuthV4Test extends GuzzleTest
             $client->request('_stats');
         } catch (GuzzleException $e) {
             $guzzleException = $e->getGuzzleException();
-            $this->assertInstanceOf(ConnectException::class, $guzzleException);
+            // With SSL=true, connecting to an HTTP-only server produces a RequestException
+            // (SSL handshake failure), rather than a ConnectException (TCP connection refused).
+            $this->assertInstanceOf(RequestException::class, $guzzleException);
             $request = $guzzleException->getRequest();
 
             $this->assertSame('https', $request->getUri()->getScheme());
