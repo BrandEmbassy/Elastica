@@ -261,7 +261,14 @@ class Index implements SearchableInterface
             'id' => $id,
         ]);
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->get($params);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->get($params);
+        } catch (ClientResponseException $e) {
+            if ($e->getResponse()->getStatusCode() === 404) {
+                throw new NotFoundException('doc id ' . $id . ' not found');
+            }
+            throw $e;
+        }
         $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $result = $response->getData();
 
