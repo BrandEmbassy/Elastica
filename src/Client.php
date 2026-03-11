@@ -817,19 +817,19 @@ class Client
         $connections = [];
 
         foreach ($this->getConfig('connections') as $connection) {
-            $connections[] = Connection::create($this->_prepareConnectionParams($connection));
+            $connections[] = $this->_createConnection($this->_prepareConnectionParams($connection));
         }
 
         if ($this->_config->has('servers')) {
             $servers = $this->_config->get('servers');
             foreach ($servers as $server) {
-                $connections[] = Connection::create($this->_prepareConnectionParams($server));
+                $connections[] = $this->_createConnection($this->_prepareConnectionParams($server));
             }
         }
 
         // If no connections set, create default connection
         if (!$connections) {
-            $connections[] = Connection::create($this->_prepareConnectionParams($this->getConfig()));
+            $connections[] = $this->_createConnection($this->_prepareConnectionParams($this->getConfig()));
         }
 
         if (!$this->_config->has('connectionStrategy')) {
@@ -843,6 +843,19 @@ class Client
         $strategy = Connection\Strategy\StrategyFactory::create($this->getConfig('connectionStrategy'));
 
         $this->_connectionPool = new Connection\ConnectionPool($connections, $strategy, $this->_callback);
+    }
+
+    /**
+     * Creates a Connection and injects the request counter if one is configured.
+     */
+    protected function _createConnection(array $params): Connection
+    {
+        $connection = Connection::create($params);
+        if (null !== $this->requestCounter) {
+            $connection->setRequestCounter($this->requestCounter);
+        }
+
+        return $connection;
     }
 
     /**

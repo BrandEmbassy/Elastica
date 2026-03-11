@@ -9,6 +9,7 @@ use Elastica\Transport\AbstractTransport;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use function sprintf;
@@ -24,6 +25,18 @@ class Connection extends Param
      * Cached elasticsearch-php v9 client instance.
      */
     private ?ElasticsearchClient $_client = null;
+
+    /**
+     * Optional request counter to track HTTP requests made through the ES9 client.
+     */
+    private ?RequestCounterInterface $_requestCounter = null;
+
+    public function setRequestCounter(RequestCounterInterface $requestCounter): void
+    {
+        $this->_requestCounter = $requestCounter;
+        // Reset cached client so a new one is built with the counter middleware.
+        $this->_client = null;
+    }
 
     /**
      * Default elastic search port.
@@ -301,6 +314,18 @@ class Connection extends Param
                 return $response->withHeader('X-Elastic-Product', 'Elasticsearch');
             }
         ));
+
+        // If a request counter is provided, increment it for every HTTP request so that
+        // direct ES9 client calls are tracked just like legacy Client::request() calls.
+        if (null !== $this->_requestCounter) {
+            $requestCounter = $this->_requestCounter;
+            $stack->push(static function (callable $handler) use ($requestCounter): callable {
+                return static function (RequestInterface $request, array $options) use ($handler, $requestCounter) {
+                    $requestCounter->incrementCount();
+                    return $handler($request, $options);
+                };
+            });
+        }
         $httpClient = new GuzzleClient(['handler' => $stack]);
 
         $builder = ClientBuilder::create()

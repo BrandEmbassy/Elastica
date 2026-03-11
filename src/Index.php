@@ -3,10 +3,12 @@
 namespace Elastica;
 
 use Elastic\Elasticsearch\Exception\ClientResponseException;
+use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastica\Bulk\ResponseSet;
 use Elastica\Exception\InvalidException;
 use Elastica\Exception\NotFoundException;
 use Elastica\Exception\ResponseException;
+use Elastica\Request;
 use Elastica\Index\Recovery as IndexRecovery;
 use Elastica\Index\Settings as IndexSettings;
 use Elastica\Index\Stats as IndexStats;
@@ -206,7 +208,20 @@ class Index implements SearchableInterface
 
         $params = array_merge($params, $options);
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->index($params);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->index($params);
+        } catch (ClientResponseException | ServerResponseException $e) {
+            // ES9 throws ClientResponseException (4xx) / ServerResponseException (5xx) instead of
+            // returning an error response. Wrap into Elastica's ResponseException so callers
+            // that catch ResponseException (e.g. for op_type:create conflict handling) still work.
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request($this->getName() . '/_doc'), $elasticaResponse);
+        }
         $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
 
         $data = $response->getData();
