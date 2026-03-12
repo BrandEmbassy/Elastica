@@ -2,16 +2,16 @@ name: 'Continuous integration'
 on: ['push', 'pull_request']
 jobs:
   cs:
-    runs-on: 'ubuntu-20.04'
+    runs-on: 'ubuntu-22.04'
     name: 'Coding style'
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@v2'
+        uses: 'actions/checkout@v4'
 
       - name: 'Setup PHP'
         uses: 'shivammathur/setup-php@v2'
         with:
-          php-version: '7.4'
+          php-version: '8.2'
           coverage: 'none'
           extensions: 'json, mbstring, tokenizer'
           tools: 'composer-normalize:2.28.0, php-cs-fixer:3.8.0'
@@ -25,23 +25,20 @@ jobs:
           composer-normalize --diff --dry-run --indent-size=4 --indent-style=space --no-update-lock
 
   phpunit:
-    runs-on: 'ubuntu-20.04'
+    runs-on: 'ubuntu-22.04'
     name: 'PHPUnit (PHP ${{ matrix.php }}, ES ${{ matrix.elasticsearch }})'
     timeout-minutes: 10
     strategy:
       matrix:
         php:
-          - '7.2'
-          - '7.3'
-          - '7.4'
-          - '8.0'
-          - '8.1'
+          - '8.2'
+          - '8.3'
         elasticsearch:
-          - '7.15.2'
+          - '9.3.0'
       fail-fast: false
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@v2'
+        uses: 'actions/checkout@v4'
 
       - name: 'Setup PHP'
         uses: 'shivammathur/setup-php@v2'
@@ -54,10 +51,10 @@ jobs:
       - name: 'Get composer cache directory'
         id: 'composer_cache'
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: 'Cache dependencies'
-        uses: 'actions/cache@v2'
+        uses: 'actions/cache@v4'
         with:
           path: '${{ steps.composer_cache.outputs.dir }}'
           key: '${{ runner.os }}-composer-php${{ matrix.php }}-${{ hashFiles(''**/composer.json'') }}'
@@ -79,7 +76,7 @@ jobs:
           sudo sysctl -w vm.swappiness=1
           sudo sysctl -w fs.file-max=262144
           sudo sysctl -w vm.max_map_count=262144
-          ES_VERSION=${{ matrix.elasticsearch }} docker-compose --file=docker/docker-compose.proxy.yml --file=docker/docker-compose.es.yml up --detach
+          ES_VERSION=${{ matrix.elasticsearch }} docker compose --file=docker/docker-compose.proxy.yml --file=docker/docker-compose.es.yml up --detach
           docker run --rm --network=docker_elastic curlimages/curl --max-time 120 --retry-max-time 120 --retry 120 --retry-delay 5 --retry-all-errors --show-error --silent http://es01:9200
           docker run --rm --network=docker_elastic curlimages/curl --max-time 120 --retry-max-time 120 --retry 120 --retry-delay 5 --retry-all-errors --show-error --silent http://es02:9200
 
@@ -88,24 +85,24 @@ jobs:
           vendor/bin/phpunit --group functional --coverage-clover=build/coverage/functional-coverage.xml
 
       - name: 'Upload coverage to Codecov'
-        uses: codecov/codecov-action@v2
+        uses: 'codecov/codecov-action@v4'
         with:
             files: build/coverage/unit-coverage.xml,build/coverage/functional-coverage.xml
 
   phpstan:
-    runs-on: 'ubuntu-20.04'
+    runs-on: 'ubuntu-22.04'
     name: 'PHPStan (PHP ${{ matrix.php }}, ES ${{ matrix.elasticsearch }})'
     timeout-minutes: 10
     strategy:
       matrix:
         php:
-          - '8.1'
+          - '8.2'
         elasticsearch:
-          - '7.15.2'
+          - '9.3.0'
       fail-fast: false
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@v2'
+        uses: 'actions/checkout@v4'
 
       - name: 'Setup PHP'
         uses: 'shivammathur/setup-php@v2'
@@ -118,10 +115,10 @@ jobs:
       - name: 'Get composer cache directory'
         id: 'composer_cache'
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: 'Cache dependencies'
-        uses: 'actions/cache@v2'
+        uses: 'actions/cache@v4'
         with:
           path: '${{ steps.composer_cache.outputs.dir }}'
           key: '${{ runner.os }}-composer-php${{ matrix.php }}-${{ hashFiles(''**/composer.json'') }}'
