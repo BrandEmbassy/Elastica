@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types = 1);
 
 namespace Elastica\Cluster;
 
@@ -12,9 +10,9 @@ class ClusterConfigurationFromParametersParser
     /**
      * @param mixed[] $parameters
      *
-     * @throws InvalidClusterConfigurationException
-     *
      * @return ClusterConfiguration[]
+     *
+     * @throws InvalidClusterConfigurationException
      */
     public function parseFromParameters(array $parameters): array
     {
@@ -25,8 +23,9 @@ class ClusterConfigurationFromParametersParser
             $clusters[$createdCluster->getId()] = $createdCluster;
         }
 
-        return \array_values($clusters);
+        return array_values($clusters);
     }
+
 
     /**
      * @param mixed[] $clusterConfigurationData
@@ -38,15 +37,15 @@ class ClusterConfigurationFromParametersParser
     ): ClusterConfiguration {
         $this->checkConfiguration($clusterConfigurationData);
 
-        $host = (string) ($clusterConfigurationData['haproxy']['host'] ?? $clusterConfigurationData['host']);
-        $port = (int) ($clusterConfigurationData['haproxy']['port'] ?? $clusterConfigurationData['port']);
+        $host = (string)($clusterConfigurationData['haproxy']['host'] ?? $clusterConfigurationData['host']);
+        $port = (int)($clusterConfigurationData['haproxy']['port'] ?? $clusterConfigurationData['port']);
         $version = $clusterConfigurationData['version'] ?? ElasticSearchVersion::VERSION_6;
 
         return new ClusterConfiguration(
-            (string) $clusterConfigurationData['id'],
+            (string)$clusterConfigurationData['id'],
             $host,
             $port,
-            ElasticSearchVersion::get((int) $version),
+            ElasticSearchVersion::get((int)$version),
             $clusterConfigurationData['transport'] ?? null,
             $clusterConfigurationData['username'] ?? null,
             $clusterConfigurationData['password'] ?? null,
@@ -54,6 +53,7 @@ class ClusterConfigurationFromParametersParser
             $clusterConfigurationData['data_type'] ?? null,
         );
     }
+
 
     /**
      * @param mixed[] $clusterConfigurationData
@@ -66,7 +66,7 @@ class ClusterConfigurationFromParametersParser
             throw InvalidClusterConfigurationException::byMissingId();
         }
 
-        $clusterId = (string) $clusterConfigurationData['id'];
+        $clusterId = (string)$clusterConfigurationData['id'];
 
         // Be backward compatible, until haproxy field is removed from every config in infra-ansible
         if (isset($clusterConfigurationData['haproxy'])) {
@@ -89,9 +89,12 @@ class ClusterConfigurationFromParametersParser
 
         if (isset($clusterConfigurationData['version'])) {
             try {
-                ElasticSearchVersion::get((int) $clusterConfigurationData['version']);
+                ElasticSearchVersion::get((int)$clusterConfigurationData['version']);
             } catch (InvalidArgumentException $e) {
-                throw InvalidClusterConfigurationException::byInvalidElasticSearchVersion($clusterId, (int) $clusterConfigurationData['version']);
+                throw InvalidClusterConfigurationException::byInvalidElasticSearchVersion(
+                    $clusterId,
+                    (int)$clusterConfigurationData['version'],
+                );
             }
         }
     }

@@ -106,7 +106,7 @@ class Status
             // If we don't have a 404 then this is still unexpected so rethrow the exception.
             throw $e;
         } catch (ClientResponseException $e) {
-            if (404 === $e->getCode()) {
+            if (404 === $e->getResponse()->getStatusCode()) {
                 return [];
             }
             throw $e;

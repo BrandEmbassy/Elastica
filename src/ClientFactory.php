@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types = 1);
 
 namespace Elastica;
 
@@ -21,6 +19,7 @@ class ClientFactory
 
     private int $slowRequestThresholdMs;
 
+
     public function __construct(
         ServerConfiguration $serverConfiguration,
         RequestCounterInterface $requestCounter,
@@ -37,6 +36,7 @@ class ClientFactory
         $this->slowRequestThresholdMs = $slowRequestThresholdMs;
     }
 
+
     public function createClientForCluster(
         ClusterConfiguration $clusterConfiguration,
         callable $isBrandIndependentIndexByName,
@@ -48,7 +48,8 @@ class ClientFactory
         $config = [
             'servers' => [$serverConfiguration],
             'apiVersion' => $clusterConfiguration->getVersion()->getValue(),
-            'documentTypeResolver' => static fn (string $indexName): string => $isBrandIndependentIndexByName($indexName) ? Type::DOC : Type::DEFAULT,
+            'documentTypeResolver' => static fn(string $indexName): string =>
+                $isBrandIndependentIndexByName($indexName) ? Type::DOC : Type::DEFAULT,
         ];
 
         $client = new Client(
@@ -69,3 +70,4 @@ class ClientFactory
         return $client;
     }
 }
+

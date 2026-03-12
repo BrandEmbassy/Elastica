@@ -537,8 +537,13 @@ class Index implements SearchableInterface
         if ($options['recreate'] ?? false) {
             try {
                 $this->delete();
-            } catch (ResponseException|ClientResponseException $e) {
+            } catch (ResponseException $e) {
                 // Index can't be deleted, because it doesn't exist
+            } catch (ClientResponseException $e) {
+                // Only ignore 404 (index does not exist); rethrow permission errors and other failures
+                if (404 !== $e->getResponse()->getStatusCode()) {
+                    throw $e;
+                }
             }
         }
 
@@ -566,7 +571,7 @@ class Index implements SearchableInterface
 
             return 200 === $esResponse->getStatusCode();
         } catch (ClientResponseException $e) {
-            if (404 === $e->getCode()) {
+            if (404 === $e->getResponse()->getStatusCode()) {
                 return false;
             }
 

@@ -18,7 +18,7 @@ class NotFoundException extends \RuntimeException implements ExceptionInterface
      * @param mixed[] $notFoundIds
      */
     public function __construct(
-        string $message = '',
+        string $message = "",
         int $code = 0,
         ?Throwable $previous = null,
         array $notFoundIds = []
@@ -26,6 +26,7 @@ class NotFoundException extends \RuntimeException implements ExceptionInterface
         parent::__construct($message, $code, $previous);
         $this->notFoundIds = $notFoundIds;
     }
+
 
     /**
      * @return string[]
