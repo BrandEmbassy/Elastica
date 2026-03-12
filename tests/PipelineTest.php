@@ -11,7 +11,6 @@ use Elastica\Pipeline;
 use Elastica\Processor\RenameProcessor;
 use Elastica\Processor\SetProcessor;
 use Elastica\Processor\TrimProcessor;
-use function json_decode;
 
 /**
  * @internal
@@ -139,7 +138,7 @@ class PipelineTest extends BasePipeline
             $this->assertEquals('resource_not_found_exception', $result['type']);
             $this->assertEquals('pipeline [non_existent_pipeline] is missing', $result['reason']);
         } catch (ClientResponseException $e) {
-            $body = json_decode((string) $e->getResponse()->getBody(), true);
+            $body = \json_decode((string) $e->getResponse()->getBody(), true);
             $this->assertEquals('resource_not_found_exception', $body['error']['type']);
             $this->assertStringContainsString('non_existent_pipeline', $body['error']['reason']);
         }

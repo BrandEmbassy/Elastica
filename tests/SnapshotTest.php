@@ -4,7 +4,7 @@ namespace Elastica\Test;
 
 use Elastica\Document;
 use Elastica\Exception\NotFoundException;
-use Exception;
+use Elastica\Exception\ResponseException;
 use Elastica\Index;
 use Elastica\Snapshot;
 
@@ -39,6 +39,7 @@ class SnapshotTest extends Base
         $this->snapshot = new Snapshot($this->_getClient());
 
         $this->index = $this->_createIndex();
+        $this->index->refresh();
         $this->docs = [
             new Document('1', ['city' => 'San Diego']),
             new Document('2', ['city' => 'San Luis Obispo']),
@@ -68,7 +69,7 @@ class SnapshotTest extends Base
         $snapshotName = 'test_snapshot_1';
         try {
             $this->snapshot->deleteSnapshot(self::REPOSITORY_NAME, $snapshotName);
-        } catch (Exception $e) {
+        } catch (NotFoundException|ResponseException $e) {
         }
 
         $response = $this->snapshot->createSnapshot(self::REPOSITORY_NAME, $snapshotName, ['indices' => $this->index->getName()], true);
@@ -111,7 +112,15 @@ class SnapshotTest extends Base
     {
         $location = self::SNAPSHOT_PATH.'/'.$name;
 
-        $response = $this->snapshot->registerRepository(self::REPOSITORY_NAME, 'fs', ['location' => $location]);
+        try {
+            $response = $this->snapshot->registerRepository(self::REPOSITORY_NAME, 'fs', ['location' => $location]);
+        } catch (ResponseException $e) {
+            if (\str_contains($e->getMessage(), 'not accessible') || \str_contains($e->getMessage(), 'cannot create blob store')) {
+                $this->markTestSkipped('Snapshot path is not accessible in this environment: '.$e->getMessage());
+            }
+
+            throw $e;
+        }
         $this->assertTrue($response->isOk());
 
         return $location;

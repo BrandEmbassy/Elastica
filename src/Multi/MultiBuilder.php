@@ -22,8 +22,7 @@ class MultiBuilder implements MultiBuilderInterface
         Response $childResponse,
         BaseSearch $search,
         int $apiVersion
-    ): BaseResultSet
-    {
+    ): BaseResultSet {
         return $search->getResultSetBuilder()->buildResultSet(
             $childResponse,
             $search->getQuery(),

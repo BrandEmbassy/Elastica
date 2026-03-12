@@ -5,8 +5,6 @@ namespace Elastica;
 use Elastica\Query\AbstractQuery;
 use Elastica\Script\AbstractScript;
 use Elastica\Script\Script;
-use function array_fill_keys;
-use function array_intersect_key;
 
 class Reindex extends Param
 {
@@ -78,7 +76,7 @@ class Reindex extends Param
             self::REFRESH,
             self::SLICES,
         ];
-        $params = array_intersect_key($this->getParams(), array_fill_keys($allowedParams, null));
+        $params = \array_intersect_key($this->getParams(), \array_fill_keys($allowedParams, null));
         $params['body'] = $body;
 
         $esResponse = $this->_oldIndex->getClient()->getConnection()->getClient()->reindex($params);
@@ -187,7 +185,7 @@ class Reindex extends Param
 
     private function _resolveSourceOptions(array $params): array
     {
-        return array_intersect_key($params, [
+        return \array_intersect_key($params, [
             self::QUERY => null,
             self::SORT => null,
             self::SOURCE => null,
@@ -198,7 +196,7 @@ class Reindex extends Param
 
     private function _resolveDestOptions(array $params): array
     {
-        return array_intersect_key($params, [
+        return \array_intersect_key($params, [
             self::VERSION_TYPE => null,
             self::OPERATION_TYPE => null,
             self::PIPELINE => null,
@@ -207,7 +205,7 @@ class Reindex extends Param
 
     private function _resolveBodyOptions(array $params): array
     {
-        return array_intersect_key($params, [
+        return \array_intersect_key($params, [
             self::SIZE => null,
             self::CONFLICTS => null,
         ]);

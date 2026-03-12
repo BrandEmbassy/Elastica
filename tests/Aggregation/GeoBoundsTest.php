@@ -21,29 +21,28 @@ class GeoBoundsTest extends BaseAggregationTest
     {
         yield 'top left latitude' => [
             'expectedValue' => 37.782438984141,
-            'position'      => 'top_left',
-            'coordinate'    => 'lat',
+            'position' => 'top_left',
+            'coordinate' => 'lat',
         ];
 
         yield 'top left longitude' => [
             'expectedValue' => -122.39256000146,
-            'position'      => 'top_left',
-            'coordinate'    => 'lon',
+            'position' => 'top_left',
+            'coordinate' => 'lon',
         ];
 
         yield 'bottom right latitude' => [
             'expectedValue' => 32.798319971189,
-            'position'      => 'bottom_right',
-            'coordinate'    => 'lat',
+            'position' => 'bottom_right',
+            'coordinate' => 'lat',
         ];
 
         yield 'bottom right longitude' => [
             'expectedValue' => -117.24664804526,
-            'position'      => 'bottom_right',
-            'coordinate'    => 'lon',
+            'position' => 'bottom_right',
+            'coordinate' => 'lon',
         ];
     }
-
 
     /**
      * @group functional

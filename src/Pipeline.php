@@ -168,6 +168,8 @@ class Pipeline extends Param
      * Makes calls to the elasticsearch server with usage official client Endpoint based on this index.
      *
      * @deprecated This method is deprecated in Elasticsearch v9
+     *
+     * @param mixed $endpoint
      */
     public function requestEndpoint($endpoint): Response
     {

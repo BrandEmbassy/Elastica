@@ -165,7 +165,6 @@ class PercentilesTest extends BaseAggregationTest
         ];
     }
 
-
     /**
      * @group functional
      * @dataProvider actualWorkDataProvider
@@ -203,48 +202,47 @@ class PercentilesTest extends BaseAggregationTest
     public function keyedDataProvider(): Iterator
     {
         yield '1st percentile' => [
-            'expectedKey'   => 1.0,
+            'expectedKey' => 1.0,
             'expectedValue' => 100.0,
-            'index'         => 0,
+            'index' => 0,
         ];
 
         yield '5th percentile' => [
-            'expectedKey'   => 5.0,
+            'expectedKey' => 5.0,
             'expectedValue' => 100.0,
-            'index'         => 1,
+            'index' => 1,
         ];
 
         yield '25th percentile' => [
-            'expectedKey'   => 25.0,
+            'expectedKey' => 25.0,
             'expectedValue' => 300.0,
-            'index'         => 2,
+            'index' => 2,
         ];
 
         yield '50th percentile' => [
-            'expectedKey'   => 50.0,
+            'expectedKey' => 50.0,
             'expectedValue' => 550.0,
-            'index'         => 3,
+            'index' => 3,
         ];
 
         yield '75th percentile' => [
-            'expectedKey'   => 75.0,
+            'expectedKey' => 75.0,
             'expectedValue' => 800.0,
-            'index'         => 4,
+            'index' => 4,
         ];
 
         yield '95th percentile' => [
-            'expectedKey'   => 95.0,
+            'expectedKey' => 95.0,
             'expectedValue' => 1000.0,
-            'index'         => 5,
+            'index' => 5,
         ];
 
         yield '99th percentile' => [
-            'expectedKey'   => 99.0,
+            'expectedKey' => 99.0,
             'expectedValue' => 1000.0,
-            'index'         => 6,
+            'index' => 6,
         ];
     }
-
 
     /**
      * @group functional

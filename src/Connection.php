@@ -12,7 +12,6 @@ use GuzzleHttp\Middleware;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
-use function sprintf;
 
 /**
  * Elastica connection instance to an elasticasearch node.
@@ -299,11 +298,11 @@ class Connection extends Param
         $port = $this->getPort();
         $path = $this->getPath();
 
-        if (\is_string($path) && $path !== '' && $path[0] !== '/') {
-            $path = '/' . $path;
+        if (\is_string($path) && '' !== $path && '/' !== $path[0]) {
+            $path = '/'.$path;
         }
 
-        $hostString = sprintf('%s://%s:%d%s', $scheme, $host, $port, $path);
+        $hostString = \sprintf('%s://%s:%d%s', $scheme, $host, $port, $path);
         $hosts[] = $hostString;
 
         // Inject X-Elastic-Product header into all responses so the elasticsearch-php v9
@@ -322,6 +321,7 @@ class Connection extends Param
             $stack->push(static function (callable $handler) use ($requestCounter): callable {
                 return static function (RequestInterface $request, array $options) use ($handler, $requestCounter) {
                     $requestCounter->incrementCount();
+
                     return $handler($request, $options);
                 };
             });

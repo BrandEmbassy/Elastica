@@ -4,8 +4,6 @@ namespace Elastica\Test\Transport;
 
 use Elastica\Exception\Connection\GuzzleException;
 use Elastica\Test\Base as BaseTest;
-use function class_exists;
-use function putenv;
 
 /**
  * @internal
@@ -14,7 +12,7 @@ class GuzzleTest extends BaseTest
 {
     public static function setUpbeforeClass(): void
     {
-        if (!class_exists('GuzzleHttp\Client')) {
+        if (!\class_exists('GuzzleHttp\Client')) {
             self::markTestSkipped('guzzlehttp/guzzle package should be installed to run guzzle transport tests');
         }
     }
@@ -35,7 +33,7 @@ class GuzzleTest extends BaseTest
      */
     public function testWithEnvironmentalProxy(): void
     {
-        putenv('http_proxy='.$this->_getProxyUrl().'/');
+        \putenv('http_proxy='.$this->_getProxyUrl().'/');
 
         $client = $this->_getClient(['transport' => 'Guzzle', 'persistent' => false]);
         $transferInfo = $client->request('/_nodes')->getTransferInfo();
@@ -45,7 +43,7 @@ class GuzzleTest extends BaseTest
         $transferInfo = $client->request('/_nodes')->getTransferInfo();
         $this->assertEquals(200, $transferInfo['http_code']);
 
-        putenv('http_proxy=');
+        \putenv('http_proxy=');
     }
 
     /**
@@ -53,7 +51,7 @@ class GuzzleTest extends BaseTest
      */
     public function testWithEnabledEnvironmentalProxy(): void
     {
-        putenv('http_proxy='.$this->_getProxyUrl403().'/');
+        \putenv('http_proxy='.$this->_getProxyUrl403().'/');
 
         $client = $this->_getClient(['transport' => 'Guzzle', 'persistent' => false]);
         $transferInfo = $client->request('/_nodes')->getTransferInfo();
@@ -64,7 +62,7 @@ class GuzzleTest extends BaseTest
         $transferInfo = $client->request('/_nodes')->getTransferInfo();
         $this->assertEquals(200, $transferInfo['http_code']);
 
-        putenv('http_proxy=');
+        \putenv('http_proxy=');
     }
 
     /**

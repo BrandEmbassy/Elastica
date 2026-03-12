@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace Elastica;
 
@@ -10,13 +12,11 @@ class ServerConfiguration
 
     private int $connectTimeout;
 
-
     public function __construct(int $timeout, int $connectTimeout)
     {
         $this->timeout = $timeout;
         $this->connectTimeout = $connectTimeout;
     }
-
 
     /**
      * @return array{

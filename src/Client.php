@@ -2,6 +2,7 @@
 
 namespace Elastica;
 
+use Closure;
 use Elastic\Elasticsearch\Exception\ClientResponseException as ElasticsearchClientResponseException;
 use Elastic\Elasticsearch\Exception\ServerResponseException as ElasticsearchServerResponseException;
 use Elastica\Bulk\Action;
@@ -13,12 +14,7 @@ use Elastica\Exception\ResponseException;
 use Elastica\Script\AbstractScript;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use Closure;
 use RuntimeException;
-use function sprintf;
-use function array_merge;
-use function implode;
-use function round;
 
 /**
  * Client to connect the the elasticsearch server.
@@ -64,9 +60,6 @@ class Client
      */
     protected $_lastResponse;
 
-    /**
-     * @var LoggerInterface
-     */
     protected LoggerInterface $logger;
 
     /**
@@ -172,7 +165,7 @@ class Client
         }
 
         $this->logger->warning(
-            sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            \sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
             $context
         );
     }
@@ -201,7 +194,7 @@ class Client
         }
 
         $this->logger->debug(
-            sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            \sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
             $context
         );
     }
@@ -428,7 +421,7 @@ class Client
             }
         }
 
-        $params = array_merge($options, [
+        $params = \array_merge($options, [
             'id' => $id,
             'index' => $index,
             'body' => $requestData,
@@ -436,7 +429,7 @@ class Client
 
         try {
             $esResponse = $this->getConnection()->getClient()->update($params);
-        } catch (ElasticsearchClientResponseException | ElasticsearchServerResponseException $e) {
+        } catch (ElasticsearchClientResponseException|ElasticsearchServerResponseException $e) {
             // ES9 throws ClientResponseException (4xx) / ServerResponseException (5xx) instead of
             // returning an error response. Wrap them into Elastica's ResponseException so that
             // callers that catch ResponseException (e.g. for version-conflict handling) still work.
@@ -447,7 +440,7 @@ class Client
             }
             $bodyContent = (string) $bodyStream;
             $elasticaResponse = new Response($bodyContent, $psrResponse->getStatusCode());
-            $elasticaRequest = new Request($index . '/_update/' . (string) $id);
+            $elasticaRequest = new Request($index.'/_update/'.(string) $id);
             throw new ResponseException($elasticaRequest, $elasticaResponse);
         }
         $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
@@ -660,18 +653,18 @@ class Client
         $request = $this->_lastRequest = new Request($path, $method, $data, $query, $connection, $contentType, $this->logger, $this->isRetryFeatureEnabled);
         $this->_lastResponse = null;
 
-        $requestName = sprintf('[%s]', [] === $tags ? 'untagged' : implode('.', $tags));
+        $requestName = \sprintf('[%s]', [] === $tags ? 'untagged' : \implode('.', $tags));
 
         if (null !== $this->requestCounter) {
             $this->requestCounter->incrementCount();
-            $requestName = sprintf('#%02d %s', $this->requestCounter->getCount(), $requestName);
+            $requestName = \sprintf('#%02d %s', $this->requestCounter->getCount(), $requestName);
         }
 
         try {
             $response = $this->_lastResponse = $request->send();
         } catch (ConnectionException $e) {
             $this->_connectionPool->onFail($connection, $e, $this);
-            $this->logger->error(sprintf('Elastica Request Failure %s', $requestName), [
+            $this->logger->error(\sprintf('Elastica Request Failure %s', $requestName), [
                 'tags' => $tags,
                 'exception' => $e,
                 'request' => (string) $e->getRequest(),
@@ -686,7 +679,7 @@ class Client
             return $this->request($path, $method, $data, $query);
         }
 
-        $elapsedTimeMs = (int) round($response->getQueryTime() * 1000);
+        $elapsedTimeMs = (int) \round($response->getQueryTime() * 1000);
 
         if ($this->shouldLogSlowRequests() && $this->isSlow($elapsedTimeMs)) {
             $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
@@ -708,7 +701,7 @@ class Client
 
     public function getDocumentTypeResolver(): Closure
     {
-        return $this->getConfigValue('documentTypeResolver', static fn() => Type::DOC);
+        return $this->getConfigValue('documentTypeResolver', static fn () => Type::DOC);
     }
 
     /**
@@ -721,6 +714,7 @@ class Client
      * V9 NOTE: AbstractEndpoint class removed in elasticsearch-php v9.
      * This method is kept for backward compatibility but throws an exception.
      * Each endpoint should now use the client's direct methods.
+     * @param mixed $endpoint
      */
     public function requestEndpoint($endpoint, array $tags = []): Response
     {
@@ -770,21 +764,21 @@ class Client
     /**
      * Sends a mapping update for a given index.
      *
-     * @param array<string, mixed> $body   Mapping body (e.g. ['properties' => [...]])
-     * @param array<string, mixed> $query  Optional query string parameters
+     * @param array<string, mixed> $body  Mapping body (e.g. ['properties' => [...]])
+     * @param array<string, mixed> $query Optional query string parameters
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-put-mapping.html
      */
     public function putIndexMapping(string $indexName, array $body, array $query = []): Response
     {
-        $params = array_merge($query, [
+        $params = \array_merge($query, [
             'index' => $indexName,
             'body' => $body,
         ]);
 
         try {
             $esResponse = $this->getConnection()->getClient()->indices()->putMapping($params);
-        } catch (ElasticsearchClientResponseException | ElasticsearchServerResponseException $e) {
+        } catch (ElasticsearchClientResponseException|ElasticsearchServerResponseException $e) {
             $psrResponse = $e->getResponse();
             $bodyStream = $psrResponse->getBody();
             if ($bodyStream->isSeekable()) {
@@ -792,7 +786,7 @@ class Client
             }
             $bodyContent = (string) $bodyStream;
             $elasticaResponse = new Response($bodyContent, $psrResponse->getStatusCode());
-            $elasticaRequest = new Request($indexName . '/_mapping');
+            $elasticaRequest = new Request($indexName.'/_mapping');
             throw new ResponseException($elasticaRequest, $elasticaResponse);
         }
 

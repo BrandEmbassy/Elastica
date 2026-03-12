@@ -26,7 +26,7 @@ class AbstractDocumentTest extends BaseTest
             new stdClass(),
             null,
             ApiVersion::API_VERSION_9,
-            static fn() => Type::DOC
+            static fn () => Type::DOC
         );
     }
 
@@ -42,7 +42,7 @@ class AbstractDocumentTest extends BaseTest
             new Script('foobar'),
             AbstractDocument::OP_TYPE_CREATE,
             ApiVersion::API_VERSION_9,
-            static fn() => Type::DOC
+            static fn () => Type::DOC
         );
     }
 }

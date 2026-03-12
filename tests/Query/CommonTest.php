@@ -2,7 +2,6 @@
 
 namespace Elastica\Test\Query;
 
-use Elastica\Document;
 use Elastica\Query\Common;
 use Elastica\Test\Base as BaseTest;
 use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;

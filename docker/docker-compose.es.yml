@@ -6,7 +6,7 @@ services:
         command: &command >
             /bin/sh -c "./bin/elasticsearch-plugin list | grep -q ingest-attachment
             || ./bin/elasticsearch-plugin install --batch ingest-attachment;
-            chown elasticsearch /usr/share/elasticsearch/repository;
+            chown -R elasticsearch /usr/share/elasticsearch/repository;
             /usr/local/bin/docker-entrypoint.sh"
         environment: &environment
             node.name: es01
@@ -16,6 +16,7 @@ services:
             bootstrap.memory_lock: 'true'
             ES_JAVA_OPTS: -Xms512m -Xmx512m
             path.repo: /usr/share/elasticsearch/repository
+            ES_SETTING_PATH_REPO: /usr/share/elasticsearch/repository
             xpack.security.enabled: "false"
             xpack.security.transport.ssl.enabled: "false"
             action.destructive_requires_name: "false"

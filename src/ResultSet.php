@@ -147,7 +147,7 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
     {
         $data = $this->_response->getData();
 
-        if ($this->apiVersion === ApiVersion::API_VERSION_6) {
+        if (ApiVersion::API_VERSION_6 === $this->apiVersion) {
             return (int) ($data['hits']['total'] ?? 0);
         }
 
@@ -300,9 +300,9 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
      *
      * @param int $offset
      *
-     * @return Result
-     *
      * @throws Exception\InvalidException If offset doesn't exist
+     *
+     * @return Result
      */
     #[\ReturnTypeWillChange]
     public function offsetGet($offset)

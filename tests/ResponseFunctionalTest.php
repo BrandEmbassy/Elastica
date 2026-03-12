@@ -3,11 +3,9 @@
 namespace Elastica\Test;
 
 use Elastica\Document;
-use Elastica\Exception\ResponseException;
 use Elastica\Mapping;
 use Elastica\Query;
 use Elastica\Query\MatchAll;
-use Elastica\Request;
 use Elastica\Test\Base as BaseTest;
 
 /**

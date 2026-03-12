@@ -8,7 +8,6 @@ use Elastica\Bulk\ResponseSet;
 use Elastica\Exception\InvalidException;
 use Elastica\Exception\NotFoundException;
 use Elastica\Exception\ResponseException;
-use Elastica\Request;
 use Elastica\Index\Recovery as IndexRecovery;
 use Elastica\Index\Settings as IndexSettings;
 use Elastica\Index\Stats as IndexStats;
@@ -17,16 +16,6 @@ use Elastica\ResultSet\BuilderInterface;
 use Elastica\Script\AbstractScript;
 use RuntimeException;
 use TypeError;
-use function sprintf;
-use function array_diff;
-use function array_keys;
-use function array_merge;
-use function get_class;
-use function gettype;
-use function implode;
-use function is_array;
-use function is_object;
-use function trim;
 
 /**
  * Elastica index object.
@@ -163,11 +152,11 @@ class Index implements SearchableInterface
     {
         $q = Query::create($query)->getQuery();
         $body = [
-            'query' => is_array($q) ? $q : $q->toArray(),
+            'query' => \is_array($q) ? $q : $q->toArray(),
             'script' => $script->toArray()['script'],
         ];
 
-        $params = array_merge($options, [
+        $params = \array_merge($options, [
             'index' => $this->getName(),
             'body' => $body,
         ]);
@@ -206,11 +195,11 @@ class Index implements SearchableInterface
             ]
         );
 
-        $params = array_merge($params, $options);
+        $params = \array_merge($params, $options);
 
         try {
             $esResponse = $this->getClient()->getConnection()->getClient()->index($params);
-        } catch (ClientResponseException | ServerResponseException $e) {
+        } catch (ClientResponseException|ServerResponseException $e) {
             // ES9 throws ClientResponseException (4xx) / ServerResponseException (5xx) instead of
             // returning an error response. Wrap into Elastica's ResponseException so callers
             // that catch ResponseException (e.g. for op_type:create conflict handling) still work.
@@ -220,7 +209,7 @@ class Index implements SearchableInterface
                 $bodyStream->rewind();
             }
             $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
-            throw new ResponseException(new Request($this->getName() . '/_doc'), $elasticaResponse);
+            throw new ResponseException(new Request($this->getName().'/_doc'), $elasticaResponse);
         }
         $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
 
@@ -268,10 +257,9 @@ class Index implements SearchableInterface
      */
     public function getDocument($id, array $options = []): Document
     {
-        $tags = $options[CustomOptions::REQUEST_TAGS] ?? [];
         unset($options[CustomOptions::REQUEST_TAGS]);
 
-        $params = array_merge($options, [
+        $params = \array_merge($options, [
             'index' => $this->getName(),
             'id' => $id,
         ]);
@@ -279,8 +267,8 @@ class Index implements SearchableInterface
         try {
             $esResponse = $this->getClient()->getConnection()->getClient()->get($params);
         } catch (ClientResponseException $e) {
-            if ($e->getResponse()->getStatusCode() === 404) {
-                throw new NotFoundException('doc id ' . $id . ' not found');
+            if (404 === $e->getResponse()->getStatusCode()) {
+                throw new NotFoundException('doc id '.$id.' not found');
             }
             throw $e;
         }
@@ -339,7 +327,7 @@ class Index implements SearchableInterface
             'docs' => $docs,
         ];
 
-        $params = array_merge($options, [
+        $params = \array_merge($options, [
             'index' => $this->getName(),
             'body' => $body,
         ]);
@@ -373,7 +361,7 @@ class Index implements SearchableInterface
         }
 
         if ([] !== $notFoundIds && $throwOnNotFound) {
-            throw new NotFoundException(sprintf('doc ids %s not found', implode(', ', $notFoundIds)), 0, null, $notFoundIds);
+            throw new NotFoundException(\sprintf('doc ids %s not found', \implode(', ', $notFoundIds)), 0, null, $notFoundIds);
         }
 
         return $documents;
@@ -386,13 +374,13 @@ class Index implements SearchableInterface
      */
     public function deleteById(string $id, array $options = []): Response
     {
-        if (!trim($id)) {
+        if (!\trim($id)) {
             throw new NotFoundException('Doc id "'.$id.'" not found and can not be deleted');
         }
 
-        $params = array_merge($options, [
+        $params = \array_merge($options, [
             'index' => $this->getName(),
-            'id' => trim($id),
+            'id' => \trim($id),
         ]);
 
         $esResponse = $this->getClient()->getConnection()->getClient()->delete($params);
@@ -412,9 +400,9 @@ class Index implements SearchableInterface
     {
         $query = Query::create($query)->getQuery();
 
-        $params = array_merge($options, [
+        $params = \array_merge($options, [
             'index' => $this->getName(),
-            'body' => ['query' => is_array($query) ? $query : $query->toArray()],
+            'body' => ['query' => \is_array($query) ? $query : $query->toArray()],
         ]);
 
         $esResponse = $this->getClient()->getConnection()->getClient()->deleteByQuery($params);
@@ -476,7 +464,7 @@ class Index implements SearchableInterface
      */
     public function forcemerge($args = []): Response
     {
-        $params = array_merge($args, [
+        $params = \array_merge($args, [
             'index' => $this->getName(),
         ]);
 
@@ -524,11 +512,10 @@ class Index implements SearchableInterface
         } elseif (\is_bool($options)) {
             \trigger_deprecation('ruflin/elastica', '7.1.0', 'Passing a bool as 2nd argument to "%s()" is deprecated, pass an array with the key "recreate" instead. It will be removed in 8.0.', __METHOD__);
             $options = ['recreate' => $options];
-        } elseif (!is_array($options)) {
-            throw new TypeError(sprintf('Argument 2 passed to "%s()" must be of type array|bool|null, %s given.', __METHOD__, is_object($options) ? get_class($options) : gettype($options)));
+        } elseif (!\is_array($options)) {
+            throw new TypeError(\sprintf('Argument 2 passed to "%s()" must be of type array|bool|null, %s given.', __METHOD__, \is_object($options) ? \get_class($options) : \gettype($options)));
         }
 
-        $tags = $options[CustomOptions::REQUEST_TAGS] ?? [];
         unset($options[CustomOptions::REQUEST_TAGS]);
 
         $allowedOptions = [
@@ -537,14 +524,14 @@ class Index implements SearchableInterface
             'wait_for_active_shards',
             'recreate',
         ];
-        $invalidOptions = array_diff(array_keys($options), $allowedOptions);
+        $invalidOptions = \array_diff(\array_keys($options), $allowedOptions);
 
         if (1 === $invalidOptionCount = \count($invalidOptions)) {
-            throw new InvalidException(sprintf('"%s" is not a valid option. Allowed options are "%s".', implode('", "', $invalidOptions), implode('", "', $allowedOptions)));
+            throw new InvalidException(\sprintf('"%s" is not a valid option. Allowed options are "%s".', \implode('", "', $invalidOptions), \implode('", "', $allowedOptions)));
         }
 
         if ($invalidOptionCount > 1) {
-            throw new InvalidException(sprintf('"%s" are not valid options. Allowed options are "%s".', implode('", "', $invalidOptions), implode('", "', $allowedOptions)));
+            throw new InvalidException(\sprintf('"%s" are not valid options. Allowed options are "%s".', \implode('", "', $invalidOptions), \implode('", "', $allowedOptions)));
         }
 
         if ($options['recreate'] ?? false) {
@@ -557,7 +544,7 @@ class Index implements SearchableInterface
 
         unset($options['recreate']);
 
-        $params = array_merge($options, [
+        $params = \array_merge($options, [
             'index' => $this->getName(),
             'body' => $args,
         ]);
@@ -725,7 +712,7 @@ class Index implements SearchableInterface
 
         $data = $responseData[$this->getName()];
         if (!empty($data['aliases'])) {
-            return array_keys($data['aliases']);
+            return \array_keys($data['aliases']);
         }
 
         return [];
@@ -761,7 +748,7 @@ class Index implements SearchableInterface
      */
     public function flush(array $options = []): Response
     {
-        $params = array_merge($options, [
+        $params = \array_merge($options, [
             'index' => $this->getName(),
         ]);
 
@@ -805,6 +792,7 @@ class Index implements SearchableInterface
      * Makes calls to the elasticsearch server with usage official client Endpoint based on this index.
      *
      * @param string[] $tags
+     * @param mixed    $endpoint
      *
      * @deprecated This method is deprecated in Elasticsearch v9
      */
@@ -823,7 +811,7 @@ class Index implements SearchableInterface
      */
     public function analyze(array $body, $args = []): array
     {
-        $params = array_merge($args, [
+        $params = \array_merge($args, [
             'index' => $this->getName(),
             'body' => $body,
         ]);

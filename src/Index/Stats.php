@@ -106,7 +106,7 @@ class Stats
             $esResponse = $this->getIndex()->getClient()->getConnection()->getClient()->indices()->stats([
                 'index' => $this->getIndex()->getName(),
             ]);
-        } catch (ClientResponseException | ServerResponseException $e) {
+        } catch (ClientResponseException|ServerResponseException $e) {
             // ES9 throws ClientResponseException (e.g. 400 for closed index) instead of returning
             // an error response. Convert to ResponseException so callers can catch it.
             $psrResponse = $e->getResponse();
@@ -115,10 +115,7 @@ class Stats
                 $bodyStream->rewind();
             }
             $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
-            throw new ResponseException(
-                new Request($this->getIndex()->getName() . '/_stats'),
-                $elasticaResponse,
-            );
+            throw new ResponseException(new Request($this->getIndex()->getName().'/_stats'), $elasticaResponse);
         }
         $this->_response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $this->_data = $this->getResponse()->getData();

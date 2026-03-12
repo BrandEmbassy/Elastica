@@ -18,10 +18,8 @@ use Elastica\Exception\RequestEntityTooLargeException;
 use Elastica\Response as ElasticaResponse;
 use Elastica\Script\Script;
 use Elastica\Test\Base as BaseTest;
-use PHPUnit\Framework\MockObject\MockObject;
-use function str_contains;
-use function str_replace;
 use const PHP_EOL;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @internal
@@ -98,8 +96,8 @@ class BulkTest extends BaseTest
 {"name":"The Thing"}
 ';
 
-            $expected = str_replace(PHP_EOL, "\n", $expected);
-            $this->assertEquals($expected, (string) str_replace(PHP_EOL, "\n", (string) $bulk));
+            $expected = \str_replace(PHP_EOL, "\n", $expected);
+            $this->assertEquals($expected, (string) \str_replace(PHP_EOL, "\n", (string) $bulk));
 
             $response = $bulk->send();
 
@@ -145,10 +143,9 @@ class BulkTest extends BaseTest
         }
     }
 
-
     private function skipIfElasticsearchNotWritable(ClientResponseException $e): void
     {
-        if (str_contains($e->getMessage(), 'read-only') || str_contains($e->getMessage(), 'Connection')) {
+        if (\str_contains($e->getMessage(), 'read-only') || \str_contains($e->getMessage(), 'Connection')) {
             $this->markTestSkipped('Elasticsearch not writable: '.$e->getMessage());
         }
     }
@@ -408,7 +405,7 @@ class BulkTest extends BaseTest
 {"name":"The Human Torch"}
 JSON;
 
-        $expectedJson = str_replace(PHP_EOL, "\n", $expectedJson);
+        $expectedJson = \str_replace(PHP_EOL, "\n", $expectedJson);
         $this->assertSame($expectedJson, \trim((string) $bulk));
 
         $response = $bulk->send();

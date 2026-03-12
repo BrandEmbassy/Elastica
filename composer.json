@@ -18,11 +18,11 @@
         "php": ">=8.2",
         "ext-json": "*",
         "elasticsearch/elasticsearch": "^9.3",
+        "marc-mabe/php-enum": "^4.7",
         "nyholm/dsn": "^2.0.0",
         "psr/log": "^2.0 || ^3.0",
         "symfony/deprecation-contracts": "^2.2 || ^3.0",
-        "symfony/polyfill-php73": "^1.19",
-        "marc-mabe/php-enum": "^4.7"
+        "symfony/polyfill-php73": "^1.19"
     },
     "require-dev": {
         "aws/aws-sdk-php": "^3.155",
@@ -47,14 +47,14 @@
             "Elastica\\Test\\": "tests/"
         }
     },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "7.0.x-dev"
-        }
-    },
     "config": {
         "allow-plugins": {
             "php-http/discovery": true
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "7.0.x-dev"
         }
     }
 }
