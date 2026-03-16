@@ -65,7 +65,7 @@ class Util
 
         // '\\{' and '\\}' should not be escaped
         if (false !== \strpos($uriSegment, '\\\\')) {
-            $escapedUriSegment = \str_replace(['\\\\%7B', '\\\\%7D'], ['\\\\{', '\\\\}'], $escapedUriSegment);
+            $escapedUriSegment = \str_replace(['\\\%7B', '\\\%7D'], ['\\\{', '\\\}'], $escapedUriSegment);
         }
 
         // Replace part of the string. E.g. /%3Clog-%7Bnow%2Fd%7D%3E%2Clog-2011.12.01/log/_refresh
@@ -165,7 +165,7 @@ class Util
      */
     public static function toSnakeCase($string)
     {
-        return \strtolower(\preg_replace('/[A-Z]/', '_\\0', \lcfirst($string)));
+        return \strtolower(\preg_replace('/[A-Z]/', '_\0', \lcfirst($string)));
     }
 
     /**

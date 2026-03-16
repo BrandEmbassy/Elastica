@@ -7,7 +7,6 @@ use Elastica\Document;
 use Elastica\Index;
 use Elastica\Mapping;
 use Elastica\Query;
-use Iterator;
 
 /**
  * @internal
@@ -15,9 +14,25 @@ use Iterator;
 class GeoBoundsTest extends BaseAggregationTest
 {
     /**
-     * @return Iterator<string, array{expectedValue: float, position: string, coordinate: string}>
+     * @group functional
+     *
+     * @dataProvider geoBoundsDataProvider
      */
-    public function geoBoundsDataProvider(): Iterator
+    public function testGeoBoundsAggregation(float $expectedValue, string $position, string $coordinate): void
+    {
+        $agg = new GeoBounds('viewport', 'location');
+
+        $query = new Query();
+        $query->addAggregation($agg);
+        $results = $this->getIndexForTest()->search($query)->getAggregation('viewport');
+
+        $this->assertEqualsWithDelta($expectedValue, $results['bounds'][$position][$coordinate], 0.000001);
+    }
+
+    /**
+     * @return \Iterator<string, array{expectedValue: float, position: string, coordinate: string}>
+     */
+    public function geoBoundsDataProvider(): \Iterator
     {
         yield 'top left latitude' => [
             'expectedValue' => 37.782438984141,
@@ -42,21 +57,6 @@ class GeoBoundsTest extends BaseAggregationTest
             'position' => 'bottom_right',
             'coordinate' => 'lon',
         ];
-    }
-
-    /**
-     * @group functional
-     * @dataProvider geoBoundsDataProvider
-     */
-    public function testGeoBoundsAggregation(float $expectedValue, string $position, string $coordinate): void
-    {
-        $agg = new GeoBounds('viewport', 'location');
-
-        $query = new Query();
-        $query->addAggregation($agg);
-        $results = $this->getIndexForTest()->search($query)->getAggregation('viewport');
-
-        $this->assertEqualsWithDelta($expectedValue, $results['bounds'][$position][$coordinate], 0.000001);
     }
 
     private function getIndexForTest(): Index

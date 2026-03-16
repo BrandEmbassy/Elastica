@@ -2,9 +2,9 @@
 
 namespace Elastica;
 
-use Closure;
 use Elastic\Elasticsearch\Exception\ClientResponseException as ElasticsearchClientResponseException;
 use Elastic\Elasticsearch\Exception\ServerResponseException as ElasticsearchServerResponseException;
+use Elastic\Transport\Exception\NoNodeAvailableException;
 use Elastica\Bulk\Action;
 use Elastica\Bulk\ResponseSet;
 use Elastica\Exception\ClientException;
@@ -14,7 +14,6 @@ use Elastica\Exception\ResponseException;
 use Elastica\Script\AbstractScript;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use RuntimeException;
 
 /**
  * Client to connect the the elasticsearch server.
@@ -157,7 +156,7 @@ class Client
             'responseStatus' => $response->getStatus(),
             'execution_time' => $elapsedTimeMs,
             'request' => $request->toArray(),
-            'exception' => new RuntimeException('slow query'),
+            'exception' => new \RuntimeException('slow query'),
         ];
 
         if ($this->shouldLogResponseBody()) {
@@ -252,8 +251,6 @@ class Client
     /**
      * @param array|string $keys    config key or path of config keys
      * @param mixed        $default default value will be returned if key was not found
-     *
-     * @return mixed
      */
     public function getConfigValue($keys, $default = null)
     {
@@ -429,6 +426,8 @@ class Client
 
         try {
             $esResponse = $this->getConnection()->getClient()->update($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
         } catch (ElasticsearchClientResponseException|ElasticsearchServerResponseException $e) {
             // ES9 throws ClientResponseException (4xx) / ServerResponseException (5xx) instead of
             // returning an error response. Wrap them into Elastica's ResponseException so that
@@ -699,7 +698,7 @@ class Client
         return $this->getConfigValue('apiVersion', ApiVersion::API_VERSION_9);
     }
 
-    public function getDocumentTypeResolver(): Closure
+    public function getDocumentTypeResolver(): \Closure
     {
         return $this->getConfigValue('documentTypeResolver', static fn () => Type::DOC);
     }
@@ -714,11 +713,10 @@ class Client
      * V9 NOTE: AbstractEndpoint class removed in elasticsearch-php v9.
      * This method is kept for backward compatibility but throws an exception.
      * Each endpoint should now use the client's direct methods.
-     * @param mixed $endpoint
      */
     public function requestEndpoint($endpoint, array $tags = []): Response
     {
-        throw new RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->indices()->refresh() instead.');
+        throw new \RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->indices()->refresh() instead.');
     }
 
     /**
@@ -730,7 +728,11 @@ class Client
      */
     public function forcemergeAll($args = []): Response
     {
-        $esResponse = $this->getConnection()->getClient()->indices()->forcemerge($args);
+        try {
+            $esResponse = $this->getConnection()->getClient()->indices()->forcemerge($args);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -742,9 +744,13 @@ class Client
      */
     public function closePointInTime(string $pointInTimeId): Response
     {
-        $esResponse = $this->getConnection()->getClient()->closePointInTime([
-            'body' => ['id' => $pointInTimeId],
-        ]);
+        try {
+            $esResponse = $this->getConnection()->getClient()->closePointInTime([
+                'body' => ['id' => $pointInTimeId],
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -756,7 +762,11 @@ class Client
      */
     public function refreshAll(): Response
     {
-        $esResponse = $this->getConnection()->getClient()->indices()->refresh();
+        try {
+            $esResponse = $this->getConnection()->getClient()->indices()->refresh();
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -778,6 +788,8 @@ class Client
 
         try {
             $esResponse = $this->getConnection()->getClient()->indices()->putMapping($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
         } catch (ElasticsearchClientResponseException|ElasticsearchServerResponseException $e) {
             $psrResponse = $e->getResponse();
             $bodyStream = $psrResponse->getBody();

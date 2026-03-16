@@ -689,7 +689,7 @@ class IndexTest extends BaseTest
 
         $index = $client->getIndex($indexName);
         $index->create([], [
-            'wait_for_active_shards' => 'all',
+            'wait_for_active_shards' => '1',
         ]);
         $status = new Status($client);
         $this->assertTrue($status->indexExists($indexName));
@@ -697,7 +697,7 @@ class IndexTest extends BaseTest
         $index = $client->getIndex($indexName);
         $index->create([], [
             'recreate' => true,
-            'wait_for_active_shards' => 'all',
+            'wait_for_active_shards' => '1',
         ]);
         $status = new Status($client);
         $this->assertTrue($status->indexExists($indexName));
@@ -844,7 +844,7 @@ class IndexTest extends BaseTest
                         ],
                     ],
                     'number_of_shards' => 3,
-                    'number_of_replicas' => 1,
+                    'number_of_replicas' => 0,
                 ],
             ],
         ]);

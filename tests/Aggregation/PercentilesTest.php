@@ -5,7 +5,6 @@ namespace Elastica\Test\Aggregation;
 use Elastica\Aggregation\Percentiles;
 use Elastica\Document;
 use Elastica\Query;
-use Iterator;
 
 /**
  * @internal
@@ -125,9 +124,41 @@ class PercentilesTest extends BaseAggregationTest
     }
 
     /**
-     * @return Iterator<string, array{expectedValue: float, percentileKey: string}>
+     * @group functional
+     *
+     * @dataProvider actualWorkDataProvider
      */
-    public function actualWorkDataProvider(): Iterator
+    public function testActualWork(float $expectedValue, string $percentileKey): void
+    {
+        // prepare
+        $index = $this->_createIndex();
+        $index->addDocuments([
+            new Document('1', ['price' => 100]),
+            new Document('2', ['price' => 200]),
+            new Document('3', ['price' => 300]),
+            new Document('4', ['price' => 400]),
+            new Document('5', ['price' => 500]),
+            new Document('6', ['price' => 600]),
+            new Document('7', ['price' => 700]),
+            new Document('8', ['price' => 800]),
+            new Document('9', ['price' => 900]),
+            new Document('10', ['price' => 1000]),
+        ]);
+        $index->refresh();
+
+        // execute
+        $query = new Query();
+        $query->addAggregation(new Percentiles('price_percentile', 'price'));
+
+        $aggResult = $index->search($query)->getAggregation('price_percentile');
+
+        $this->assertEqualsWithDelta($expectedValue, $aggResult['values'][$percentileKey], 50.0);
+    }
+
+    /**
+     * @return \Iterator<string, array{expectedValue: float, percentileKey: string}>
+     */
+    public function actualWorkDataProvider(): \Iterator
     {
         yield '1st percentile' => [
             'expectedValue' => 100.0,
@@ -167,13 +198,14 @@ class PercentilesTest extends BaseAggregationTest
 
     /**
      * @group functional
-     * @dataProvider actualWorkDataProvider
+     *
+     * @dataProvider keyedDataProvider
      */
-    public function testActualWork(float $expectedValue, string $percentileKey): void
+    public function testKeyed(float $expectedKey, float $expectedValue, int $index): void
     {
         // prepare
-        $index = $this->_createIndex();
-        $index->addDocuments([
+        $esIndex = $this->_createIndex();
+        $esIndex->addDocuments([
             new Document('1', ['price' => 100]),
             new Document('2', ['price' => 200]),
             new Document('3', ['price' => 300]),
@@ -185,21 +217,26 @@ class PercentilesTest extends BaseAggregationTest
             new Document('9', ['price' => 900]),
             new Document('10', ['price' => 1000]),
         ]);
-        $index->refresh();
+        $esIndex->refresh();
 
         // execute
+        $agg = (new Percentiles('price_percentile', 'price'))
+            ->setKeyed(false)
+        ;
+
         $query = new Query();
-        $query->addAggregation(new Percentiles('price_percentile', 'price'));
+        $query->addAggregation($agg);
 
-        $aggResult = $index->search($query)->getAggregation('price_percentile');
+        $aggResult = $esIndex->search($query)->getAggregation('price_percentile');
 
-        $this->assertEqualsWithDelta($expectedValue, $aggResult['values'][$percentileKey], 50.0);
+        $this->assertEqualsWithDelta($expectedKey, $aggResult['values'][$index]['key'], 0.01);
+        $this->assertEqualsWithDelta($expectedValue, $aggResult['values'][$index]['value'], 50.0);
     }
 
     /**
-     * @return Iterator<string, array{expectedKey: float, expectedValue: float, index: int}>
+     * @return \Iterator<string, array{expectedKey: float, expectedValue: float, index: int}>
      */
-    public function keyedDataProvider(): Iterator
+    public function keyedDataProvider(): \Iterator
     {
         yield '1st percentile' => [
             'expectedKey' => 1.0,
@@ -242,42 +279,6 @@ class PercentilesTest extends BaseAggregationTest
             'expectedValue' => 1000.0,
             'index' => 6,
         ];
-    }
-
-    /**
-     * @group functional
-     * @dataProvider keyedDataProvider
-     */
-    public function testKeyed(float $expectedKey, float $expectedValue, int $index): void
-    {
-        // prepare
-        $esIndex = $this->_createIndex();
-        $esIndex->addDocuments([
-            new Document('1', ['price' => 100]),
-            new Document('2', ['price' => 200]),
-            new Document('3', ['price' => 300]),
-            new Document('4', ['price' => 400]),
-            new Document('5', ['price' => 500]),
-            new Document('6', ['price' => 600]),
-            new Document('7', ['price' => 700]),
-            new Document('8', ['price' => 800]),
-            new Document('9', ['price' => 900]),
-            new Document('10', ['price' => 1000]),
-        ]);
-        $esIndex->refresh();
-
-        // execute
-        $agg = (new Percentiles('price_percentile', 'price'))
-            ->setKeyed(false)
-        ;
-
-        $query = new Query();
-        $query->addAggregation($agg);
-
-        $aggResult = $esIndex->search($query)->getAggregation('price_percentile');
-
-        $this->assertEqualsWithDelta($expectedKey, $aggResult['values'][$index]['key'], 0.01);
-        $this->assertEqualsWithDelta($expectedValue, $aggResult['values'][$index]['value'], 50.0);
     }
 
     /**

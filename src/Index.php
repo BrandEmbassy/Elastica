@@ -4,7 +4,9 @@ namespace Elastica;
 
 use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastic\Elasticsearch\Exception\ServerResponseException;
+use Elastic\Transport\Exception\NoNodeAvailableException;
 use Elastica\Bulk\ResponseSet;
+use Elastica\Exception\ConnectionException;
 use Elastica\Exception\InvalidException;
 use Elastica\Exception\NotFoundException;
 use Elastica\Exception\ResponseException;
@@ -14,8 +16,6 @@ use Elastica\Index\Stats as IndexStats;
 use Elastica\Query\AbstractQuery;
 use Elastica\ResultSet\BuilderInterface;
 use Elastica\Script\AbstractScript;
-use RuntimeException;
-use TypeError;
 
 /**
  * Elastica index object.
@@ -90,9 +90,13 @@ class Index implements SearchableInterface
      */
     public function getMapping(): array
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->getMapping([
-            'index' => $this->getName(),
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->getMapping([
+                'index' => $this->getName(),
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
         $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $data = $response->getData();
 
@@ -161,7 +165,11 @@ class Index implements SearchableInterface
             'body' => $body,
         ]);
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->updateByQuery($params);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->updateByQuery($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -199,6 +207,8 @@ class Index implements SearchableInterface
 
         try {
             $esResponse = $this->getClient()->getConnection()->getClient()->index($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
         } catch (ClientResponseException|ServerResponseException $e) {
             // ES9 throws ClientResponseException (4xx) / ServerResponseException (5xx) instead of
             // returning an error response. Wrap into Elastica's ResponseException so callers
@@ -266,6 +276,8 @@ class Index implements SearchableInterface
 
         try {
             $esResponse = $this->getClient()->getConnection()->getClient()->get($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
         } catch (ClientResponseException $e) {
             if (404 === $e->getResponse()->getStatusCode()) {
                 throw new NotFoundException('doc id '.$id.' not found');
@@ -332,7 +344,11 @@ class Index implements SearchableInterface
             'body' => $body,
         ]);
 
-        $esResponse = $client->getConnection()->getClient()->mget($params);
+        try {
+            $esResponse = $client->getConnection()->getClient()->mget($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
         $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $results = $response->getData();
 
@@ -383,7 +399,11 @@ class Index implements SearchableInterface
             'id' => \trim($id),
         ]);
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->delete($params);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->delete($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -405,7 +425,11 @@ class Index implements SearchableInterface
             'body' => ['query' => \is_array($query) ? $query : $query->toArray()],
         ]);
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->deleteByQuery($params);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->deleteByQuery($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -417,10 +441,14 @@ class Index implements SearchableInterface
      */
     public function openPointInTime(string $keepAlive): Response
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->openPointInTime([
-            'index' => $this->getName(),
-            'keep_alive' => $keepAlive,
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->openPointInTime([
+                'index' => $this->getName(),
+                'keep_alive' => $keepAlive,
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -430,9 +458,13 @@ class Index implements SearchableInterface
      */
     public function delete(): Response
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->delete([
-            'index' => $this->getName(),
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->delete([
+                'index' => $this->getName(),
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -468,7 +500,11 @@ class Index implements SearchableInterface
             'index' => $this->getName(),
         ]);
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->forcemerge($params);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->forcemerge($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -480,9 +516,13 @@ class Index implements SearchableInterface
      */
     public function refresh(): Response
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->refresh([
-            'index' => $this->getName(),
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->refresh([
+                'index' => $this->getName(),
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -513,7 +553,7 @@ class Index implements SearchableInterface
             \trigger_deprecation('ruflin/elastica', '7.1.0', 'Passing a bool as 2nd argument to "%s()" is deprecated, pass an array with the key "recreate" instead. It will be removed in 8.0.', __METHOD__);
             $options = ['recreate' => $options];
         } elseif (!\is_array($options)) {
-            throw new TypeError(\sprintf('Argument 2 passed to "%s()" must be of type array|bool|null, %s given.', __METHOD__, \is_object($options) ? \get_class($options) : \gettype($options)));
+            throw new \TypeError(\sprintf('Argument 2 passed to "%s()" must be of type array|bool|null, %s given.', __METHOD__, \is_object($options) ? \get_class($options) : \gettype($options)));
         }
 
         unset($options[CustomOptions::REQUEST_TAGS]);
@@ -554,7 +594,11 @@ class Index implements SearchableInterface
             'body' => $args,
         ]);
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->create($params);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->create($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -570,6 +614,8 @@ class Index implements SearchableInterface
             ]);
 
             return 200 === $esResponse->getStatusCode();
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
         } catch (ClientResponseException $e) {
             if (404 === $e->getResponse()->getStatusCode()) {
                 return false;
@@ -579,9 +625,6 @@ class Index implements SearchableInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function createSearch($query = '', $options = null, ?BuilderInterface $builder = null): Search
     {
         $search = new Search($this->getClient(), $builder);
@@ -591,9 +634,6 @@ class Index implements SearchableInterface
         return $search;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function search($query = '', $options = [], string $method = Request::POST): ResultSet
     {
         $search = $this->createSearch($query, $options);
@@ -601,9 +641,6 @@ class Index implements SearchableInterface
         return $search->search('', $options, $method);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function count($query = '', string $method = Request::POST): int
     {
         $search = $this->createSearch($query);
@@ -618,9 +655,13 @@ class Index implements SearchableInterface
      */
     public function open(): Response
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->open([
-            'index' => $this->getName(),
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->open([
+                'index' => $this->getName(),
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -632,9 +673,13 @@ class Index implements SearchableInterface
      */
     public function close(): Response
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->close([
-            'index' => $this->getName(),
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->close([
+                'index' => $this->getName(),
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -675,9 +720,13 @@ class Index implements SearchableInterface
 
         $data['actions'][] = ['add' => ['index' => $this->getName(), 'alias' => $name]];
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->updateAliases([
-            'body' => $data,
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->updateAliases([
+                'body' => $data,
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -689,10 +738,14 @@ class Index implements SearchableInterface
      */
     public function removeAlias(string $name): Response
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->deleteAlias([
-            'index' => $this->getName(),
-            'name' => $name,
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->deleteAlias([
+                'index' => $this->getName(),
+                'name' => $name,
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -704,10 +757,14 @@ class Index implements SearchableInterface
      */
     public function getAliases(): array
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->getAlias([
-            'index' => $this->getName(),
-            'name' => '*',
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->getAlias([
+                'index' => $this->getName(),
+                'name' => '*',
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
         $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $responseData = $response->getData();
 
@@ -739,9 +796,13 @@ class Index implements SearchableInterface
     public function clearCache(): Response
     {
         // TODO: add additional cache clean arguments
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->clearCache([
-            'index' => $this->getName(),
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->clearCache([
+                'index' => $this->getName(),
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -757,7 +818,11 @@ class Index implements SearchableInterface
             'index' => $this->getName(),
         ]);
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->flush($params);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->flush($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -771,10 +836,14 @@ class Index implements SearchableInterface
      */
     public function setSettings(array $data): Response
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->putSettings([
-            'index' => $this->getName(),
-            'body' => $data,
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->putSettings([
+                'index' => $this->getName(),
+                'body' => $data,
+            ]);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -797,13 +866,12 @@ class Index implements SearchableInterface
      * Makes calls to the elasticsearch server with usage official client Endpoint based on this index.
      *
      * @param string[] $tags
-     * @param mixed    $endpoint
      *
      * @deprecated This method is deprecated in Elasticsearch v9
      */
     public function requestEndpoint($endpoint, array $tags = []): Response
     {
-        throw new RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->indices()->refresh() instead.');
+        throw new \RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->indices()->refresh() instead.');
     }
 
     /**
@@ -821,7 +889,11 @@ class Index implements SearchableInterface
             'body' => $body,
         ]);
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->analyze($params);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->analyze($params);
+        } catch (NoNodeAvailableException $e) {
+            throw new ConnectionException($e->getMessage());
+        }
         $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $data = $response->getData();
 

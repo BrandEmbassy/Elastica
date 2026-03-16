@@ -18,7 +18,6 @@ use Elastica\Exception\RequestEntityTooLargeException;
 use Elastica\Response as ElasticaResponse;
 use Elastica\Script\Script;
 use Elastica\Test\Base as BaseTest;
-use const PHP_EOL;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -96,8 +95,8 @@ class BulkTest extends BaseTest
 {"name":"The Thing"}
 ';
 
-            $expected = \str_replace(PHP_EOL, "\n", $expected);
-            $this->assertEquals($expected, (string) \str_replace(PHP_EOL, "\n", (string) $bulk));
+            $expected = \str_replace(\PHP_EOL, "\n", $expected);
+            $this->assertEquals($expected, (string) \str_replace(\PHP_EOL, "\n", (string) $bulk));
 
             $response = $bulk->send();
 
@@ -290,10 +289,8 @@ class BulkTest extends BaseTest
 
     /**
      * @group unit
-     * @dataProvider invalidRawDataProvider
      *
-     * @param mixed $rawData
-     * @param mixed $failMessage
+     * @dataProvider invalidRawDataProvider
      */
     public function testInvalidRawData($rawData, $failMessage): void
     {
@@ -405,7 +402,7 @@ class BulkTest extends BaseTest
 {"name":"The Human Torch"}
 JSON;
 
-        $expectedJson = \str_replace(PHP_EOL, "\n", $expectedJson);
+        $expectedJson = \str_replace(\PHP_EOL, "\n", $expectedJson);
         $this->assertSame($expectedJson, \trim((string) $bulk));
 
         $response = $bulk->send();

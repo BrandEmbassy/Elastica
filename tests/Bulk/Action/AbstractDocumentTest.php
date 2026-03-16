@@ -7,7 +7,6 @@ use Elastica\Bulk\Action\AbstractDocument;
 use Elastica\Script\Script;
 use Elastica\Test\Base as BaseTest;
 use Elastica\Type;
-use stdClass;
 
 /**
  * @internal
@@ -23,7 +22,7 @@ class AbstractDocumentTest extends BaseTest
         $this->expectExceptionMessage('The data needs to be a Document or a Script.');
 
         AbstractDocument::create(
-            new stdClass(),
+            new \stdClass(),
             null,
             ApiVersion::API_VERSION_9,
             static fn () => Type::DOC

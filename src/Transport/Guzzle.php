@@ -195,9 +195,6 @@ class Guzzle extends AbstractTransport
         return $action;
     }
 
-    /**
-     * @param mixed $data
-     */
     private function streamFor($data): StreamInterface
     {
         if (\is_array($data)) {
@@ -206,7 +203,6 @@ class Guzzle extends AbstractTransport
 
         return \class_exists(Psr7\Utils::class)
             ? Psr7\Utils::streamFor($data)
-            : Psr7\stream_for($data)
-        ;
+            : Psr7\stream_for($data);
     }
 }

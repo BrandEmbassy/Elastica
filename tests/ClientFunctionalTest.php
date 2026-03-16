@@ -996,16 +996,13 @@ class ClientFunctionalTest extends BaseTest
         $this->assertArrayHasKey('index_total', $responseData['indices'][$index->getName()]['total']['indexing']);
 
         $this->assertSame(
-            2,
+            1,
             $responseData['indices'][$index->getName()]['total']['indexing']['index_total']
         );
     }
 
     /**
      * @dataProvider endpointQueryRequestDataProvider
-     *
-     * @param mixed $query
-     * @param mixed $totalHits
      */
     public function testEndpointQueryRequest($query, $totalHits): void
     {

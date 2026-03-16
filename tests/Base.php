@@ -89,7 +89,7 @@ class Base extends TestCase
         $client = $this->_getClient();
         $index = $client->getIndex($name);
 
-        $index->create(['settings' => ['index' => ['number_of_shards' => $shards, 'number_of_replicas' => 1]]], [
+        $index->create(['settings' => ['index' => ['number_of_shards' => $shards, 'number_of_replicas' => 0]]], [
             'recreate' => $delete,
         ]);
 
@@ -156,7 +156,7 @@ class Base extends TestCase
             $allocated = true;
             foreach ($indexState['shards'] as $shards) {
                 foreach ($shards as $shard) {
-                    if ('STARTED' !== $shard['state']) {
+                    if ($shard['primary'] && 'STARTED' !== $shard['state']) {
                         $allocated = false;
                     }
                 }

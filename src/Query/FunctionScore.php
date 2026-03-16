@@ -74,7 +74,7 @@ class FunctionScore extends AbstractQuery
         string $functionType,
         $functionParams,
         ?AbstractQuery $filter = null,
-        ?float $weight = null
+        ?float $weight = null,
     ): self {
         $function = [
             $functionType => $functionParams,
@@ -131,7 +131,7 @@ class FunctionScore extends AbstractQuery
         ?float $decay = null,
         ?float $weight = null,
         ?AbstractQuery $filter = null,
-        ?string $multiValueMode = null
+        ?string $multiValueMode = null,
     ) {
         $functionParams = [
             $field => [
@@ -162,7 +162,7 @@ class FunctionScore extends AbstractQuery
         ?string $modifier = null,
         ?float $missing = null,
         ?float $weight = null,
-        ?AbstractQuery $filter = null
+        ?AbstractQuery $filter = null,
     ): self {
         $functionParams = [
             'field' => $field,
@@ -208,7 +208,7 @@ class FunctionScore extends AbstractQuery
         int $seed,
         ?AbstractQuery $filter = null,
         ?float $weight = null,
-        ?string $field = null
+        ?string $field = null,
     ): self {
         $functionParams = [
             'seed' => $seed,
@@ -292,9 +292,6 @@ class FunctionScore extends AbstractQuery
         return $this->setParam('min_score', $minScore);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function toArray(): array
     {
         if (0 < \count($this->_functions)) {

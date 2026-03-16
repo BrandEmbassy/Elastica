@@ -241,19 +241,10 @@ class TopHitsTest extends BaseAggregationTest
         $this->assertEquals([2, 4], $resultDocs);
     }
 
-    public function limitedSourceProvider(): array
-    {
-        return [
-            'string source' => ['title'],
-            'array source' => [['title']],
-        ];
-    }
-
     /**
      * @group functional
-     * @dataProvider limitedSourceProvider
      *
-     * @param mixed $source
+     * @dataProvider limitedSourceProvider
      */
     public function testAggregateWithLimitedSource($source): void
     {
@@ -269,6 +260,14 @@ class TopHitsTest extends BaseAggregationTest
                 $this->assertArrayNotHasKey('last_activity_date', $doc['_source']);
             }
         }
+    }
+
+    public function limitedSourceProvider(): array
+    {
+        return [
+            'string source' => ['title'],
+            'array source' => [['title']],
+        ];
     }
 
     /**

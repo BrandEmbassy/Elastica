@@ -33,6 +33,10 @@ class GuzzleTest extends BaseTest
      */
     public function testWithEnvironmentalProxy(): void
     {
+        if (!\getenv('PROXY_HOST')) {
+            $this->markTestSkipped('No proxy server available in this environment.');
+        }
+
         \putenv('http_proxy='.$this->_getProxyUrl().'/');
 
         $client = $this->_getClient(['transport' => 'Guzzle', 'persistent' => false]);
@@ -51,6 +55,10 @@ class GuzzleTest extends BaseTest
      */
     public function testWithEnabledEnvironmentalProxy(): void
     {
+        if (!\getenv('PROXY_HOST')) {
+            $this->markTestSkipped('No proxy server available in this environment.');
+        }
+
         \putenv('http_proxy='.$this->_getProxyUrl403().'/');
 
         $client = $this->_getClient(['transport' => 'Guzzle', 'persistent' => false]);
@@ -70,6 +78,10 @@ class GuzzleTest extends BaseTest
      */
     public function testWithProxy(): void
     {
+        if (!\getenv('PROXY_HOST')) {
+            $this->markTestSkipped('No proxy server available in this environment.');
+        }
+
         $client = $this->_getClient(['transport' => 'Guzzle', 'persistent' => false]);
         $client->getConnection()->setProxy($this->_getProxyUrl());
 

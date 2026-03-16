@@ -14,10 +14,8 @@ class UtilTest extends BaseTest
 {
     /**
      * @group unit
-     * @dataProvider getIsDateMathEscapedPairs
      *
-     * @param mixed $requestUri
-     * @param mixed $expectedIsEscaped
+     * @dataProvider getIsDateMathEscapedPairs
      */
     public function testIsDateMathEscaped($requestUri, $expectedIsEscaped): void
     {
@@ -39,10 +37,8 @@ class UtilTest extends BaseTest
 
     /**
      * @group unit
-     * @dataProvider getEscapeDateMathPairs
      *
-     * @param mixed $requestUri
-     * @param mixed $expectedEscapedRequestUri
+     * @dataProvider getEscapeDateMathPairs
      */
     public function testEscapeDateMath($requestUri, $expectedEscapedRequestUri): void
     {
@@ -65,18 +61,16 @@ class UtilTest extends BaseTest
                 '%3Clogstash-%7Bnow%2Fd-2d%7D%3E%2C%3Clogstash-%7Bnow%2Fd-1d%7D%3E%2C%3Clogstash-%7Bnow%2Fd%7D%3E/_search',
             ],
             [
-                '<elastic\\\\{ON\\\\}-{now/M}>', // <elastic\\{ON\\}-{now/M}>
-                '%3Celastic\\\\{ON\\\\}-%7Bnow%2FM%7D%3E',
+                '<elastic\\\{ON\\\}-{now/M}>', // <elastic\\{ON\\}-{now/M}>
+                '%3Celastic\\\{ON\\\}-%7Bnow%2FM%7D%3E',
             ],
         ];
     }
 
     /**
      * @group unit
-     * @dataProvider getEscapeTermPairs
      *
-     * @param mixed $unescaped
-     * @param mixed $escaped
+     * @dataProvider getEscapeTermPairs
      */
     public function testEscapeTerm($unescaped, $escaped): void
     {
@@ -88,7 +82,7 @@ class UtilTest extends BaseTest
         return [
             ['', ''],
             ['pragmatic banana', 'pragmatic banana'],
-            ['oh yeah!', 'oh yeah\\!'],
+            ['oh yeah!', 'oh yeah\!'],
             // Separate test below because phpunit seems to have some problems
             // array('\\+-&&||!(){}[]^"~*?:', '\\\\\\+\\-\\&&\\||\\!\\(\\)\\{\\}\\[\\]\\^\\"\\~\\*\\?\\:'),
             ['some signs, can stay.', 'some signs, can stay.'],
@@ -97,10 +91,8 @@ class UtilTest extends BaseTest
 
     /**
      * @group unit
-     * @dataProvider getReplaceBooleanWordsPairs
      *
-     * @param mixed $before
-     * @param mixed $after
+     * @dataProvider getReplaceBooleanWordsPairs
      */
     public function testReplaceBooleanWords($before, $after): void
     {
@@ -124,8 +116,8 @@ class UtilTest extends BaseTest
      */
     public function testEscapeTermSpecialCharacters(): void
     {
-        $before = '\\+-&&||!(){}[]^"~*?:/<>';
-        $after = '\\\\\\+\\-\\&&\\||\\!\\(\\)\\{\\}\\[\\]\\^\\"\\~\\*\\?\\:\\/';
+        $before = '\+-&&||!(){}[]^"~*?:/<>';
+        $after = '\\\\\+\-\&&\||\!\(\)\{\}\[\]\^\"\~\*\?\:\/';
 
         $this->assertEquals(Util::escapeTerm($before), $after);
     }
