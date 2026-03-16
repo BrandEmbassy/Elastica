@@ -59,9 +59,8 @@ class TransportBenchmarkTest extends BaseTest
 
     /**
      * @depends testAddDocument
-     * @dataProvider providerTransport
      *
-     * @param mixed $transport
+     * @dataProvider providerTransport
      */
     public function testRandomRead(array $config, $transport): void
     {
@@ -83,9 +82,8 @@ class TransportBenchmarkTest extends BaseTest
 
     /**
      * @depends testAddDocument
-     * @dataProvider providerTransport
      *
-     * @param mixed $transport
+     * @dataProvider providerTransport
      */
     public function testBulk(array $config, $transport): void
     {

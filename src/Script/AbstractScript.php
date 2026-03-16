@@ -91,9 +91,6 @@ abstract class AbstractScript extends AbstractUpdateAction
         return $this->_lang;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function toArray(): array
     {
         $array = $this->getScriptTypeArray();

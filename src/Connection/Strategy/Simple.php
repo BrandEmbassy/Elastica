@@ -12,9 +12,6 @@ use Elastica\Exception\ClientException;
  */
 class Simple implements StrategyInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getConnection(array $connections): Connection
     {
         foreach ($connections as $connection) {

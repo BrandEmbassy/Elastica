@@ -12,9 +12,6 @@ use Elastica\Connection\Strategy\StrategyInterface;
  */
 class EmptyStrategy implements StrategyInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getConnection(array $connections): Connection
     {
         return new Connection();

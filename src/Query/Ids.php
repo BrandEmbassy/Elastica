@@ -55,9 +55,6 @@ class Ids extends AbstractQuery
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function toArray(): array
     {
         return ['ids' => $this->_params];

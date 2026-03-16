@@ -36,9 +36,6 @@ class Simple extends AbstractQuery
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function toArray(): array
     {
         return $this->_query;

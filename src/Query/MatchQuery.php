@@ -20,9 +20,6 @@ class MatchQuery extends AbstractQuery
 
     public const FUZZINESS_AUTO = 'AUTO';
 
-    /**
-     * @param mixed $values
-     */
     public function __construct(?string $field = null, $values = null)
     {
         if (null !== $field && null !== $values) {
@@ -32,8 +29,6 @@ class MatchQuery extends AbstractQuery
 
     /**
      * Sets a param for the message array.
-     *
-     * @param mixed $values
      *
      * @return $this
      */
@@ -118,8 +113,6 @@ class MatchQuery extends AbstractQuery
 
     /**
      * Set field fuzziness.
-     *
-     * @param mixed $fuzziness
      *
      * @return $this
      */

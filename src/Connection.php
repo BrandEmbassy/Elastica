@@ -367,7 +367,6 @@ class Connection extends Param
 
     /**
      * @param string $key
-     * @param mixed  $value
      *
      * @return $this
      */
