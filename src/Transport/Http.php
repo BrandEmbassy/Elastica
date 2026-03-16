@@ -202,7 +202,7 @@ class Http extends AbstractTransport
             );
 
             // sleep for 0.5 seconds
-            \usleep(.5 * 1000000);
+            \usleep(500000);
 
             return $this->exec($request, $params, $remainingRetries);
         }
