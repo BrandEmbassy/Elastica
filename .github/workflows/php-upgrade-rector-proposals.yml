@@ -11,9 +11,112 @@ on:
 
 jobs:
   rector-php-upgrade:
-    uses: BrandEmbassy/github-actions/.github/workflows/php-upgrade-rector-proposals.yml@master
-    with:
-      PHP_TARGET_VERSION: ${{ inputs.PHP_TARGET_VERSION }}
-      RECTOR_PATHS: 'src tests'
-    secrets:
-      COMPOSER_TOKEN: ${{ secrets.COMPOSER_TOKEN }}
+    name: Rector PHP Upgrade Proposals (PHP ${{ inputs.PHP_TARGET_VERSION }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect source PHP version and extensions from composer.json
+        id: composer-meta
+        run: |
+          # Extract source PHP version from composer.json require.php constraint
+          # Handles formats like "^8.2", ">=8.2", "~8.2", "8.2.*", "^8.2.0"
+          php_constraint=$(jq -r '.require.php // empty' composer.json)
+          if [ -z "$php_constraint" ]; then
+            echo "::error::No php requirement found in composer.json"
+            exit 1
+          fi
+          source_version=$(echo "$php_constraint" | grep -oE '[0-9]+\.[0-9]+' | head -1)
+          echo "source_version=$source_version" >> $GITHUB_OUTPUT
+          echo "Detected source PHP version: $source_version (from constraint: $php_constraint)"
+
+          # Extract required extensions
+          extensions=$(jq -r '.require | keys[] | select(startswith("ext-")) | sub("ext-"; "")' composer.json | paste -sd, -)
+          echo "extensions=$extensions" >> $GITHUB_OUTPUT
+          echo "Detected extensions: $extensions"
+
+      - name: Setup PHP ${{ steps.composer-meta.outputs.source_version }}
+        uses: shivammathur/setup-php@2.35.1
+        with:
+          php-version: ${{ steps.composer-meta.outputs.source_version }}
+          extensions: ${{ steps.composer-meta.outputs.extensions }}
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Configure composer token
+        env:
+          COMPOSER_TOKEN: ${{ secrets.COMPOSER_TOKEN }}
+        run: composer config github-oauth.github.com "$COMPOSER_TOKEN"
+
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist
+
+      - name: Install Rector if not present
+        run: |
+          if [ -f vendor/bin/rector ]; then
+            echo "Rector already installed in vendor"
+          else
+            echo "Rector not found in vendor, installing..."
+            composer require --dev rector/rector --with-all-dependencies --no-interaction
+          fi
+
+      - name: Generate temporary Rector configuration
+        env:
+          TARGET: ${{ inputs.PHP_TARGET_VERSION }}
+          PATHS: src tests
+        run: |
+          # Build the withPhpSets argument: "8.4" -> "php84"
+          PHP_SET_ARG="php${TARGET//.}"
+
+          # Build the withPhpVersion constant: "8.2" -> "PHP_82"
+          SOURCE="${{ steps.composer-meta.outputs.source_version }}"
+          PHP_VERSION_CONST="PHP_${SOURCE//.}"
+
+          # Build paths array for PHP config
+          PATH_ENTRIES=""
+          for p in $PATHS; do
+            PATH_ENTRIES="${PATH_ENTRIES}        __DIR__ . '/${p}',"$'\n'
+          done
+
+          {
+            echo '<?php'
+            echo ''
+            echo 'declare(strict_types=1);'
+            echo ''
+            echo 'use Rector\Config\RectorConfig;'
+            echo 'use Rector\ValueObject\PhpVersion;'
+            echo ''
+            echo "// Rector proposals for upgrading to PHP ${TARGET}."
+            echo "// Loads rules up to PHP ${TARGET} but constrains output to PHP ${SOURCE}-safe code."
+            echo "// This ensures only backward-compatible changes are proposed during the upgrade phase."
+            echo 'return RectorConfig::configure()'
+            echo "    ->withPhpSets(${PHP_SET_ARG}: true)"
+            echo "    ->withPhpVersion(PhpVersion::${PHP_VERSION_CONST})"
+            echo '    ->withPaths(['
+            printf '%s' "$PATH_ENTRIES"
+            echo '    ]);'
+          } > rector-php-upgrade.php
+
+          echo "Generated rector-php-upgrade.php:"
+          cat rector-php-upgrade.php
+
+      - name: Run Rector (dry-run)
+        run: |
+          # --dry-run proposes changes without modifying files
+          # Exit code 0 = no changes, 2 = changes would be made (both OK)
+          # Any other exit code (including 1) indicates an error
+          vendor/bin/rector process --config rector-php-upgrade.php --dry-run --ansi || EXIT_CODE=$?
+          if [ "${EXIT_CODE:-0}" -ne 0 ] && [ "${EXIT_CODE:-0}" -ne 2 ]; then
+            exit "$EXIT_CODE"
+          fi
