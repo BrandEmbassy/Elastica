@@ -1,4 +1,4 @@
-Elastica: elasticsearch PHP Client
+Elastica: ElasticSearch PHP Client
 ==================================
 
 [![Latest Stable Version](https://poser.pugx.org/ruflin/Elastica/v/stable.png)](https://packagist.org/packages/ruflin/elastica)
