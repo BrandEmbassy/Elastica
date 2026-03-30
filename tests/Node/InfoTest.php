@@ -77,7 +77,7 @@ class InfoTest extends BaseTest
     {
         $client = $this->_getClient();
 
-        $data = $client->request('_nodes/stats')->getData();
+        $data = $client->request('_nodes')->getData();
         $rawNodes = $data['nodes'];
 
         $nodes = $client->getCluster()->getNodes();

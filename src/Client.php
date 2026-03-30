@@ -4,7 +4,6 @@ namespace Elastica;
 
 use Elastic\Elasticsearch\Exception\ClientResponseException as ElasticsearchClientResponseException;
 use Elastic\Elasticsearch\Exception\ServerResponseException as ElasticsearchServerResponseException;
-use Elastic\Transport\Exception\NoNodeAvailableException;
 use Elastica\Bulk\Action;
 use Elastica\Bulk\ResponseSet;
 use Elastica\Exception\ClientException;
@@ -426,8 +425,6 @@ class Client
 
         try {
             $esResponse = $this->getConnection()->getClient()->update($params);
-        } catch (NoNodeAvailableException $e) {
-            throw new ConnectionException($e->getMessage());
         } catch (ElasticsearchClientResponseException|ElasticsearchServerResponseException $e) {
             // ES9 throws ClientResponseException (4xx) / ServerResponseException (5xx) instead of
             // returning an error response. Wrap them into Elastica's ResponseException so that
@@ -728,11 +725,7 @@ class Client
      */
     public function forcemergeAll($args = []): Response
     {
-        try {
-            $esResponse = $this->getConnection()->getClient()->indices()->forcemerge($args);
-        } catch (NoNodeAvailableException $e) {
-            throw new ConnectionException($e->getMessage());
-        }
+        $esResponse = $this->getConnection()->getClient()->indices()->forcemerge($args);
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -744,13 +737,9 @@ class Client
      */
     public function closePointInTime(string $pointInTimeId): Response
     {
-        try {
-            $esResponse = $this->getConnection()->getClient()->closePointInTime([
-                'body' => ['id' => $pointInTimeId],
-            ]);
-        } catch (NoNodeAvailableException $e) {
-            throw new ConnectionException($e->getMessage());
-        }
+        $esResponse = $this->getConnection()->getClient()->closePointInTime([
+            'body' => ['id' => $pointInTimeId],
+        ]);
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -762,11 +751,7 @@ class Client
      */
     public function refreshAll(): Response
     {
-        try {
-            $esResponse = $this->getConnection()->getClient()->indices()->refresh();
-        } catch (NoNodeAvailableException $e) {
-            throw new ConnectionException($e->getMessage());
-        }
+        $esResponse = $this->getConnection()->getClient()->indices()->refresh();
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -788,8 +773,6 @@ class Client
 
         try {
             $esResponse = $this->getConnection()->getClient()->indices()->putMapping($params);
-        } catch (NoNodeAvailableException $e) {
-            throw new ConnectionException($e->getMessage());
         } catch (ElasticsearchClientResponseException|ElasticsearchServerResponseException $e) {
             $psrResponse = $e->getResponse();
             $bodyStream = $psrResponse->getBody();

@@ -136,9 +136,12 @@ class SettingsTest extends BaseTest
 
         $settings = $index->getSettings();
 
-        // Test with default number of replicas
-        $this->assertEquals(IndexSettings::DEFAULT_NUMBER_OF_REPLICAS, $settings->get('number_of_replicas'));
-        $this->assertEquals(IndexSettings::DEFAULT_NUMBER_OF_REPLICAS, $settings->getNumberOfReplicas());
+        // Create with explicit replica count so the assertion is not subject to composable template overrides
+        $index->create(['settings' => ['index' => ['number_of_replicas' => 2]]], ['recreate' => true]);
+        $settings = $index->getSettings();
+
+        $this->assertEquals(2, $settings->get('number_of_replicas'));
+        $this->assertEquals(2, $settings->getNumberOfReplicas());
 
         $index->delete();
     }

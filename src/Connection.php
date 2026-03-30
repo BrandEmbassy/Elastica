@@ -305,14 +305,17 @@ class Connection extends Param
         $hostString = \sprintf('%s://%s:%d%s', $scheme, $host, $port, $path);
         $hosts[] = $hostString;
 
-        // Inject X-Elastic-Product header into all responses so the elasticsearch-php v9
-        // product check passes when connecting to OpenSearch (which does not send this header).
         $stack = HandlerStack::create();
-        $stack->push(Middleware::mapResponse(
-            static function (ResponseInterface $response): ResponseInterface {
-                return $response->withHeader('X-Elastic-Product', 'Elasticsearch');
-            }
-        ));
+
+        // When connecting to OpenSearch (which does not send the X-Elastic-Product header
+        // required by elasticsearch-php v9), set bypass_product_check=true in connection params.
+        if ($this->hasParam('bypass_product_check') && $this->getParam('bypass_product_check')) {
+            $stack->push(Middleware::mapResponse(
+                static function (ResponseInterface $response): ResponseInterface {
+                    return $response->withHeader('X-Elastic-Product', 'Elasticsearch');
+                }
+            ));
+        }
 
         // If a request counter is provided, increment it for every HTTP request so that
         // direct ES9 client calls are tracked just like legacy Client::request() calls.

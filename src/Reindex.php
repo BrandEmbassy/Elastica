@@ -15,7 +15,8 @@ class Reindex extends Param
     public const OPERATION_TYPE_CREATE = 'create';
     public const CONFLICTS = 'conflicts';
     public const CONFLICTS_PROCEED = 'proceed';
-    public const SIZE = 'max_docs'; // renamed from 'size' in ES 9.x
+    public const SIZE = 'size';
+    public const MAX_DOCS = 'max_docs'; // ES 9.x renamed 'size' to 'max_docs'; use MAX_DOCS for ES9
     public const QUERY = 'query';
     public const SORT = 'sort';
     public const SCRIPT = 'script';
@@ -205,10 +206,19 @@ class Reindex extends Param
 
     private function _resolveBodyOptions(array $params): array
     {
-        return \array_intersect_key($params, [
+        $options = \array_intersect_key($params, [
             self::SIZE => null,
+            self::MAX_DOCS => null,
             self::CONFLICTS => null,
         ]);
+
+        // ES9 renamed 'size' to 'max_docs'; translate for backward compatibility
+        if (isset($options[self::SIZE]) && !isset($options[self::MAX_DOCS])) {
+            $options[self::MAX_DOCS] = $options[self::SIZE];
+            unset($options[self::SIZE]);
+        }
+
+        return $options;
     }
 
     private function _setSourceQuery(array $sourceBody): array

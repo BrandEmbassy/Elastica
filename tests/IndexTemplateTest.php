@@ -111,7 +111,14 @@ class IndexTemplateTest extends BaseTest
         ];
         $name = 'index_template1';
         $indexTemplate = new IndexTemplate($this->_getClient(), $name);
-        $indexTemplate->create($template);
+        try {
+            $indexTemplate->create($template);
+        } catch (ResponseException $ex) {
+            if (\str_contains($ex->getResponse()->getFullError()['reason'] ?? '', 'composable templates')) {
+                $this->markTestSkipped('ES9: legacy templates cannot overlap with existing composable templates.');
+            }
+            throw $ex;
+        }
         $this->assertTrue($indexTemplate->exists());
         $indexTemplate->delete();
         $this->assertFalse($indexTemplate->exists());
@@ -130,7 +137,15 @@ class IndexTemplateTest extends BaseTest
         ];
         $name = 'index_template1';
         $indexTemplate = new IndexTemplate($this->_getClient(), $name);
-        $indexTemplate->create($template);
+        try {
+            $indexTemplate->create($template);
+        } catch (ResponseException $ex) {
+            $error = $ex->getResponse()->getFullError();
+            if (isset($error['type']) && \str_contains($error['reason'] ?? '', 'composable templates')) {
+                $this->markTestSkipped('ES9: legacy templates cannot overlap with existing composable templates.');
+            }
+            throw $ex;
+        }
         try {
             $indexTemplate->create($template);
         } catch (ResponseException $ex) {
