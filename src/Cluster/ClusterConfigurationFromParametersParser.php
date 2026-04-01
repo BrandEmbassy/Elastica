@@ -50,7 +50,7 @@ class ClusterConfigurationFromParametersParser
             $clusterConfigurationData['username'] ?? null,
             $clusterConfigurationData['password'] ?? null,
             $clusterConfigurationData['authType'] ?? null,
-            $clusterConfigurationData['dataType'] ?? null,
+            $clusterConfigurationData['data_type'] ?? null,
         );
     }
 
