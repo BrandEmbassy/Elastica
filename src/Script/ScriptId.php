@@ -39,6 +39,9 @@ class ScriptId extends AbstractScript
         return $this->_scriptId;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function getScriptTypeArray(): array
     {
         return ['id' => $this->_scriptId];

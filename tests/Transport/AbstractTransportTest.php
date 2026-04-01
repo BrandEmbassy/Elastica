@@ -18,8 +18,9 @@ class AbstractTransportTest extends BaseTest
 {
     /**
      * @group unit
-     *
      * @dataProvider getValidDefinitions
+     *
+     * @param mixed $transport
      */
     public function testCanCreateTransportInstances($transport): void
     {
@@ -47,8 +48,9 @@ class AbstractTransportTest extends BaseTest
 
     /**
      * @group unit
-     *
      * @dataProvider getInvalidDefinitions
+     *
+     * @param mixed $transport
      */
     public function testThrowsExecptionOnInvalidTransportDefinition($transport): void
     {
@@ -94,8 +96,9 @@ class AbstractTransportTest extends BaseTest
      * due to boolean strict type in ES.
      *
      * @group functional
-     *
      * @dataProvider getTransport
+     *
+     * @param mixed $transport
      */
     public function testBooleanStringValues($transport): void
     {
@@ -123,7 +126,6 @@ class AbstractTransportTest extends BaseTest
             $this->assertStringEndsWith('version=true', $url);
         }
     }
-
     /**
      * Return transport configuration and the expected HTTP method.
      *

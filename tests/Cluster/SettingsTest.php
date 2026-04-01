@@ -2,7 +2,6 @@
 
 namespace Elastica\Test\Cluster;
 
-use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Cluster\Settings;
 use Elastica\Document;
 use Elastica\Exception\ResponseException;
@@ -26,13 +25,13 @@ class SettingsTest extends BaseTest
 
         $settings = new Settings($index->getClient());
 
-        $settings->setTransient('cluster.max_shards_per_node', 500);
+        $settings->setTransient('discovery.zen.minimum_master_nodes', 2);
         $data = $settings->get();
-        $this->assertEquals(500, $data['transient']['cluster']['max_shards_per_node']);
+        $this->assertEquals(2, $data['transient']['discovery']['zen']['minimum_master_nodes']);
 
-        $settings->setTransient('cluster.max_shards_per_node', 1000);
+        $settings->setTransient('discovery.zen.minimum_master_nodes', 1);
         $data = $settings->get();
-        $this->assertEquals(1000, $data['transient']['cluster']['max_shards_per_node']);
+        $this->assertEquals(1, $data['transient']['discovery']['zen']['minimum_master_nodes']);
     }
 
     /**
@@ -48,13 +47,13 @@ class SettingsTest extends BaseTest
 
         $settings = new Settings($index->getClient());
 
-        $settings->setPersistent('cluster.max_shards_per_node', 500);
+        $settings->setPersistent('discovery.zen.minimum_master_nodes', 2);
         $data = $settings->get();
-        $this->assertEquals(500, $data['persistent']['cluster']['max_shards_per_node']);
+        $this->assertEquals(2, $data['persistent']['discovery']['zen']['minimum_master_nodes']);
 
-        $settings->setPersistent('cluster.max_shards_per_node', 1000);
+        $settings->setPersistent('discovery.zen.minimum_master_nodes', 1);
         $data = $settings->get();
-        $this->assertEquals(1000, $data['persistent']['cluster']['max_shards_per_node']);
+        $this->assertEquals(1, $data['persistent']['discovery']['zen']['minimum_master_nodes']);
     }
 
     /**
@@ -86,11 +85,6 @@ class SettingsTest extends BaseTest
             $error = $e->getResponse()->getFullError();
             $this->assertSame('cluster_block_exception', $error['type']);
             $this->assertStringContainsString('cluster read-only', $error['reason']);
-        } catch (ClientResponseException $e) {
-            $this->assertStringContainsString('cluster_block_exception', (string) $e->getResponse()->getBody());
-            $this->assertStringContainsString('cluster read-only', (string) $e->getResponse()->getBody());
-        } finally {
-            $settings->setReadOnly(false);
         }
 
         $response = $settings->setReadOnly(false);

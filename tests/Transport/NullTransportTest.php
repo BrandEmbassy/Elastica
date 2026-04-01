@@ -2,6 +2,8 @@
 
 namespace Elastica\Test\Transport;
 
+use Elastica\Connection;
+use Elastica\Query;
 use Elastica\Request;
 use Elastica\Response;
 use Elastica\Test\Base as BaseTest;
@@ -31,7 +33,44 @@ class NullTransportTest extends BaseTest
      */
     public function testEmptyResult(): void
     {
-        $this->markTestSkipped('NullTransport Connection is incompatible with elasticsearch-php v9 client architecture.');
+        // Creates a client with any destination, and verify it returns a response object when executed
+        $client = $this->_getClient();
+        $connection = new Connection(['transport' => 'NullTransport']);
+        $client->setConnections([$connection]);
+
+        $index = $client->getIndex('elasticaNullTransportTest1');
+
+        $resultSet = $index->search(new Query());
+        $this->assertNotNull($resultSet);
+
+        $response = $resultSet->getResponse();
+        $this->assertNotNull($response);
+
+        // Validate most of the expected fields in the response data.  Consumers of the response
+        // object have a reasonable expectation of finding "hits", "took", etc
+        $responseData = $response->getData();
+
+        $this->assertArrayHasKey('took', $responseData);
+        $this->assertEquals(0, $responseData['took']);
+        $this->assertArrayHasKey('_shards', $responseData);
+        $this->assertArrayHasKey('hits', $responseData);
+        $this->assertArrayHasKey('total', $responseData['hits']);
+        $this->assertEquals(0, $responseData['hits']['total']['value']);
+        $this->assertArrayHasKey('params', $responseData);
+
+        $took = $response->getEngineTime();
+        $this->assertEquals(0, $took);
+
+        $errorString = $response->getError();
+        $this->assertEmpty($errorString);
+
+        $shards = $response->getShardsStatistics();
+        $this->assertArrayHasKey('total', $shards);
+        $this->assertEquals(0, $shards['total']);
+        $this->assertArrayHasKey('successful', $shards);
+        $this->assertEquals(0, $shards['successful']);
+        $this->assertArrayHasKey('failed', $shards);
+        $this->assertEquals(0, $shards['failed']);
     }
 
     /**

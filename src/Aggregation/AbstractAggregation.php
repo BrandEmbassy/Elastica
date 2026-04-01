@@ -79,8 +79,8 @@ abstract class AbstractAggregation extends Param implements NameableInterface
      * Add metadata to the aggregation.
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/agg-metadata.html
-     * @see AbstractAggregation::getMeta()
-     * @see AbstractAggregation::clearMeta()
+     * @see \Elastica\Aggregation\AbstractAggregation::getMeta()
+     * @see \Elastica\Aggregation\AbstractAggregation::clearMeta()
      *
      * @param array $meta Metadata to be attached to the aggregation
      *
@@ -101,8 +101,8 @@ abstract class AbstractAggregation extends Param implements NameableInterface
      * Retrieve the currently configured metadata for the aggregation.
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/agg-metadata.html
-     * @see AbstractAggregation::setMeta()
-     * @see AbstractAggregation::clearMeta()
+     * @see \Elastica\Aggregation\AbstractAggregation::setMeta()
+     * @see \Elastica\Aggregation\AbstractAggregation::clearMeta()
      */
     public function getMeta(): ?array
     {
@@ -113,8 +113,8 @@ abstract class AbstractAggregation extends Param implements NameableInterface
      * Clears any previously set metadata for this aggregation.
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/agg-metadata.html
-     * @see AbstractAggregation::setMeta()
-     * @see AbstractAggregation::getMeta()
+     * @see \Elastica\Aggregation\AbstractAggregation::setMeta()
+     * @see \Elastica\Aggregation\AbstractAggregation::getMeta()
      *
      * @return $this
      */

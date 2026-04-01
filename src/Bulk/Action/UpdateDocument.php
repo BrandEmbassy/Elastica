@@ -12,6 +12,9 @@ class UpdateDocument extends IndexDocument
      */
     protected $_opType = self::OP_TYPE_UPDATE;
 
+    /**
+     * {@inheritdoc}
+     */
     public function setDocument(Document $document): AbstractDocument
     {
         parent::setDocument($document);
@@ -33,6 +36,9 @@ class UpdateDocument extends IndexDocument
         return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function setScript(AbstractScript $script): AbstractDocument
     {
         parent::setScript($script);

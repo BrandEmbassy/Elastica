@@ -115,8 +115,9 @@ class ScriptTest extends BaseTest
 
     /**
      * @group unit
-     *
      * @dataProvider dataProviderCreateInvalid
+     *
+     * @param mixed $data
      */
     public function testCreateInvalid($data): void
     {

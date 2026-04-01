@@ -143,6 +143,9 @@ abstract class AbstractGeoDistance extends AbstractQuery
         return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function toArray(): array
     {
         $this->setParam($this->_key, $this->_getLocationData());

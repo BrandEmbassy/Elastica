@@ -16,6 +16,9 @@ class SetProcessor extends AbstractProcessor
 
     public const DEFAULT_OVERRIDE_VALUE = true;
 
+    /**
+     * @param mixed $value
+     */
     public function __construct(string $field, $value)
     {
         $this->setField($field);
@@ -24,6 +27,8 @@ class SetProcessor extends AbstractProcessor
 
     /**
      * Set field value.
+     *
+     * @param mixed $value
      *
      * @return $this
      */

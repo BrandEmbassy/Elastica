@@ -109,7 +109,6 @@ class WildcardTest extends BaseTest
 
     /**
      * @group functional
-     *
      * @dataProvider caseInsensitiveDataProvider
      */
     public function testCaseInsensitive(bool $expected): void

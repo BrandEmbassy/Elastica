@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types = 1);
 
 namespace Elastica\Cluster;
 
@@ -26,6 +24,7 @@ class ClusterConfiguration
 
     private ElasticSearchVersion $version;
 
+
     public function __construct(
         string $id,
         string $host,
@@ -35,7 +34,7 @@ class ClusterConfiguration
         ?string $username = null,
         ?string $password = null,
         ?string $authType = null,
-        ?string $dataType = null,
+        ?string $dataType = null
     ) {
         $this->id = $id;
         $this->host = $host;
@@ -48,45 +47,54 @@ class ClusterConfiguration
         $this->dataType = $dataType;
     }
 
+
     public function getId(): string
     {
         return $this->id;
     }
+
 
     public function getHost(): string
     {
         return $this->host;
     }
 
+
     public function getPort(): int
     {
         return $this->port;
     }
+
 
     public function getVersion(): ElasticSearchVersion
     {
         return $this->version;
     }
 
+
     public function getTransport(): ?string
     {
         return $this->transport;
     }
+
 
     public function getUsername(): ?string
     {
         return $this->username;
     }
 
+
     public function getPassword(): ?string
     {
         return $this->password;
     }
 
+
     public function getAuthType(): ?string
     {
         return $this->authType;
     }
+
 
     public function getDataType(): ?string
     {

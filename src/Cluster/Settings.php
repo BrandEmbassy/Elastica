@@ -102,6 +102,8 @@ class Settings
 
     /**
      * Sets persistent setting.
+     *
+     * @param mixed $value
      */
     public function setPersistent(string $key, $value): Response
     {
@@ -116,6 +118,8 @@ class Settings
 
     /**
      * Sets transient settings.
+     *
+     * @param mixed $value
      */
     public function setTransient(string $key, $value): Response
     {

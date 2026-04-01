@@ -184,10 +184,10 @@ class Http extends AbstractTransport
 
         if ($errorNumber > 0) {
             $isRetryFeatureEnabled = $this->getParam('isRetryFeatureEnabled');
-            $isSearch = 1 === \preg_match('/\/_search/', $requestPath);
-            $isAllowedForRetry = $isSearch || 'GET' === $httpMethod;
+            $isSearch = \preg_match('/\/_search/', $requestPath) === 1;
+            $isAllowedForRetry = $isSearch || $httpMethod === 'GET';
 
-            if (!$isRetryFeatureEnabled || !$isAllowedForRetry || 0 === $remainingRetries) {
+            if (!$isRetryFeatureEnabled || !$isAllowedForRetry || $remainingRetries === 0) {
                 throw new HttpException($errorNumber, $request, $response);
             }
             --$remainingRetries;

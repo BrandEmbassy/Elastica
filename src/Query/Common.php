@@ -146,6 +146,9 @@ class Common extends AbstractQuery
         return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function toArray(): array
     {
         $this->setParam($this->_field, $this->_queryParams);

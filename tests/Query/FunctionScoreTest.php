@@ -268,7 +268,7 @@ class FunctionScoreTest extends BaseTest
     {
         $filter = new Term(['price' => 4.5]);
         $query = new FunctionScore();
-        $query->addRandomScoreFunction(2, $filter, null, '_seq_no');
+        $query->addRandomScoreFunction(2, $filter, null, 'price');
 
         $expected = [
             'function_score' => [
@@ -276,7 +276,7 @@ class FunctionScoreTest extends BaseTest
                     [
                         'random_score' => [
                             'seed' => 2,
-                            'field' => '_seq_no',
+                            'field' => 'price',
                         ],
                         'filter' => [
                             'term' => [
@@ -291,9 +291,9 @@ class FunctionScoreTest extends BaseTest
         $this->assertEquals($expected, $query->toArray());
 
         $response = $this->_getIndexForTest()->search($query);
-        $results = $response->getResults();
 
-        $this->assertNotEmpty($results);
+        // The random score function executes without error and returns results
+        $this->assertEquals(2, $response->count());
     }
 
     /**
@@ -303,7 +303,7 @@ class FunctionScoreTest extends BaseTest
     {
         $filter = new Term(['price' => 4.5]);
         $query = new FunctionScore();
-        $query->addRandomScoreFunction(2, $filter, null, '_seq_no');
+        $query->addRandomScoreFunction(2, $filter, null, 'price');
 
         $expected = [
             'function_score' => [
@@ -311,7 +311,7 @@ class FunctionScoreTest extends BaseTest
                     [
                         'random_score' => [
                             'seed' => 2,
-                            'field' => '_seq_no',
+                            'field' => 'price',
                         ],
                         'filter' => [
                             'term' => [
@@ -326,9 +326,9 @@ class FunctionScoreTest extends BaseTest
         $this->assertEquals($expected, $query->toArray());
 
         $response = $this->_getIndexForTest()->search($query);
-        $results = $response->getResults();
 
-        $this->assertNotEmpty($results);
+        // The random score function executes without error and returns results
+        $this->assertEquals(2, $response->count());
     }
 
     /**

@@ -11,6 +11,9 @@ use Elastica\Connection;
  */
 class RoundRobin extends Simple
 {
+    /**
+     * {@inheritdoc}
+     */
     public function getConnection(array $connections): Connection
     {
         \shuffle($connections);

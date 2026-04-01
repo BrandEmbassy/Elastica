@@ -305,7 +305,7 @@ class Index implements SearchableInterface
     public function getDocuments(array $ids, array $options = [], bool $throwOnNotFound = true): array
     {
         $client = $this->getClient();
-        $isApiV6 = ApiVersion::API_VERSION_6 === $client->getApiVersion();
+        $isApiV6 = $client->getApiVersion() === ApiVersion::API_VERSION_6;
         $documentType = ($client->getDocumentTypeResolver())($this->getName());
 
         $docs = [];
@@ -358,7 +358,7 @@ class Index implements SearchableInterface
             $documents[$id] = $doc;
         }
 
-        if ([] !== $notFoundIds && $throwOnNotFound) {
+        if ($notFoundIds !== [] && $throwOnNotFound) {
             throw new NotFoundException(\sprintf('doc ids %s not found', \implode(', ', $notFoundIds)), 0, null, $notFoundIds);
         }
 
@@ -428,9 +428,19 @@ class Index implements SearchableInterface
      */
     public function delete(): Response
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->delete([
-            'index' => $this->getName(),
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->delete([
+                'index' => $this->getName(),
+            ]);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request($this->getName()), $elasticaResponse);
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -552,13 +562,23 @@ class Index implements SearchableInterface
             'body' => $args,
         ]);
 
-        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->create($params);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->create($params);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request($this->getName()), $elasticaResponse);
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
-     * Checks if the given index exists and is created.
+     * Checks if the given index exists ans is created.
      */
     public function exists(): bool
     {
@@ -786,6 +806,7 @@ class Index implements SearchableInterface
      * Makes calls to the elasticsearch server with usage official client Endpoint based on this index.
      *
      * @param string[] $tags
+     * @param mixed    $endpoint
      *
      * @deprecated This method is deprecated in Elasticsearch v9
      */

@@ -35,7 +35,6 @@ class ResponseSetTest extends BaseTest
 
     /**
      * @group unit
-     *
      * @dataProvider isOkDataProvider
      */
     public function testIsOk(array $responseData, array $actions, bool $expected): void

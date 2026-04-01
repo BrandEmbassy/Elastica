@@ -13,15 +13,6 @@ use Elastica\Test\BasePipeline as BasePipelineTest;
  */
 class AttachmentProcessorTest extends BasePipelineTest
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        if ($this->_isFunctionalGroup()) {
-            $this->_checkPlugin('ingest-attachment');
-        }
-    }
-
     /**
      * @group unit
      */

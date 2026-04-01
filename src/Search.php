@@ -171,6 +171,9 @@ class Search
         return $this;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function setOption(string $key, $value): self
     {
         $this->validateOption($key);
@@ -198,6 +201,9 @@ class Search
         return $this;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function addOption(string $key, $value): self
     {
         $this->validateOption($key);
@@ -214,6 +220,8 @@ class Search
 
     /**
      * @throws InvalidException if the given key does not exists as an option
+     *
+     * @return mixed
      */
     public function getOption(string $key)
     {
@@ -352,8 +360,8 @@ class Search
     }
 
     /**
-     * @param AbstractQuery|array|Query|string $query
-     * @param bool                             $fullResult By default only the total hit count is returned. If set to true, the full ResultSet including aggregations is returned
+     * @param array|Query|Query\AbstractQuery|string $query
+     * @param bool                                   $fullResult By default only the total hit count is returned. If set to true, the full ResultSet including aggregations is returned
      *
      * @return int|ResultSet
      */

@@ -246,6 +246,8 @@ class Result
 
     /**
      * Sets a parameter on the hit.
+     *
+     * @param mixed $value
      */
     public function setParam(string $param, $value): void
     {

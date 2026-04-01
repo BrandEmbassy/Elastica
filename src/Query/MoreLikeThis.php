@@ -155,6 +155,9 @@ class MoreLikeThis extends AbstractQuery
         return $this->setParam('minimum_should_match', $minimumShouldMatch);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function toArray(): array
     {
         $array = parent::toArray();

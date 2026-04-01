@@ -238,7 +238,7 @@ class Aggregation implements DSL
         ?string $initScript = null,
         ?string $mapScript = null,
         ?string $combineScript = null,
-        ?string $reduceScript = null,
+        ?string $reduceScript = null
     ): ScriptedMetric {
         return new ScriptedMetric($name, $initScript, $mapScript, $combineScript, $reduceScript);
     }

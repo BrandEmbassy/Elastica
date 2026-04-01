@@ -14,6 +14,9 @@ use Elastica\Script\ScriptFields;
  */
 class InnerHits extends AbstractQuery
 {
+    /**
+     * {@inheritdoc}
+     */
     public function toArray()
     {
         $array = parent::toArray();

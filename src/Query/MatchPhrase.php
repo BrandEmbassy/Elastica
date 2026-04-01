@@ -12,6 +12,9 @@ namespace Elastica\Query;
  */
 class MatchPhrase extends AbstractQuery
 {
+    /**
+     * @param mixed $values
+     */
     public function __construct(?string $field = null, $values = null)
     {
         if (null !== $field && null !== $values) {
@@ -21,6 +24,8 @@ class MatchPhrase extends AbstractQuery
 
     /**
      * Sets a param for the message array.
+     *
+     * @param mixed $values
      *
      * @return $this
      */

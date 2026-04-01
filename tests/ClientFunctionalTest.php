@@ -2,6 +2,7 @@
 
 namespace Elastica\Test;
 
+use DateTime;
 use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Bulk;
 use Elastica\Bulk\ResponseSet;
@@ -15,8 +16,11 @@ use Elastica\Request;
 use Elastica\Response;
 use Elastica\Script\Script;
 use Elastica\Test\Base as BaseTest;
+use Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
+use stdClass;
+use Throwable;
 
 /**
  * @group functional
@@ -415,7 +419,7 @@ class ClientFunctionalTest extends BaseTest
         $count = 0;
 
         // Callback function which verifies that disabled connection objects are returned
-        $callback = function (Connection $connection, \Exception $exception, Client $client) use (&$count): void {
+        $callback = function (Connection $connection, Exception $exception, Client $client) use (&$count): void {
             $this->assertInstanceOf(Connection::class, $connection);
             $this->assertInstanceOf(ConnectionException::class, $exception);
             $this->assertInstanceOf(Client::class, $client);
@@ -607,7 +611,7 @@ class ClientFunctionalTest extends BaseTest
         try {
             $index->getDocument(1);
             $this->fail('Exception was not thrown. Maybe the document exists?');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Ignore the exception because we expect the document to not exist.
         }
 
@@ -629,12 +633,12 @@ class ClientFunctionalTest extends BaseTest
         $client = $index->getClient();
 
         // Try to update using a stdClass object
-        $badDocument = new \stdClass();
+        $badDocument = new stdClass();
 
         try {
             $client->updateDocument(1, $badDocument, $index->getName());
             $this->fail('Tried to update using an object that is not a Document or a Script but no exception was thrown');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Good. An exception was thrown.
         }
     }
@@ -938,7 +942,7 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->_getClient();
 
-        $now = new \DateTime();
+        $now = new DateTime();
 
         // e.g. test-2018.01.01
         $staticIndex = $client->getIndex('test-'.$now->format('Y.m.d'));
@@ -965,7 +969,7 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->_getClient();
 
-        $now = new \DateTime();
+        $now = new DateTime();
 
         // e.g. test-2018.01.01
         $staticIndex = $client->getIndex('test-'.$now->format('Y.m.d'));
@@ -1003,6 +1007,9 @@ class ClientFunctionalTest extends BaseTest
 
     /**
      * @dataProvider endpointQueryRequestDataProvider
+     *
+     * @param mixed $query
+     * @param mixed $totalHits
      */
     public function testEndpointQueryRequest($query, $totalHits): void
     {

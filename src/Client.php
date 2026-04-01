@@ -2,6 +2,7 @@
 
 namespace Elastica;
 
+use Closure;
 use Elastic\Elasticsearch\Exception\ClientResponseException as ElasticsearchClientResponseException;
 use Elastic\Elasticsearch\Exception\ServerResponseException as ElasticsearchServerResponseException;
 use Elastica\Bulk\Action;
@@ -13,6 +14,7 @@ use Elastica\Exception\ResponseException;
 use Elastica\Script\AbstractScript;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 /**
  * Client to connect the the elasticsearch server.
@@ -155,7 +157,7 @@ class Client
             'responseStatus' => $response->getStatus(),
             'execution_time' => $elapsedTimeMs,
             'request' => $request->toArray(),
-            'exception' => new \RuntimeException('slow query'),
+            'exception' => new RuntimeException('slow query'),
         ];
 
         if ($this->shouldLogResponseBody()) {
@@ -397,7 +399,7 @@ class Client
                 'timeout',
             ];
 
-            if (ApiVersion::API_VERSION_6 === $this->getApiVersion()) {
+            if ($this->getApiVersion() === ApiVersion::API_VERSION_6) {
                 // @see https://github.com/ruflin/Elastica/pull/1803/files
                 $optionWhitelist[] = 'version';
             }
@@ -649,9 +651,9 @@ class Client
         $request = $this->_lastRequest = new Request($path, $method, $data, $query, $connection, $contentType, $this->logger, $this->isRetryFeatureEnabled);
         $this->_lastResponse = null;
 
-        $requestName = \sprintf('[%s]', [] === $tags ? 'untagged' : \implode('.', $tags));
+        $requestName = \sprintf('[%s]', $tags === [] ? 'untagged' : \implode('.', $tags));
 
-        if (null !== $this->requestCounter) {
+        if ($this->requestCounter !== null) {
             $this->requestCounter->incrementCount();
             $requestName = \sprintf('#%02d %s', $this->requestCounter->getCount(), $requestName);
         }
@@ -695,7 +697,7 @@ class Client
         return $this->getConfigValue('apiVersion', ApiVersion::API_VERSION_9);
     }
 
-    public function getDocumentTypeResolver(): \Closure
+    public function getDocumentTypeResolver(): Closure
     {
         return $this->getConfigValue('documentTypeResolver', static fn () => Type::DOC);
     }
@@ -710,10 +712,11 @@ class Client
      * V9 NOTE: AbstractEndpoint class removed in elasticsearch-php v9.
      * This method is kept for backward compatibility but throws an exception.
      * Each endpoint should now use the client's direct methods.
+     * @param mixed $endpoint
      */
     public function requestEndpoint($endpoint, array $tags = []): Response
     {
-        throw new \RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->indices()->refresh() instead.');
+        throw new RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->indices()->refresh() instead.');
     }
 
     /**
@@ -852,7 +855,7 @@ class Client
     protected function _createConnection(array $params): Connection
     {
         $connection = Connection::create($params);
-        if (null !== $this->requestCounter) {
+        if ($this->requestCounter !== null) {
             $connection->setRequestCounter($this->requestCounter);
         }
 

@@ -83,6 +83,9 @@ class BoolQuery extends AbstractQuery
         return $this->setParam('minimum_should_match', $minimum);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function toArray(): array
     {
         if (!$this->_params) {

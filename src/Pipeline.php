@@ -2,8 +2,12 @@
 
 namespace Elastica;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
+use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastica\Exception\InvalidException;
+use Elastica\Exception\ResponseException;
 use Elastica\Processor\AbstractProcessor;
+use RuntimeException;
 
 /**
  * Elastica Pipeline object.
@@ -86,9 +90,19 @@ class Pipeline extends Param
      */
     public function deletePipeline(string $id): Response
     {
-        $esResponse = $this->getClient()->getConnection()->getClient()->ingest()->deletePipeline([
-            'id' => $id,
-        ]);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->ingest()->deletePipeline([
+                'id' => $id,
+            ]);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request($id), $elasticaResponse);
+        }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
@@ -167,9 +181,11 @@ class Pipeline extends Param
      * Makes calls to the elasticsearch server with usage official client Endpoint based on this index.
      *
      * @deprecated This method is deprecated in Elasticsearch v9
+     *
+     * @param mixed $endpoint
      */
     public function requestEndpoint($endpoint): Response
     {
-        throw new \RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->ingest()->putPipeline() instead.');
+        throw new RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->ingest()->putPipeline() instead.');
     }
 }

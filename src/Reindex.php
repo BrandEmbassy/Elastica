@@ -2,6 +2,9 @@
 
 namespace Elastica;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
+use Elastic\Elasticsearch\Exception\ServerResponseException;
+use Elastica\Exception\ResponseException;
 use Elastica\Query\AbstractQuery;
 use Elastica\Script\AbstractScript;
 use Elastica\Script\Script;
@@ -80,7 +83,17 @@ class Reindex extends Param
         $params = \array_intersect_key($this->getParams(), \array_fill_keys($allowedParams, null));
         $params['body'] = $body;
 
-        $esResponse = $this->_oldIndex->getClient()->getConnection()->getClient()->reindex($params);
+        try {
+            $esResponse = $this->_oldIndex->getClient()->getConnection()->getClient()->reindex($params);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request('_reindex'), $elasticaResponse);
+        }
         $this->_lastResponse = new Response($esResponse->asArray(), $esResponse->getStatusCode());
 
         return $this->_lastResponse;

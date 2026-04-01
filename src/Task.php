@@ -2,6 +2,8 @@
 
 namespace Elastica;
 
+use Exception;
+
 /**
  * Represents elasticsearch task.
  *
@@ -103,7 +105,7 @@ class Task extends Param
     public function cancel(): Response
     {
         if ('' === $this->_id) {
-            throw new \Exception('No task id given');
+            throw new Exception('No task id given');
         }
 
         $esResponse = $this->_client->getConnection()->getClient()->tasks()->cancel([

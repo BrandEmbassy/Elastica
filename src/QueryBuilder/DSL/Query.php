@@ -72,7 +72,7 @@ class Query implements DSL
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html
      *
-     * @param mixed|null $values
+     * @param mixed $values
      */
     public function match(?string $field = null, $values = null): MatchQuery
     {

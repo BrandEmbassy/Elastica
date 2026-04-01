@@ -27,7 +27,7 @@ class StrategyFactory
         }
 
         if (\is_string($strategyName)) {
-            $predefinedStrategy = '\Elastica\Connection\Strategy\\'.$strategyName;
+            $predefinedStrategy = '\\Elastica\\Connection\\Strategy\\'.$strategyName;
 
             if (\class_exists($predefinedStrategy) && \is_subclass_of($predefinedStrategy, StrategyInterface::class)) {
                 return new $predefinedStrategy();

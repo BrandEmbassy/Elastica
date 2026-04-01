@@ -90,6 +90,8 @@ class MultiMatch extends AbstractQuery
     /**
      * Set field minimum should match for Match Query.
      *
+     * @param mixed $minimumShouldMatch
+     *
      * @return $this
      */
     public function setMinimumShouldMatch($minimumShouldMatch): self

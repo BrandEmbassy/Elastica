@@ -37,6 +37,9 @@ class GeoPolygon extends AbstractQuery
         $this->_points = $points;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function toArray(): array
     {
         return [
@@ -48,6 +51,9 @@ class GeoPolygon extends AbstractQuery
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function count(): int
     {
         return \count($this->_points);

@@ -2,7 +2,6 @@
 
 namespace Elastica\Test\Index;
 
-use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Document;
 use Elastica\Exception\ResponseException;
 use Elastica\Index\Settings as IndexSettings;
@@ -90,12 +89,7 @@ class SettingsTest extends BaseTest
 
             $this->assertSame('illegal_argument_exception', $error['type']);
             $this->assertStringContainsString('specify the corresponding concrete indices instead.', $error['reason']);
-        } catch (ClientResponseException $e) {
-            $this->assertStringContainsString('illegal_argument_exception', (string) $e->getResponse()->getBody());
-            $this->assertStringContainsString('specify the corresponding concrete indices instead.', (string) $e->getResponse()->getBody());
         }
-
-        $index->delete();
     }
 
     /**
@@ -136,12 +130,9 @@ class SettingsTest extends BaseTest
 
         $settings = $index->getSettings();
 
-        // Create with explicit replica count so the assertion is not subject to composable template overrides
-        $index->create(['settings' => ['index' => ['number_of_replicas' => 2]]], ['recreate' => true]);
-        $settings = $index->getSettings();
-
-        $this->assertEquals(2, $settings->get('number_of_replicas'));
-        $this->assertEquals(2, $settings->getNumberOfReplicas());
+        // Test with default number of replicas
+        $this->assertEquals(IndexSettings::DEFAULT_NUMBER_OF_REPLICAS, $settings->get('number_of_replicas'));
+        $this->assertEquals(IndexSettings::DEFAULT_NUMBER_OF_REPLICAS, $settings->getNumberOfReplicas());
 
         $index->delete();
     }
@@ -299,24 +290,17 @@ class SettingsTest extends BaseTest
 
         // Try to add doc to read only index
         $index->getSettings()->setReadOnly(true);
+        $this->assertTrue($index->getSettings()->getReadOnly());
+        $this->assertTrue($index->exists());
+
         try {
-            $this->assertTrue($index->getSettings()->getReadOnly());
-            $this->assertTrue($index->exists());
+            $index->addDocument($doc2);
+            $this->fail('Should throw exception because of read only');
+        } catch (ResponseException $e) {
+            $error = $e->getResponse()->getFullError();
 
-            try {
-                $index->addDocument($doc2);
-                $this->fail('Should throw exception because of read only');
-            } catch (ResponseException $e) {
-                $error = $e->getResponse()->getFullError();
-
-                $this->assertSame('cluster_block_exception', $error['type']);
-                $this->assertStringContainsString('read-only', $error['reason']);
-            } catch (ClientResponseException $e) {
-                $this->assertStringContainsString('cluster_block_exception', (string) $e->getResponse()->getBody());
-                $this->assertStringContainsString('read-only', (string) $e->getResponse()->getBody());
-            }
-        } finally {
-            $index->getSettings()->setReadOnly(false);
+            $this->assertSame('cluster_block_exception', $error['type']);
+            $this->assertStringContainsString('read-only', $error['reason']);
         }
 
         // Remove read only, add document

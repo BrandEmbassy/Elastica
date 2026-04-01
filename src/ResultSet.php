@@ -127,7 +127,7 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
      *
      * @param string $name the name of the desired aggregation
      *
-     * @throws InvalidException if an aggregation by the given name cannot be found
+     * @throws Exception\InvalidException if an aggregation by the given name cannot be found
      */
     public function getAggregation(string $name): array
     {
@@ -147,7 +147,7 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
     {
         $data = $this->_response->getData();
 
-        if (ApiVersion::API_VERSION_6 === $this->apiVersion) {
+        if ($this->apiVersion === ApiVersion::API_VERSION_6) {
             return (int) ($data['hits']['total'] ?? 0);
         }
 
@@ -300,9 +300,9 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
      *
      * @param int $offset
      *
-     * @throws InvalidException If offset doesn't exist
-     *
      * @return Result
+     *
+     * @throws Exception\InvalidException If offset doesn't exist
      */
     #[\ReturnTypeWillChange]
     public function offsetGet($offset)
@@ -322,11 +322,11 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
      * @param int    $offset
      * @param Result $value
      *
-     * @throws InvalidException
+     * @throws Exception\InvalidException
      */
     public function offsetSet($offset, $value): void
     {
-        if (!$value instanceof Result) {
+        if (!($value instanceof Result)) {
             throw new InvalidException('ResultSet is a collection of Result only.');
         }
 

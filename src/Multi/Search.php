@@ -31,7 +31,7 @@ class Search
      */
     protected $_searches = [];
     /**
-     * @var string[] valid header options
+     * @const string[] valid header options
      */
     private static $HEADER_OPTIONS = [
         'index',

@@ -91,7 +91,7 @@ class ParentAggregationTest extends BaseAggregationTest
     {
         $client = $this->_getClient();
         $index = $client->getIndex('testaggregationparent');
-        $index->create(['settings' => ['index' => ['number_of_shards' => 2, 'number_of_replicas' => 0]]]);
+        $index->create(['settings' => ['index' => ['number_of_shards' => 2, 'number_of_replicas' => 1]]]);
 
         $mapping = new Mapping([
             'text' => ['type' => 'keyword'],

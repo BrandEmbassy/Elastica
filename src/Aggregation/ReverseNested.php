@@ -32,6 +32,9 @@ class ReverseNested extends AbstractAggregation
         return $this->setParam('path', $path);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function toArray(): array
     {
         $array = parent::toArray();

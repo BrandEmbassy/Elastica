@@ -2,6 +2,7 @@
 
 namespace Elastica\Bulk\Action;
 
+use Closure;
 use Elastica\AbstractUpdateAction;
 use Elastica\ApiVersion;
 use Elastica\Bulk\Action;
@@ -19,7 +20,7 @@ abstract class AbstractDocument extends Action
     /**
      * @param AbstractScript|Document $document
      */
-    public function __construct($document, int $apiVersion, \Closure $documentTypeResolver)
+    public function __construct($document, int $apiVersion, Closure $documentTypeResolver)
     {
         $this->apiVersion = $apiVersion;
         $this->documentTypeResolver = $documentTypeResolver;
@@ -119,13 +120,16 @@ abstract class AbstractDocument extends Action
      * The action can be index, update, create or delete based on the $opType param (by default index).
      *
      * @param AbstractScript|Document $data
+     *
+     * @return AbstractDocument
      */
     public static function create(
         $data,
         ?string $opType,
         int $apiVersion,
-        \Closure $documentTypeResolver,
-    ): self {
+        Closure $documentTypeResolver
+    ): self
+    {
         // Check type
         if (!$data instanceof Document && !$data instanceof AbstractScript) {
             throw new \InvalidArgumentException('The data needs to be a Document or a Script.');
@@ -162,9 +166,8 @@ abstract class AbstractDocument extends Action
 
     abstract protected function _getMetadata(AbstractUpdateAction $source): array;
 
-    protected function handleMetadataByApiVersion(array $metadata): array
-    {
-        if (ApiVersion::API_VERSION_6 === $this->apiVersion) {
+    protected function handleMetadataByApiVersion(array $metadata): array {
+        if ($this->apiVersion === ApiVersion::API_VERSION_6) {
             // @see https://github.com/BrandEmbassy/platform-backend/blob/206169d2c8b69a48ce7b59dab1cf6f5159621df0/application/src/BE/ElasticSearch/Index/Index.php#L73-L80
             $metadata['_type'] = ($this->documentTypeResolver)($metadata['_index']);
         }

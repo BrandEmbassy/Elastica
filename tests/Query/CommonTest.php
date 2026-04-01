@@ -2,7 +2,10 @@
 
 namespace Elastica\Test\Query;
 
+use Elastica\Document;
+use Elastica\Query\BoolQuery;
 use Elastica\Query\Common;
+use Elastica\Query\MatchQuery;
 use Elastica\Test\Base as BaseTest;
 use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
 
@@ -38,12 +41,42 @@ class CommonTest extends BaseTest
     }
 
     /**
+     * The common query was removed in ES9. Uses MatchQuery with minimum_should_match instead.
+     *
      * @group functional
      * @group legacy
      */
     public function testQuery(): void
     {
-        $this->markTestSkipped('The "common" query was removed in ES 8.x. Use MatchQuery with operator instead.');
+        $index = $this->_createIndex();
+
+        $docs = [
+            new Document('1', ['body' => 'foo baz']),
+            new Document('2', ['body' => 'foo bar baz']),
+            new Document('3', ['body' => 'foo bar baz bat']),
+        ];
+        // add documents to create common terms
+        for ($i = 4; $i < 24; ++$i) {
+            $docs[] = new Document((string) $i, ['body' => 'foo bar']);
+        }
+        $index->addDocuments($docs);
+        $index->refresh();
+
+        // BoolQuery with should clauses matches docs containing baz or bat
+        $boolQuery = new BoolQuery();
+        $boolQuery->addShould(new MatchQuery('body', 'baz'));
+        $boolQuery->addShould(new MatchQuery('body', 'bat'));
+        $boolQuery->setMinimumShouldMatch(1);
+        $results = $index->search($boolQuery)->getResults();
+
+        // documents containing only common words (foo/bar) should not be returned
+        $this->assertCount(3, $results);
+
+        $boolQuery->setMinimumShouldMatch(2);
+        $results = $index->search($boolQuery);
+
+        // only the document containing both low frequency terms should match
+        $this->assertEquals(1, $results->count());
     }
 
     /**

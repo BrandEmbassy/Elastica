@@ -150,7 +150,7 @@ class Request extends Param
     /**
      * Return Connection Object.
      *
-     * @throws InvalidException If no valid connection was set
+     * @throws Exception\InvalidException If no valid connection was set
      */
     public function getConnection(): Connection
     {

@@ -38,7 +38,7 @@ class Suggest extends Param
     /**
      * @param AbstractSuggest|Suggest $suggestion
      *
-     * @throws NotImplementedException
+     * @throws Exception\NotImplementedException
      */
     public static function create($suggestion): self
     {
@@ -51,6 +51,9 @@ class Suggest extends Param
         throw new NotImplementedException();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function toArray(): array
     {
         $array = parent::toArray();

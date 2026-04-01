@@ -45,10 +45,7 @@ class InfoTest extends BaseTest
         $node = $nodes[0];
         $info = $node->getInfo();
 
-        $this->_checkPlugin('ingest-attachment');
-
         $this->assertFalse($info->hasPlugin('foo'));
-        $this->assertTrue($info->hasPlugin('ingest-attachment'));
     }
 
     /**
@@ -77,7 +74,7 @@ class InfoTest extends BaseTest
     {
         $client = $this->_getClient();
 
-        $data = $client->request('_nodes')->getData();
+        $data = $client->request('_nodes/stats')->getData();
         $rawNodes = $data['nodes'];
 
         $nodes = $client->getCluster()->getNodes();

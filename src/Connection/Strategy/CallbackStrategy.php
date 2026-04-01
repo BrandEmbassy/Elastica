@@ -21,6 +21,9 @@ class CallbackStrategy implements StrategyInterface
         $this->_callback = $callback;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getConnection(array $connections): Connection
     {
         return ($this->_callback)($connections);

@@ -3,9 +3,11 @@
 namespace Elastica\Test;
 
 use Elastica\Document;
+use Elastica\Exception\ResponseException;
 use Elastica\Mapping;
 use Elastica\Query;
 use Elastica\Query\MatchAll;
+use Elastica\Request;
 use Elastica\Test\Base as BaseTest;
 
 /**
@@ -69,6 +71,19 @@ class ResponseFunctionalTest extends BaseTest
 
     public function testGetDataEmpty(): void
     {
-        $this->markTestSkipped('Type-based mapping API (include_type_name) and type_missing_exception were removed in ES 8.x.');
+        $client = $this->_getClient();
+        $index = $client->getIndex('non_existent_index_elastica_test_'.\uniqid());
+        $gotException = false;
+
+        try {
+            $index->request('_mapping', Request::GET);
+        } catch (ResponseException $e) {
+            $error = $e->getResponse()->getFullError();
+            $this->assertEquals('index_not_found_exception', $error['type']);
+
+            $gotException = true;
+        }
+
+        $this->assertTrue($gotException);
     }
 }

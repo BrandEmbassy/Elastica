@@ -107,17 +107,17 @@ class ResultTest extends BaseTest
     public function testGetSort(): void
     {
         $index = $this->_createIndex();
-        $index->addDocument(new Document('3', ['username' => 'hans']));
+        $index->addDocument(new Document('3', ['username' => 'hans', 'seq' => 3]));
         $index->refresh();
 
-        $query = Query::create(null)->addSort(['username.keyword' => 'desc']);
+        $query = (Query::create(null)->addSort(['seq' => 'desc']));
         $resultSet = $index->search($query);
 
         $this->assertCount(1, $resultSet->getResults());
         $result = $resultSet->getResults()[0];
 
         $this->assertIsArray($result->getSort());
-        $this->assertSame(['hans'], $result->getSort());
+        $this->assertSame([3], $result->getSort());
     }
 
     /**
@@ -129,7 +129,7 @@ class ResultTest extends BaseTest
         $index->addDocument(new Document('3', ['username' => 'hans']));
         $index->refresh();
 
-        $query = Query::create(null);
+        $query = (Query::create(null));
         $resultSet = $index->search($query);
 
         $this->assertCount(1, $resultSet->getResults());

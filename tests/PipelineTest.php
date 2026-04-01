@@ -2,7 +2,6 @@
 
 namespace Elastica\Test;
 
-use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Bulk;
 use Elastica\Client;
 use Elastica\Document;
@@ -137,10 +136,6 @@ class PipelineTest extends BasePipeline
 
             $this->assertEquals('resource_not_found_exception', $result['type']);
             $this->assertEquals('pipeline [non_existent_pipeline] is missing', $result['reason']);
-        } catch (ClientResponseException $e) {
-            $body = \json_decode((string) $e->getResponse()->getBody(), true);
-            $this->assertEquals('resource_not_found_exception', $body['error']['type']);
-            $this->assertStringContainsString('non_existent_pipeline', $body['error']['reason']);
         }
     }
 }
