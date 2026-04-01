@@ -88,7 +88,7 @@ class Client
      * @throws InvalidException
      */
     public function __construct(
-        $config = [],
+        array|string $config = [],
         $callback = null,
         ?LoggerInterface $logger = null,
         ?RequestCounterInterface $requestCounter = null,

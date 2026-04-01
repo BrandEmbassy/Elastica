@@ -311,7 +311,6 @@ class Bulk
             case 413: throw new RequestEntityTooLargeException();
         }
 
-        $apiVersion = $this->_client->getApiVersion();
         $responseData = $response->getData();
 
         $actions = $this->getActions();

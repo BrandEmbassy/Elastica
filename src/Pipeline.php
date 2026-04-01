@@ -101,7 +101,7 @@ class Pipeline extends Param
                 $bodyStream->rewind();
             }
             $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
-            throw new ResponseException(new Request($id), $elasticaResponse);
+            throw new ResponseException(new Request('_ingest/pipeline/'.$id, Request::DELETE), $elasticaResponse);
         }
 
         return new Response($esResponse->asArray(), $esResponse->getStatusCode());

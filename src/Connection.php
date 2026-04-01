@@ -307,9 +307,11 @@ class Connection extends Param
 
         $stack = HandlerStack::create();
 
-        // When connecting to OpenSearch (which does not send the X-Elastic-Product header
-        // required by elasticsearch-php v9), set bypass_product_check=true in connection params.
-        if ($this->hasParam('bypass_product_check') && $this->getParam('bypass_product_check')) {
+        // Inject X-Elastic-Product header by default so OpenSearch clusters (which do not send
+        // this header) pass the elasticsearch-php v9 product check. Set bypass_product_check=false
+        // to disable this behaviour when strict product verification is required.
+        $bypassProductCheck = !$this->hasParam('bypass_product_check') || $this->getParam('bypass_product_check');
+        if ($bypassProductCheck) {
             $stack->push(Middleware::mapResponse(
                 static function (ResponseInterface $response): ResponseInterface {
                     return $response->withHeader('X-Elastic-Product', 'Elasticsearch');

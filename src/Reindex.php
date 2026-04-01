@@ -92,7 +92,7 @@ class Reindex extends Param
                 $bodyStream->rewind();
             }
             $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
-            throw new ResponseException(new Request('_reindex'), $elasticaResponse);
+            throw new ResponseException(new Request('_reindex', Request::POST, $body), $elasticaResponse);
         }
         $this->_lastResponse = new Response($esResponse->asArray(), $esResponse->getStatusCode());
 

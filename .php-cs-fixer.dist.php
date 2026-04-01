@@ -15,7 +15,6 @@ return (new PhpCsFixer\Config())
         '@Symfony' => true,
         'is_null' => true,
         'method_argument_space' => ['on_multiline' => 'ensure_fully_multiline'],
-        'native_constant_invocation' => true,
         'native_function_invocation' => false,
         'no_alias_functions' => true,
         'no_useless_else' => true,
