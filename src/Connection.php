@@ -293,7 +293,8 @@ class Connection extends Param
         }
 
         $hosts = [];
-        $scheme = $this->hasParam('ssl') && $this->getParam('ssl') ? 'https' : 'http';
+        $scheme = ($this->hasParam('ssl') && $this->getParam('ssl'))
+            || \strtolower((string)$this->getTransport()) === 'https' ? 'https' : 'http';
         $host = $this->getHost();
         $port = $this->getPort();
         $path = $this->getPath();
