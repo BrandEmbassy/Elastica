@@ -99,6 +99,20 @@ class RequestTest extends BaseTest
 
     /**
      * @group unit
+     */
+    public function testToArrayMasksSensitiveConnectionCredentials(): void
+    {
+        $connection = new Connection(['host' => 'localhost', 'port' => 9200, 'username' => 'elastic', 'password' => 'secret']);
+
+        $request = new Request('_search', Request::GET, [], [], $connection);
+        $data = $request->toArray();
+
+        $this->assertSame('***', $data['connection']['username']);
+        $this->assertSame('***', $data['connection']['password']);
+    }
+
+    /**
+     * @group unit
      * @group legacy
      */
     public function testLegacyToString(): void
