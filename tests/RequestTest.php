@@ -70,9 +70,12 @@ class RequestTest extends BaseTest
         $query = ['no' => 'params'];
         $data = ['key' => 'value'];
 
-        $connection = new Connection();
-        $connection->setHost($this->_getHost());
-        $connection->setPort(9200);
+        $connection = new Connection([
+            'host' => $this->_getHost(),
+            'port' => 9200,
+            'username' => 'elastic',
+            'password' => 'secret',
+        ]);
 
         $request = new Request($path, $method, $data, $query, $connection);
 
@@ -94,6 +97,8 @@ class RequestTest extends BaseTest
         $this->assertEquals($request->getConnection()->getHost(), $data['connection']['host']);
         $this->assertEquals($request->getConnection()->getPort(), $data['connection']['port']);
 
+        $this->assertSame('***', $data['connection']['username']);
+        $this->assertSame('***', $data['connection']['password']);
         $this->assertIsString((string) $request);
     }
 
