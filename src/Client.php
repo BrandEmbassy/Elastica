@@ -97,8 +97,8 @@ class Client
     public function __construct(
         array $config = [],
         $callback = null,
-        LoggerInterface $logger = null,
-        RequestCounterInterface $requestCounter = null,
+        ?LoggerInterface $logger = null,
+        ?RequestCounterInterface $requestCounter = null,
         bool $isRetryFeatureEnabled = false,
         int $slowRequestThresholdMs = self::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS
     ) {
