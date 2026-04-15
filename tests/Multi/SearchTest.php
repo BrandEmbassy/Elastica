@@ -533,12 +533,12 @@ class SearchTest extends BaseTest
 
         $search1 = new Search($client);
         $search1->addIndex($index);
-        $search1->setOption('terminate_after', '1');
         $query1 = new Query();
         $termQuery1 = new Term();
         $termQuery1->setTerm('username', 'bunny');
         $query1->setQuery($termQuery1);
         $query1->setSize(1);
+        $query1->setParam('terminate_after', 1);
         $search1->setQuery($query1);
 
         $multiSearch->addSearch($search1);
@@ -557,7 +557,7 @@ class SearchTest extends BaseTest
         $multiSearch->addSearch($search2);
         $multiResultSet = $multiSearch->search();
         $resultSets = $multiResultSet->getResultSets();
-        $this->assertEquals(1, $resultSets[0]->getTotalHits());
+        $this->assertCount(1, $resultSets[0]->getResults());
         $this->assertEquals(6, $resultSets[1]->getTotalHits());
     }
 

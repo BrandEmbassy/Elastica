@@ -2,6 +2,8 @@
 
 namespace Elastica;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
+use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastica\Bulk\ResponseSet;
 use Elastica\Exception\InvalidException;
 use Elastica\Exception\NotFoundException;
@@ -12,33 +14,6 @@ use Elastica\Index\Stats as IndexStats;
 use Elastica\Query\AbstractQuery;
 use Elastica\ResultSet\BuilderInterface;
 use Elastica\Script\AbstractScript;
-use Elasticsearch\Endpoints\AbstractEndpoint;
-use Elasticsearch\Endpoints\DeleteByQuery;
-use Elasticsearch\Endpoints\Get as DocumentGet;
-use Elasticsearch\Endpoints\Mget as DocumentMget;
-use Elasticsearch\Endpoints\Index as IndexEndpoint;
-use Elasticsearch\Endpoints\Indices\Alias;
-use Elasticsearch\Endpoints\Indices\Aliases\Update;
-use Elasticsearch\Endpoints\Indices\Analyze;
-use Elasticsearch\Endpoints\Indices\Cache\Clear;
-use Elasticsearch\Endpoints\Indices\ClearCache;
-use Elasticsearch\Endpoints\Indices\Close;
-use Elasticsearch\Endpoints\Indices\Create;
-use Elasticsearch\Endpoints\Indices\Delete;
-use Elasticsearch\Endpoints\Indices\DeleteAlias;
-use Elasticsearch\Endpoints\Indices\Exists;
-use Elasticsearch\Endpoints\Indices\Flush;
-use Elasticsearch\Endpoints\Indices\ForceMerge;
-use Elasticsearch\Endpoints\Indices\GetAlias;
-use Elasticsearch\Endpoints\Indices\GetMapping;
-use Elasticsearch\Endpoints\Indices\Mapping\Get as MappingGet;
-use Elasticsearch\Endpoints\Indices\Open;
-use Elasticsearch\Endpoints\Indices\PutSettings;
-use Elasticsearch\Endpoints\Indices\Refresh;
-use Elasticsearch\Endpoints\Indices\Settings\Put;
-use Elasticsearch\Endpoints\Indices\UpdateAliases;
-use Elasticsearch\Endpoints\OpenPointInTime;
-use Elasticsearch\Endpoints\UpdateByQuery;
 
 /**
  * Elastica index object.
@@ -113,10 +88,10 @@ class Index implements SearchableInterface
      */
     public function getMapping(): array
     {
-        // TODO: Use only GetMapping when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(GetMapping::class) ? new GetMapping() : new MappingGet();
-
-        $response = $this->requestEndpoint($endpoint);
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->getMapping([
+            'index' => $this->getName(),
+        ]);
+        $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $data = $response->getData();
 
         // Get first entry as if index is an Alias, the name of the mapping is the real name and not alias name
@@ -173,17 +148,20 @@ class Index implements SearchableInterface
      */
     public function updateByQuery($query, AbstractScript $script, array $options = []): Response
     {
-        $endpoint = new UpdateByQuery();
         $q = Query::create($query)->getQuery();
         $body = [
             'query' => \is_array($q) ? $q : $q->toArray(),
             'script' => $script->toArray()['script'],
         ];
 
-        $endpoint->setBody($body);
-        $endpoint->setParams($options);
+        $params = \array_merge($options, [
+            'index' => $this->getName(),
+            'body' => $body,
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        $esResponse = $this->getClient()->getConnection()->getClient()->updateByQuery($params);
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -191,10 +169,13 @@ class Index implements SearchableInterface
      */
     public function addDocument(Document $doc): Response
     {
-        $endpoint = new IndexEndpoint();
+        $params = [
+            'index' => $this->getName(),
+            'body' => $doc->getData(),
+        ];
 
         if (null !== $doc->getId() && '' !== $doc->getId()) {
-            $endpoint->setId($doc->getId());
+            $params['id'] = $doc->getId();
         }
 
         $options = $doc->getOptions(
@@ -212,10 +193,23 @@ class Index implements SearchableInterface
             ]
         );
 
-        $endpoint->setBody($doc->getData());
-        $endpoint->setParams($options);
+        $params = \array_merge($params, $options);
 
-        $response = $this->requestEndpoint($endpoint);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->index($params);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            // ES9 throws ClientResponseException (4xx) / ServerResponseException (5xx) instead of
+            // returning an error response. Wrap into Elastica's ResponseException so callers
+            // that catch ResponseException (e.g. for op_type:create conflict handling) still work.
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request($this->getName().'/_doc'), $elasticaResponse);
+        }
+        $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
 
         $data = $response->getData();
         // set autogenerated id to document
@@ -261,14 +255,22 @@ class Index implements SearchableInterface
      */
     public function getDocument($id, array $options = []): Document
     {
-        $tags = $options[CustomOptions::REQUEST_TAGS] ?? [];
         unset($options[CustomOptions::REQUEST_TAGS]);
 
-        $endpoint = new DocumentGet();
-        $endpoint->setId($id);
-        $endpoint->setParams($options);
+        $params = \array_merge($options, [
+            'index' => $this->getName(),
+            'id' => $id,
+        ]);
 
-        $response = $this->requestEndpoint($endpoint, $tags);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->get($params);
+        } catch (ClientResponseException $e) {
+            if (404 === $e->getResponse()->getStatusCode()) {
+                throw new NotFoundException('doc id '.$id.' not found');
+            }
+            throw $e;
+        }
+        $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $result = $response->getData();
 
         if (!isset($result['found']) || false === $result['found']) {
@@ -292,17 +294,16 @@ class Index implements SearchableInterface
     /**
      * Get the document from search index.
      *
-     * @param string[]   $ids     Document ids
-     * @param array      $options options for the get request
-     *
-     * @return array<array-key, Document>
+     * @param string[] $ids     Document ids
+     * @param array    $options options for the get request
      *
      * @throws ResponseException
      * @throws NotFoundException
+     *
+     * @return array<array-key, Document>
      */
     public function getDocuments(array $ids, array $options = [], bool $throwOnNotFound = true): array
     {
-        $endpoint = new DocumentMget();
         $client = $this->getClient();
         $isApiV6 = $client->getApiVersion() === ApiVersion::API_VERSION_6;
         $documentType = ($client->getDocumentTypeResolver())($this->getName());
@@ -310,24 +311,27 @@ class Index implements SearchableInterface
         $docs = [];
         foreach ($ids as $id) {
             $identifiers = [
-                "_id" => $id
+                '_id' => $id,
             ];
 
             if ($isApiV6) {
-                $identifiers["_type"] = $documentType;
+                $identifiers['_type'] = $documentType;
             }
 
             $docs[] = $identifiers;
         }
 
         $body = [
-            "docs" => $docs
+            'docs' => $docs,
         ];
 
-        $endpoint->setBody($body);
-        $endpoint->setParams($options);
+        $params = \array_merge($options, [
+            'index' => $this->getName(),
+            'body' => $body,
+        ]);
 
-        $response = $this->requestEndpoint($endpoint);
+        $esResponse = $client->getConnection()->getClient()->mget($params);
+        $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $results = $response->getData();
 
         $documents = [];
@@ -355,12 +359,7 @@ class Index implements SearchableInterface
         }
 
         if ($notFoundIds !== [] && $throwOnNotFound) {
-            throw new NotFoundException(
-                sprintf('doc ids %s not found', implode(', ', $notFoundIds)),
-                0,
-                null,
-                $notFoundIds
-            );
+            throw new NotFoundException(\sprintf('doc ids %s not found', \implode(', ', $notFoundIds)), 0, null, $notFoundIds);
         }
 
         return $documents;
@@ -377,11 +376,14 @@ class Index implements SearchableInterface
             throw new NotFoundException('Doc id "'.$id.'" not found and can not be deleted');
         }
 
-        $endpoint = new \Elasticsearch\Endpoints\Delete();
-        $endpoint->setId(\trim($id));
-        $endpoint->setParams($options);
+        $params = \array_merge($options, [
+            'index' => $this->getName(),
+            'id' => \trim($id),
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        $esResponse = $this->getClient()->getConnection()->getClient()->delete($params);
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -396,11 +398,14 @@ class Index implements SearchableInterface
     {
         $query = Query::create($query)->getQuery();
 
-        $endpoint = new DeleteByQuery();
-        $endpoint->setBody(['query' => \is_array($query) ? $query : $query->toArray()]);
-        $endpoint->setParams($options);
+        $params = \array_merge($options, [
+            'index' => $this->getName(),
+            'body' => ['query' => \is_array($query) ? $query : $query->toArray()],
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        $esResponse = $this->getClient()->getConnection()->getClient()->deleteByQuery($params);
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -410,10 +415,12 @@ class Index implements SearchableInterface
      */
     public function openPointInTime(string $keepAlive): Response
     {
-        $endpoint = new OpenPointInTime();
-        $endpoint->setParams(['keep_alive' => $keepAlive]);
+        $esResponse = $this->getClient()->getConnection()->getClient()->openPointInTime([
+            'index' => $this->getName(),
+            'keep_alive' => $keepAlive,
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -421,7 +428,21 @@ class Index implements SearchableInterface
      */
     public function delete(): Response
     {
-        return $this->requestEndpoint(new Delete());
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->delete([
+                'index' => $this->getName(),
+            ]);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request($this->getName()), $elasticaResponse);
+        }
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -451,10 +472,13 @@ class Index implements SearchableInterface
      */
     public function forcemerge($args = []): Response
     {
-        $endpoint = new ForceMerge();
-        $endpoint->setParams($args);
+        $params = \array_merge($args, [
+            'index' => $this->getName(),
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->forcemerge($params);
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -464,7 +488,11 @@ class Index implements SearchableInterface
      */
     public function refresh(): Response
     {
-        return $this->requestEndpoint(new Refresh());
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->refresh([
+            'index' => $this->getName(),
+        ]);
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -496,13 +524,15 @@ class Index implements SearchableInterface
             throw new \TypeError(\sprintf('Argument 2 passed to "%s()" must be of type array|bool|null, %s given.', __METHOD__, \is_object($options) ? \get_class($options) : \gettype($options)));
         }
 
-        $tags = $options[CustomOptions::REQUEST_TAGS] ?? [];
         unset($options[CustomOptions::REQUEST_TAGS]);
 
-        $endpoint = new Create();
-        $invalidOptions = \array_diff(\array_keys($options), $allowedOptions = \array_merge($endpoint->getParamWhitelist(), [
+        $allowedOptions = [
+            'master_timeout',
+            'timeout',
+            'wait_for_active_shards',
             'recreate',
-        ]));
+        ];
+        $invalidOptions = \array_diff(\array_keys($options), $allowedOptions);
 
         if (1 === $invalidOptionCount = \count($invalidOptions)) {
             throw new InvalidException(\sprintf('"%s" is not a valid option. Allowed options are "%s".', \implode('", "', $invalidOptions), \implode('", "', $allowedOptions)));
@@ -517,15 +547,34 @@ class Index implements SearchableInterface
                 $this->delete();
             } catch (ResponseException $e) {
                 // Index can't be deleted, because it doesn't exist
+            } catch (ClientResponseException $e) {
+                // Only ignore 404 (index does not exist); rethrow permission errors and other failures
+                if (404 !== $e->getResponse()->getStatusCode()) {
+                    throw $e;
+                }
             }
         }
 
         unset($options['recreate']);
 
-        $endpoint->setParams($options);
-        $endpoint->setBody($args);
+        $params = \array_merge($options, [
+            'index' => $this->getName(),
+            'body' => $args,
+        ]);
 
-        return $this->requestEndpoint($endpoint, $tags);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->create($params);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request($this->getName()), $elasticaResponse);
+        }
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -533,14 +582,21 @@ class Index implements SearchableInterface
      */
     public function exists(): bool
     {
-        $response = $this->requestEndpoint(new Exists());
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->indices()->exists([
+                'index' => $this->getName(),
+            ]);
 
-        return 200 === $response->getStatus();
+            return 200 === $esResponse->getStatusCode();
+        } catch (ClientResponseException $e) {
+            if (404 === $e->getResponse()->getStatusCode()) {
+                return false;
+            }
+
+            throw $e;
+        }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function createSearch($query = '', $options = null, ?BuilderInterface $builder = null): Search
     {
         $search = new Search($this->getClient(), $builder);
@@ -550,9 +606,6 @@ class Index implements SearchableInterface
         return $search;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function search($query = '', $options = [], string $method = Request::POST): ResultSet
     {
         $search = $this->createSearch($query, $options);
@@ -560,9 +613,6 @@ class Index implements SearchableInterface
         return $search->search('', $options, $method);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function count($query = '', string $method = Request::POST): int
     {
         $search = $this->createSearch($query);
@@ -577,7 +627,11 @@ class Index implements SearchableInterface
      */
     public function open(): Response
     {
-        return $this->requestEndpoint(new Open());
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->open([
+            'index' => $this->getName(),
+        ]);
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -587,7 +641,11 @@ class Index implements SearchableInterface
      */
     public function close(): Response
     {
-        return $this->requestEndpoint(new Close());
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->close([
+            'index' => $this->getName(),
+        ]);
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -626,11 +684,11 @@ class Index implements SearchableInterface
 
         $data['actions'][] = ['add' => ['index' => $this->getName(), 'alias' => $name]];
 
-        // TODO: Use only UpdateAliases when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(UpdateAliases::class) ? new UpdateAliases() : new Update();
-        $endpoint->setBody($data);
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->updateAliases([
+            'body' => $data,
+        ]);
 
-        return $this->getClient()->requestEndpoint($endpoint);
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -640,11 +698,12 @@ class Index implements SearchableInterface
      */
     public function removeAlias(string $name): Response
     {
-        // TODO: Use only DeleteAlias when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(DeleteAlias::class) ? new DeleteAlias() : new Alias\Delete();
-        $endpoint->setName($name);
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->deleteAlias([
+            'index' => $this->getName(),
+            'name' => $name,
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -654,11 +713,12 @@ class Index implements SearchableInterface
      */
     public function getAliases(): array
     {
-        // TODO: Use only GetAlias when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(GetAlias::class) ? new GetAlias() : new Alias\Get();
-        $endpoint->setName('*');
-
-        $responseData = $this->requestEndpoint($endpoint)->getData();
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->getAlias([
+            'index' => $this->getName(),
+            'name' => '*',
+        ]);
+        $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
+        $responseData = $response->getData();
 
         if (!isset($responseData[$this->getName()])) {
             return [];
@@ -687,11 +747,12 @@ class Index implements SearchableInterface
      */
     public function clearCache(): Response
     {
-        // TODO: Use only ClearCache when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(ClearCache::class) ? new ClearCache() : new Clear();
-
         // TODO: add additional cache clean arguments
-        return $this->requestEndpoint($endpoint);
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->clearCache([
+            'index' => $this->getName(),
+        ]);
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -701,10 +762,13 @@ class Index implements SearchableInterface
      */
     public function flush(array $options = []): Response
     {
-        $endpoint = new Flush();
-        $endpoint->setParams($options);
+        $params = \array_merge($options, [
+            'index' => $this->getName(),
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->flush($params);
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -716,11 +780,12 @@ class Index implements SearchableInterface
      */
     public function setSettings(array $data): Response
     {
-        // TODO: Use only PutSettings when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(PutSettings::class) ? new PutSettings() : new Put();
-        $endpoint->setBody($data);
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->putSettings([
+            'index' => $this->getName(),
+            'body' => $data,
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -741,13 +806,13 @@ class Index implements SearchableInterface
      * Makes calls to the elasticsearch server with usage official client Endpoint based on this index.
      *
      * @param string[] $tags
+     * @param mixed    $endpoint
+     *
+     * @deprecated This method is deprecated in Elasticsearch v9
      */
-    public function requestEndpoint(AbstractEndpoint $endpoint, array $tags = []): Response
+    public function requestEndpoint($endpoint, array $tags = []): Response
     {
-        $cloned = clone $endpoint;
-        $cloned->setIndex($this->getName());
-
-        return $this->getClient()->requestEndpoint($cloned, $tags);
+        throw new \RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->indices()->refresh() instead.');
     }
 
     /**
@@ -760,11 +825,14 @@ class Index implements SearchableInterface
      */
     public function analyze(array $body, $args = []): array
     {
-        $endpoint = new Analyze();
-        $endpoint->setBody($body);
-        $endpoint->setParams($args);
+        $params = \array_merge($args, [
+            'index' => $this->getName(),
+            'body' => $body,
+        ]);
 
-        $data = $this->requestEndpoint($endpoint)->getData();
+        $esResponse = $this->getClient()->getConnection()->getClient()->indices()->analyze($params);
+        $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
+        $data = $response->getData();
 
         // Support for "Explain" parameter, that returns a different response structure from Elastic
         // @see: https://www.elastic.co/guide/en/elasticsearch/reference/current/_explain_analyze.html

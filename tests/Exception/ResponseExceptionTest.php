@@ -50,7 +50,7 @@ class ResponseExceptionTest extends AbstractExceptionTest
             $this->fail('Indexing with wrong type should fail');
         } catch (ResponseException $ex) {
             $error = $ex->getResponse()->getFullError();
-            $this->assertEquals('mapper_parsing_exception', $error['type']);
+            $this->assertEquals('document_parsing_exception', $error['type']);
             $this->assertEquals(400, $ex->getResponse()->getStatus());
         }
     }

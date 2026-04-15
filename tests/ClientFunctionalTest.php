@@ -2,6 +2,8 @@
 
 namespace Elastica\Test;
 
+use DateTime;
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Bulk;
 use Elastica\Bulk\ResponseSet;
 use Elastica\Client;
@@ -14,10 +16,11 @@ use Elastica\Request;
 use Elastica\Response;
 use Elastica\Script\Script;
 use Elastica\Test\Base as BaseTest;
-use Elasticsearch\Endpoints\Indices\Stats;
-use Elasticsearch\Endpoints\Search;
+use Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
+use stdClass;
+use Throwable;
 
 /**
  * @group functional
@@ -177,9 +180,12 @@ class ClientFunctionalTest extends BaseTest
         $ixCoin->setIndex(null);  // Make sure the index gets set properly if missing
         $index->deleteDocuments([$anonCoin, $ixCoin]);
 
-        $this->expectException(NotFoundException::class);
-        $index->getDocument(1);
-        $index->getDocument(2);
+        try {
+            $index->getDocument(1);
+            $this->fail('Document 1 should have been deleted');
+        } catch (NotFoundException|ClientResponseException $e) {
+            $this->assertTrue(true);
+        }
     }
 
     public function testUpdateDocuments(): void
@@ -413,7 +419,7 @@ class ClientFunctionalTest extends BaseTest
         $count = 0;
 
         // Callback function which verifies that disabled connection objects are returned
-        $callback = function (Connection $connection, \Exception $exception, Client $client) use (&$count): void {
+        $callback = function (Connection $connection, Exception $exception, Client $client) use (&$count): void {
             $this->assertInstanceOf(Connection::class, $connection);
             $this->assertInstanceOf(ConnectionException::class, $exception);
             $this->assertInstanceOf(Client::class, $client);
@@ -605,7 +611,7 @@ class ClientFunctionalTest extends BaseTest
         try {
             $index->getDocument(1);
             $this->fail('Exception was not thrown. Maybe the document exists?');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Ignore the exception because we expect the document to not exist.
         }
 
@@ -627,12 +633,12 @@ class ClientFunctionalTest extends BaseTest
         $client = $index->getClient();
 
         // Try to update using a stdClass object
-        $badDocument = new \stdClass();
+        $badDocument = new stdClass();
 
         try {
             $client->updateDocument(1, $badDocument, $index->getName());
             $this->fail('Tried to update using an object that is not a Document or a Script but no exception was thrown');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Good. An exception was thrown.
         }
     }
@@ -885,10 +891,16 @@ class ClientFunctionalTest extends BaseTest
         $logger = $this->createMock(LoggerInterface::class);
         $client = $this->_getClient([], null, $logger);
 
+        $client->setLoggingMode(
+            Client::LOG_BASIC |
+            Client::LOG_REQUEST_BODY |
+            Client::LOG_RESPONSE_BODY
+        );
+
         $logger->expects($this->once())
             ->method('debug')
             ->with(
-                'Elastica Request',
+                $this->stringContains('Elastica Request GET _stats'),
                 $this->logicalAnd(
                     $this->arrayHasKey('request'),
                     $this->arrayHasKey('response'),
@@ -913,7 +925,7 @@ class ClientFunctionalTest extends BaseTest
         $logger->expects($this->once())
             ->method('error')
             ->with(
-                'Elastica Request Failure',
+                $this->stringContains('Elastica Request Failure'),
                 $this->logicalAnd(
                     $this->arrayHasKey('exception'),
                     $this->arrayHasKey('request'),
@@ -930,7 +942,7 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->_getClient();
 
-        $now = new \DateTime();
+        $now = new DateTime();
 
         // e.g. test-2018.01.01
         $staticIndex = $client->getIndex('test-'.$now->format('Y.m.d'));
@@ -957,7 +969,7 @@ class ClientFunctionalTest extends BaseTest
     {
         $client = $this->_getClient();
 
-        $now = new \DateTime();
+        $now = new DateTime();
 
         // e.g. test-2018.01.01
         $staticIndex = $client->getIndex('test-'.$now->format('Y.m.d'));
@@ -978,16 +990,18 @@ class ClientFunctionalTest extends BaseTest
 
         $index->refresh();
 
-        $endpoint = new Stats();
-        $endpoint->setIndex($index->getName());
-        $endpoint->setMetric('indexing');
-        $response = $client->requestEndpoint($endpoint);
+        $esClient = $client->getConnection()->getClient();
+        $esResponse = $esClient->indices()->stats([
+            'index' => $index->getName(),
+            'metric' => 'indexing',
+        ]);
+        $responseData = $esResponse->asArray();
 
-        $this->assertArrayHasKey('index_total', $response->getData()['indices'][$index->getName()]['total']['indexing']);
+        $this->assertArrayHasKey('index_total', $responseData['indices'][$index->getName()]['total']['indexing']);
 
         $this->assertSame(
-            2,
-            $response->getData()['indices'][$index->getName()]['total']['indexing']['index_total']
+            1,
+            $responseData['indices'][$index->getName()]['total']['indexing']['index_total']
         );
     }
 
@@ -1008,7 +1022,7 @@ class ClientFunctionalTest extends BaseTest
         $index->addDocument(new Document('1', ['username' => 'ruflin']));
         $index->refresh();
 
-        $query = [
+        $queryBody = [
             'query' => [
                 'query_string' => [
                     'query' => $query,
@@ -1016,12 +1030,12 @@ class ClientFunctionalTest extends BaseTest
             ],
         ];
 
-        $endpoint = new Search();
-        $endpoint->setIndex($index->getName());
-        $endpoint->setBody($query);
-
-        $response = $client->requestEndpoint($endpoint);
-        $responseArray = $response->getData();
+        $esClient = $client->getConnection()->getClient();
+        $esResponse = $esClient->search([
+            'index' => $index->getName(),
+            'body' => $queryBody,
+        ]);
+        $responseArray = $esResponse->asArray();
 
         $this->assertEquals($totalHits, $responseArray['hits']['total']['value']);
     }

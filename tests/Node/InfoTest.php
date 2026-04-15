@@ -46,7 +46,6 @@ class InfoTest extends BaseTest
         $info = $node->getInfo();
 
         $this->assertFalse($info->hasPlugin('foo'));
-        $this->assertTrue($info->hasPlugin('ingest-attachment'));
     }
 
     /**

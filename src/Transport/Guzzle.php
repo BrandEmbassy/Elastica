@@ -206,7 +206,6 @@ class Guzzle extends AbstractTransport
 
         return \class_exists(Psr7\Utils::class)
             ? Psr7\Utils::streamFor($data)
-            : Psr7\stream_for($data)
-        ;
+            : Psr7\stream_for($data);
     }
 }

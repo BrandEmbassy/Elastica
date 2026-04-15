@@ -3,20 +3,18 @@
 namespace Elastica;
 
 use Closure;
+use Elastic\Elasticsearch\Exception\ClientResponseException as ElasticsearchClientResponseException;
+use Elastic\Elasticsearch\Exception\ServerResponseException as ElasticsearchServerResponseException;
 use Elastica\Bulk\Action;
 use Elastica\Bulk\ResponseSet;
-use Elastica\Elasticsearch\Endpoints\Update;
 use Elastica\Exception\ClientException;
 use Elastica\Exception\ConnectionException;
 use Elastica\Exception\InvalidException;
 use Elastica\Exception\ResponseException;
 use Elastica\Script\AbstractScript;
-use Elasticsearch\Endpoints\AbstractEndpoint;
-use Elasticsearch\Endpoints\ClosePointInTime;
-use Elasticsearch\Endpoints\Indices\ForceMerge;
-use Elasticsearch\Endpoints\Indices\Refresh;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 /**
  * Client to connect the the elasticsearch server.
@@ -62,9 +60,6 @@ class Client
      */
     protected $_lastResponse;
 
-    /**
-     * @var LoggerInterface
-     */
     protected LoggerInterface $logger;
 
     /**
@@ -73,10 +68,9 @@ class Client
     protected $_version;
 
     /**
-     * @var null|RequestCounterInterface
+     * @var RequestCounterInterface|null
      */
     private $requestCounter;
-
 
     private int $loggingMode = self::LOG_BASIC;
 
@@ -84,23 +78,22 @@ class Client
 
     private int $slowRequestThresholdMs;
 
-
     /**
      * Creates a new Elastica client.
      *
-     * @param array|string  $config   OPTIONAL Additional config or DSN of options
-     * @param callable|null $callback OPTIONAL Callback function which can be used to be notified about errors (for example connection down)
+     * @param array|string  $config                 OPTIONAL Additional config or DSN of options
+     * @param callable|null $callback               OPTIONAL Callback function which can be used to be notified about errors (for example connection down)
      * @param int           $slowRequestThresholdMs OPTIONAL Threshold in milliseconds for slow request logging (default: 500)
      *
      * @throws InvalidException
      */
     public function __construct(
-        array $config = [],
+        array|string $config = [],
         $callback = null,
         ?LoggerInterface $logger = null,
         ?RequestCounterInterface $requestCounter = null,
         bool $isRetryFeatureEnabled = false,
-        int $slowRequestThresholdMs = self::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS
+        int $slowRequestThresholdMs = self::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS,
     ) {
         if (\is_string($config)) {
             $configuration = ClientConfiguration::fromDsn($config);
@@ -127,22 +120,22 @@ class Client
 
     public function shouldLog(): bool
     {
-        return $this->loggingMode & self::LOG_BASIC;
+        return (bool) ($this->loggingMode & self::LOG_BASIC);
     }
 
     public function shouldLogRequestBody(): bool
     {
-        return $this->loggingMode & self::LOG_REQUEST_BODY;
+        return (bool) ($this->loggingMode & self::LOG_REQUEST_BODY);
     }
 
     public function shouldLogResponseBody(): bool
     {
-        return $this->loggingMode & self::LOG_RESPONSE_BODY;
+        return (bool) ($this->loggingMode & self::LOG_RESPONSE_BODY);
     }
 
     public function shouldLogSlowRequests(): bool
     {
-        return $this->loggingMode & self::LOG_SLOW_REQUESTS;
+        return (bool) ($this->loggingMode & self::LOG_SLOW_REQUESTS);
     }
 
     private function isSlow(int $elapsedTimeMs): bool
@@ -157,14 +150,14 @@ class Client
         int $elapsedTimeMs,
         Request $request,
         Response $response,
-        array $tags
+        array $tags,
     ): void {
         $context = [
             'tags' => $tags,
             'responseStatus' => $response->getStatus(),
             'execution_time' => $elapsedTimeMs,
             'request' => $request->toArray(),
-            'exception' => new \RuntimeException('slow query'),
+            'exception' => new RuntimeException('slow query'),
         ];
 
         if ($this->shouldLogResponseBody()) {
@@ -172,7 +165,7 @@ class Client
         }
 
         $this->logger->warning(
-            sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            \sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
             $context
         );
     }
@@ -184,7 +177,7 @@ class Client
         int $elapsedTimeMs,
         Request $request,
         Response $response,
-        array $tags
+        array $tags,
     ): void {
         $context = [
             'tags' => $tags,
@@ -201,7 +194,7 @@ class Client
         }
 
         $this->logger->debug(
-            sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            \sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
             $context
         );
     }
@@ -259,8 +252,6 @@ class Client
     /**
      * @param array|string $keys    config key or path of config keys
      * @param mixed        $default default value will be returned if key was not found
-     *
-     * @return mixed
      */
     public function getConfigValue($keys, $default = null)
     {
@@ -388,10 +379,6 @@ class Client
         $tags = $options[CustomOptions::REQUEST_TAGS] ?? [];
         unset($options[CustomOptions::REQUEST_TAGS]);
 
-        $endpoint = new Update();
-        $endpoint->setId($id);
-        $endpoint->setIndex($index);
-
         if ($data instanceof AbstractScript) {
             $requestData = $data->toArray();
         } elseif ($data instanceof Document) {
@@ -432,10 +419,29 @@ class Client
             }
         }
 
-        $endpoint->setBody($requestData);
-        $endpoint->setParams($options);
+        $params = \array_merge($options, [
+            'id' => $id,
+            'index' => $index,
+            'body' => $requestData,
+        ]);
 
-        $response = $this->requestEndpoint($endpoint, $tags);
+        try {
+            $esResponse = $this->getConnection()->getClient()->update($params);
+        } catch (ElasticsearchClientResponseException|ElasticsearchServerResponseException $e) {
+            // ES9 throws ClientResponseException (4xx) / ServerResponseException (5xx) instead of
+            // returning an error response. Wrap them into Elastica's ResponseException so that
+            // callers that catch ResponseException (e.g. for version-conflict handling) still work.
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $bodyContent = (string) $bodyStream;
+            $elasticaResponse = new Response($bodyContent, $psrResponse->getStatusCode());
+            $elasticaRequest = new Request($index.'/_update/'.(string) $id);
+            throw new ResponseException($elasticaRequest, $elasticaResponse);
+        }
+        $response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
 
         if ($response->isOk()
             && $data instanceof Document
@@ -537,7 +543,7 @@ class Client
     }
 
     /**
-     * @return \Elastica\Connection\Strategy\StrategyInterface
+     * @return Connection\Strategy\StrategyInterface
      */
     public function getConnectionStrategy()
     {
@@ -645,21 +651,21 @@ class Client
         $request = $this->_lastRequest = new Request($path, $method, $data, $query, $connection, $contentType, $this->logger, $this->isRetryFeatureEnabled);
         $this->_lastResponse = null;
 
-        $requestName = sprintf('[%s]', $tags === [] ? 'untagged' : implode('.', $tags));
+        $requestName = \sprintf('[%s]', $tags === [] ? 'untagged' : \implode('.', $tags));
 
         if ($this->requestCounter !== null) {
             $this->requestCounter->incrementCount();
-            $requestName = sprintf('#%02d %s', $this->requestCounter->getCount(), $requestName);
+            $requestName = \sprintf('#%02d %s', $this->requestCounter->getCount(), $requestName);
         }
 
         try {
             $response = $this->_lastResponse = $request->send();
         } catch (ConnectionException $e) {
             $this->_connectionPool->onFail($connection, $e, $this);
-            $this->logger->error(sprintf('Elastica Request Failure %s', $requestName), [
+            $this->logger->error(\sprintf('Elastica Request Failure %s', $requestName), [
                 'tags' => $tags,
                 'exception' => $e,
-                'request' => (string)$e->getRequest(),
+                'request' => (string) $e->getRequest(),
                 'retry' => $this->hasConnection(),
             ]);
 
@@ -671,7 +677,7 @@ class Client
             return $this->request($path, $method, $data, $query);
         }
 
-        $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
+        $elapsedTimeMs = (int) \round($response->getQueryTime() * 1000);
 
         if ($this->shouldLogSlowRequests() && $this->isSlow($elapsedTimeMs)) {
             $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
@@ -686,36 +692,31 @@ class Client
         return $response;
     }
 
-    public function getApiVersion(): int {
-        return $this->getConfigValue('apiVersion');
+    public function getApiVersion(): int
+    {
+        return $this->getConfigValue('apiVersion', ApiVersion::API_VERSION_9);
     }
 
-    public function getDocumentTypeResolver(): Closure {
-        return $this->getConfigValue('documentTypeResolver', static fn() => Type::DOC);
+    public function getDocumentTypeResolver(): Closure
+    {
+        return $this->getConfigValue('documentTypeResolver', static fn () => Type::DOC);
     }
 
     /**
      * Makes calls to the elasticsearch server with usage official client Endpoint.
      *
+     * @deprecated This method is deprecated in v9. Use direct client methods instead.
+     *
      * @param string[] $tags
+     *
+     * V9 NOTE: AbstractEndpoint class removed in elasticsearch-php v9.
+     * This method is kept for backward compatibility but throws an exception.
+     * Each endpoint should now use the client's direct methods.
+     * @param mixed $endpoint
      */
-    public function requestEndpoint(AbstractEndpoint $endpoint, array $tags = []): Response
+    public function requestEndpoint($endpoint, array $tags = []): Response
     {
-        if ($this->getApiVersion() === ApiVersion::API_VERSION_6) {
-            $index = $endpoint->getIndex();
-            if ($index !== null) {
-                $endpoint->setType(($this->getDocumentTypeResolver())($endpoint->getIndex()));
-            }
-        }
-
-        return $this->request(
-            \ltrim($endpoint->getURI(), '/'),
-            $endpoint->getMethod(),
-            $endpoint->getBody() ?? [],
-            $endpoint->getParams(),
-            Request::DEFAULT_CONTENT_TYPE,
-            $tags
-        );
+        throw new RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->indices()->refresh() instead.');
     }
 
     /**
@@ -727,10 +728,9 @@ class Client
      */
     public function forcemergeAll($args = []): Response
     {
-        $endpoint = new ForceMerge();
-        $endpoint->setParams($args);
+        $esResponse = $this->getConnection()->getClient()->indices()->forcemerge($args);
 
-        return $this->requestEndpoint($endpoint);
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -740,10 +740,11 @@ class Client
      */
     public function closePointInTime(string $pointInTimeId): Response
     {
-        $endpoint = new ClosePointInTime();
-        $endpoint->setBody(['id' => $pointInTimeId]);
+        $esResponse = $this->getConnection()->getClient()->closePointInTime([
+            'body' => ['id' => $pointInTimeId],
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -753,7 +754,41 @@ class Client
      */
     public function refreshAll(): Response
     {
-        return $this->requestEndpoint(new Refresh());
+        $esResponse = $this->getConnection()->getClient()->indices()->refresh();
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
+    }
+
+    /**
+     * Sends a mapping update for a given index.
+     *
+     * @param array<string, mixed> $body  Mapping body (e.g. ['properties' => [...]])
+     * @param array<string, mixed> $query Optional query string parameters
+     *
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-put-mapping.html
+     */
+    public function putIndexMapping(string $indexName, array $body, array $query = []): Response
+    {
+        $params = \array_merge($query, [
+            'index' => $indexName,
+            'body' => $body,
+        ]);
+
+        try {
+            $esResponse = $this->getConnection()->getClient()->indices()->putMapping($params);
+        } catch (ElasticsearchClientResponseException|ElasticsearchServerResponseException $e) {
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $bodyContent = (string) $bodyStream;
+            $elasticaResponse = new Response($bodyContent, $psrResponse->getStatusCode());
+            $elasticaRequest = new Request($indexName.'/_mapping');
+            throw new ResponseException($elasticaRequest, $elasticaResponse);
+        }
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     public function getLastRequest(): ?Request
@@ -786,19 +821,19 @@ class Client
         $connections = [];
 
         foreach ($this->getConfig('connections') as $connection) {
-            $connections[] = Connection::create($this->_prepareConnectionParams($connection));
+            $connections[] = $this->_createConnection($this->_prepareConnectionParams($connection));
         }
 
         if ($this->_config->has('servers')) {
             $servers = $this->_config->get('servers');
             foreach ($servers as $server) {
-                $connections[] = Connection::create($this->_prepareConnectionParams($server));
+                $connections[] = $this->_createConnection($this->_prepareConnectionParams($server));
             }
         }
 
         // If no connections set, create default connection
         if (!$connections) {
-            $connections[] = Connection::create($this->_prepareConnectionParams($this->getConfig()));
+            $connections[] = $this->_createConnection($this->_prepareConnectionParams($this->getConfig()));
         }
 
         if (!$this->_config->has('connectionStrategy')) {
@@ -812,6 +847,19 @@ class Client
         $strategy = Connection\Strategy\StrategyFactory::create($this->getConfig('connectionStrategy'));
 
         $this->_connectionPool = new Connection\ConnectionPool($connections, $strategy, $this->_callback);
+    }
+
+    /**
+     * Creates a Connection and injects the request counter if one is configured.
+     */
+    protected function _createConnection(array $params): Connection
+    {
+        $connection = Connection::create($params);
+        if ($this->requestCounter !== null) {
+            $connection->setRequestCounter($this->requestCounter);
+        }
+
+        return $connection;
     }
 
     /**

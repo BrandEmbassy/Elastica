@@ -2,7 +2,11 @@
 
 namespace Elastica\Index;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
+use Elastic\Elasticsearch\Exception\ServerResponseException;
+use Elastica\Exception\ResponseException;
 use Elastica\Index;
+use Elastica\Request;
 use Elastica\Response;
 
 /**
@@ -98,7 +102,22 @@ class Stats
      */
     public function refresh(): void
     {
-        $this->_response = $this->getIndex()->requestEndpoint(new \Elasticsearch\Endpoints\Indices\Stats());
+        try {
+            $esResponse = $this->getIndex()->getClient()->getConnection()->getClient()->indices()->stats([
+                'index' => $this->getIndex()->getName(),
+            ]);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            // ES9 throws ClientResponseException (e.g. 400 for closed index) instead of returning
+            // an error response. Convert to ResponseException so callers can catch it.
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request($this->getIndex()->getName().'/_stats'), $elasticaResponse);
+        }
+        $this->_response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $this->_data = $this->getResponse()->getData();
     }
 }

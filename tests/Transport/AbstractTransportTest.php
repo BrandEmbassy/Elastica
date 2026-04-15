@@ -17,20 +17,17 @@ use Elastica\Transport\Http;
 class AbstractTransportTest extends BaseTest
 {
     /**
-     * Return transport configuration and the expected HTTP method.
+     * @group unit
+     * @dataProvider getValidDefinitions
      *
-     * @return array[]
+     * @param mixed $transport
      */
-    public function getTransport(): array
+    public function testCanCreateTransportInstances($transport): void
     {
-        return [
-            [
-                ['transport' => 'Http', 'curl' => [\CURLINFO_HEADER_OUT => true]],
-            ],
-            [
-                ['transport' => 'Guzzle', 'curl' => [\CURLINFO_HEADER_OUT => true]],
-            ],
-        ];
+        $connection = new Connection();
+        $transport = AbstractTransport::create($transport, $connection);
+
+        $this->assertSame($connection, $transport->getConnection());
     }
 
     /**
@@ -51,28 +48,6 @@ class AbstractTransportTest extends BaseTest
 
     /**
      * @group unit
-     * @dataProvider getValidDefinitions
-     *
-     * @param mixed $transport
-     */
-    public function testCanCreateTransportInstances($transport): void
-    {
-        $connection = new Connection();
-        $transport = AbstractTransport::create($transport, $connection);
-
-        $this->assertSame($connection, $transport->getConnection());
-    }
-
-    public function getInvalidDefinitions(): array
-    {
-        return [
-            [['transport' => 'Http']],
-            ['InvalidTransport'],
-        ];
-    }
-
-    /**
-     * @group unit
      * @dataProvider getInvalidDefinitions
      *
      * @param mixed $transport
@@ -83,6 +58,14 @@ class AbstractTransportTest extends BaseTest
         $this->expectExceptionMessage('Invalid transport');
 
         AbstractTransport::create($transport, new Connection());
+    }
+
+    public function getInvalidDefinitions(): array
+    {
+        return [
+            [['transport' => 'Http']],
+            ['InvalidTransport'],
+        ];
     }
 
     /**
@@ -142,5 +125,21 @@ class AbstractTransportTest extends BaseTest
             $url = $info['url'];
             $this->assertStringEndsWith('version=true', $url);
         }
+    }
+    /**
+     * Return transport configuration and the expected HTTP method.
+     *
+     * @return array[]
+     */
+    public function getTransport(): array
+    {
+        return [
+            [
+                ['transport' => 'Http', 'curl' => [\CURLINFO_HEADER_OUT => true]],
+            ],
+            [
+                ['transport' => 'Guzzle', 'curl' => [\CURLINFO_HEADER_OUT => true]],
+            ],
+        ];
     }
 }

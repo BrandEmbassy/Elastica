@@ -4,7 +4,6 @@ namespace Elastica;
 
 use Elastica\Exception\NotFoundException;
 use Elastica\Exception\ResponseException;
-use Elasticsearch\Endpoints\Snapshot\Restore;
 
 /**
  * Class Snapshot.
@@ -47,8 +46,8 @@ class Snapshot
      *
      * @param string $name the name of the desired repository
      *
-     * @throws Exception\ResponseException
-     * @throws Exception\NotFoundException
+     * @throws ResponseException
+     * @throws NotFoundException
      *
      * @return array
      */
@@ -98,8 +97,8 @@ class Snapshot
      * @param string $repository the name of the repository from which to retrieve the snapshot
      * @param string $name       the name of the desired snapshot
      *
-     * @throws Exception\ResponseException
-     * @throws Exception\NotFoundException
+     * @throws ResponseException
+     * @throws NotFoundException
      *
      * @return array
      */
@@ -155,16 +154,16 @@ class Snapshot
      */
     public function restoreSnapshot($repository, $name, $options = [], $waitForCompletion = false)
     {
-        $endpoint = (new Restore())
-            ->setRepository($repository)
-            ->setSnapshot($name)
-            ->setBody($options)
-            ->setParams([
-                'wait_for_completion' => $waitForCompletion ? 'true' : 'false',
-            ])
-        ;
+        $params = [
+            'repository' => $repository,
+            'snapshot' => $name,
+            'body' => $options,
+            'wait_for_completion' => $waitForCompletion ? 'true' : 'false',
+        ];
 
-        return $this->_client->requestEndpoint($endpoint);
+        $esResponse = $this->_client->getConnection()->getClient()->snapshot()->restore($params);
+
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**

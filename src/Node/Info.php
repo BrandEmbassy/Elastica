@@ -4,7 +4,6 @@ namespace Elastica\Node;
 
 use Elastica\Node as BaseNode;
 use Elastica\Response;
-use Elasticsearch\Endpoints\Nodes\Info as NodesInfo;
 
 /**
  * Elastica cluster node object.
@@ -210,15 +209,16 @@ class Info
     {
         $this->_params = $params;
 
-        // TODO: Use only NodesInfo when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(NodesInfo::class) ? new NodesInfo() : new \Elasticsearch\Endpoints\Cluster\Nodes\Info();
-        $endpoint->setNodeId($this->getNode()->getId());
+        $requestParams = [
+            'node_id' => $this->getNode()->getId(),
+        ];
 
         if ($params) {
-            $endpoint->setMetric($params);
+            $requestParams['metric'] = $params;
         }
 
-        $this->_response = $this->getNode()->getClient()->requestEndpoint($endpoint);
+        $esResponse = $this->getNode()->getClient()->getConnection()->getClient()->nodes()->info($requestParams);
+        $this->_response = new Response($esResponse->asArray(), $esResponse->getStatusCode());
         $data = $this->getResponse()->getData();
 
         $this->_data = \reset($data['nodes']);

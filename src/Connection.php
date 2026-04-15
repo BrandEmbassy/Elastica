@@ -2,10 +2,16 @@
 
 namespace Elastica;
 
+use Elastic\Elasticsearch\Client as ElasticsearchClient;
+use Elastic\Elasticsearch\ClientBuilder;
 use Elastica\Exception\InvalidException;
 use Elastica\Transport\AbstractTransport;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * Elastica connection instance to an elasticasearch node.
@@ -14,6 +20,23 @@ use Psr\Log\NullLogger;
  */
 class Connection extends Param
 {
+    /**
+     * Cached elasticsearch-php v9 client instance.
+     */
+    private ?ElasticsearchClient $_client = null;
+
+    /**
+     * Optional request counter to track HTTP requests made through the ES9 client.
+     */
+    private ?RequestCounterInterface $_requestCounter = null;
+
+    public function setRequestCounter(RequestCounterInterface $requestCounter): void
+    {
+        $this->_requestCounter = $requestCounter;
+        // Reset cached client so a new one is built with the counter middleware.
+        $this->_client = null;
+    }
+
     /**
      * Default elastic search port.
      */
@@ -258,6 +281,81 @@ class Connection extends Param
     }
 
     /**
+     * Get or create elasticsearch-php v9 Client instance.
+     *
+     * V9: This method provides access to the native elasticsearch-php v9 client.
+     * Used for direct API method calls like $client->indices()->refresh().
+     */
+    public function getClient(): ElasticsearchClient
+    {
+        if (null !== $this->_client) {
+            return $this->_client;
+        }
+
+        $hosts = [];
+        $scheme = ($this->hasParam('ssl') && $this->getParam('ssl'))
+            || \strtolower((string)$this->getTransport()) === 'https' ? 'https' : 'http';
+        $host = $this->getHost();
+        $port = $this->getPort();
+        $path = $this->getPath();
+
+        if (\is_string($path) && '' !== $path && '/' !== $path[0]) {
+            $path = '/'.$path;
+        }
+
+        $hostString = \sprintf('%s://%s:%d%s', $scheme, $host, $port, $path);
+        $hosts[] = $hostString;
+
+        $stack = HandlerStack::create();
+
+        // Inject X-Elastic-Product header by default so OpenSearch clusters (which do not send
+        // this header) pass the elasticsearch-php v9 product check. Set bypass_product_check=false
+        // to disable this behaviour when strict product verification is required.
+        $bypassProductCheck = !$this->hasParam('bypass_product_check') || $this->getParam('bypass_product_check');
+        if ($bypassProductCheck) {
+            $stack->push(Middleware::mapResponse(
+                static function (ResponseInterface $response): ResponseInterface {
+                    return $response->withHeader('X-Elastic-Product', 'Elasticsearch');
+                }
+            ));
+        }
+
+        // If a request counter is provided, increment it for every HTTP request so that
+        // direct ES9 client calls are tracked just like legacy Client::request() calls.
+        if (null !== $this->_requestCounter) {
+            $requestCounter = $this->_requestCounter;
+            $stack->push(static function (callable $handler) use ($requestCounter): callable {
+                return static function (RequestInterface $request, array $options) use ($handler, $requestCounter) {
+                    $requestCounter->incrementCount();
+
+                    return $handler($request, $options);
+                };
+            });
+        }
+        $httpClient = new GuzzleClient(['handler' => $stack]);
+
+        $builder = ClientBuilder::create()
+            ->setHosts($hosts)
+            ->setHttpClient($httpClient)
+        ;
+
+        if ($this->hasParam('username') && $this->hasParam('password')) {
+            $builder->setBasicAuthentication(
+                $this->getParam('username'),
+                $this->getParam('password')
+            );
+        }
+
+        if ($this->hasParam('api_key')) {
+            $builder->setApiKey($this->getParam('api_key'));
+        }
+
+        $this->_client = $builder->build();
+
+        return $this->_client;
+    }
+
+    /**
      * @return bool Returns true if connection is persistent. True by default
      */
     public function isPersistent()
@@ -325,7 +423,7 @@ class Connection extends Param
     /**
      * @param array|Connection $params Params to create a connection
      *
-     * @throws Exception\InvalidException
+     * @throws InvalidException
      *
      * @return self
      */

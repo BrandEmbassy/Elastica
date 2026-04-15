@@ -2,6 +2,9 @@
 
 namespace Elastica;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
+use Elastic\Elasticsearch\Exception\ServerResponseException;
+use Elastica\Exception\ResponseException;
 use Elastica\Query\AbstractQuery;
 use Elastica\Script\AbstractScript;
 use Elastica\Script\Script;
@@ -16,6 +19,7 @@ class Reindex extends Param
     public const CONFLICTS = 'conflicts';
     public const CONFLICTS_PROCEED = 'proceed';
     public const SIZE = 'size';
+    public const MAX_DOCS = 'max_docs'; // ES 9.x renamed 'size' to 'max_docs'; use MAX_DOCS for ES9
     public const QUERY = 'query';
     public const SORT = 'sort';
     public const SCRIPT = 'script';
@@ -67,12 +71,30 @@ class Reindex extends Param
     {
         $body = $this->_getBody($this->_oldIndex, $this->_newIndex, $this->getParams());
 
-        $reindexEndpoint = new \Elasticsearch\Endpoints\Reindex();
-        $params = \array_intersect_key($this->getParams(), \array_fill_keys($reindexEndpoint->getParamWhitelist(), null));
-        $reindexEndpoint->setParams($params);
-        $reindexEndpoint->setBody($body);
+        $allowedParams = [
+            self::WAIT_FOR_COMPLETION,
+            self::WAIT_FOR_ACTIVE_SHARDS,
+            self::TIMEOUT,
+            self::SCROLL,
+            self::REQUESTS_PER_SECOND,
+            self::REFRESH,
+            self::SLICES,
+        ];
+        $params = \array_intersect_key($this->getParams(), \array_fill_keys($allowedParams, null));
+        $params['body'] = $body;
 
-        $this->_lastResponse = $this->_oldIndex->getClient()->requestEndpoint($reindexEndpoint);
+        try {
+            $esResponse = $this->_oldIndex->getClient()->getConnection()->getClient()->reindex($params);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request('_reindex', Request::POST, $body), $elasticaResponse);
+        }
+        $this->_lastResponse = new Response($esResponse->asArray(), $esResponse->getStatusCode());
 
         return $this->_lastResponse;
     }
@@ -197,10 +219,19 @@ class Reindex extends Param
 
     private function _resolveBodyOptions(array $params): array
     {
-        return \array_intersect_key($params, [
+        $options = \array_intersect_key($params, [
             self::SIZE => null,
+            self::MAX_DOCS => null,
             self::CONFLICTS => null,
         ]);
+
+        // ES9 renamed 'size' to 'max_docs'; translate for backward compatibility
+        if (isset($options[self::SIZE]) && !isset($options[self::MAX_DOCS])) {
+            $options[self::MAX_DOCS] = $options[self::SIZE];
+            unset($options[self::SIZE]);
+        }
+
+        return $options;
     }
 
     private function _setSourceQuery(array $sourceBody): array

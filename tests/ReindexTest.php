@@ -82,10 +82,13 @@ class ReindexTest extends Base
             Reindex::OPERATION_TYPE => Reindex::OPERATION_TYPE_CREATE,
         ]);
 
-        $response = $reindex->run();
-        $newIndex->refresh();
-
-        $this->assertEquals(5, $response->getData()['version_conflicts']);
+        // In ES9, reindex with op_type=create and conflicts throws a 409 ResponseException
+        try {
+            $reindex->run();
+            $this->fail('Expected ResponseException due to version conflicts');
+        } catch (ResponseException $e) {
+            $this->assertEquals(409, $e->getResponse()->getStatus());
+        }
     }
 
     /**
@@ -211,7 +214,8 @@ class ReindexTest extends Base
 
             $this->fail('Elasticsearch should have thrown an Exception, maybe the remote option has not been sent.');
         } catch (ResponseException $exception) {
-            $this->assertStringContainsString('reindex.remote.whitelist', $exception->getMessage());
+            // ES9 uses 'allowlist', older versions use 'whitelist'
+            $this->assertMatchesRegularExpression('/reindex\.remote\.(whitelist|allowlist)/', $exception->getMessage());
         }
     }
 

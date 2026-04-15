@@ -2,15 +2,12 @@
 
 namespace Elastica;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
+use Elastic\Elasticsearch\Exception\ServerResponseException;
 use Elastica\Exception\InvalidException;
+use Elastica\Exception\ResponseException;
 use Elastica\Processor\AbstractProcessor;
-use Elasticsearch\Endpoints\AbstractEndpoint;
-use Elasticsearch\Endpoints\Ingest\DeletePipeline;
-use Elasticsearch\Endpoints\Ingest\GetPipeline;
-use Elasticsearch\Endpoints\Ingest\Pipeline\Delete;
-use Elasticsearch\Endpoints\Ingest\Pipeline\Get;
-use Elasticsearch\Endpoints\Ingest\Pipeline\Put;
-use Elasticsearch\Endpoints\Ingest\PutPipeline;
+use RuntimeException;
 
 /**
  * Elastica Pipeline object.
@@ -35,6 +32,7 @@ class Pipeline extends Param
 
     /**
      * @var AbstractProcessor[]
+     *
      * @phpstan-var array{processors?: AbstractProcessor[]}
      */
     protected $_processors = [];
@@ -63,12 +61,12 @@ class Pipeline extends Param
             throw new InvalidException('You should set a valid processor of type Elastica\Processor\AbstractProcessor.');
         }
 
-        // TODO: Use only PutPipeline when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(PutPipeline::class) ? new PutPipeline() : new Put();
-        $endpoint->setId($this->id);
-        $endpoint->setBody($this->toArray());
+        $esResponse = $this->getClient()->getConnection()->getClient()->ingest()->putPipeline([
+            'id' => $this->id,
+            'body' => $this->toArray(),
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -78,11 +76,11 @@ class Pipeline extends Param
      */
     public function getPipeline(string $id): Response
     {
-        // TODO: Use only GetPipeline when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(GetPipeline::class) ? new GetPipeline() : new Get();
-        $endpoint->setId($id);
+        $esResponse = $this->getClient()->getConnection()->getClient()->ingest()->getPipeline([
+            'id' => $id,
+        ]);
 
-        return $this->requestEndpoint($endpoint);
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -92,11 +90,21 @@ class Pipeline extends Param
      */
     public function deletePipeline(string $id): Response
     {
-        // TODO: Use only DeletePipeline when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(DeletePipeline::class) ? new DeletePipeline() : new Delete();
-        $endpoint->setId($id);
+        try {
+            $esResponse = $this->getClient()->getConnection()->getClient()->ingest()->deletePipeline([
+                'id' => $id,
+            ]);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            $psrResponse = $e->getResponse();
+            $bodyStream = $psrResponse->getBody();
+            if ($bodyStream->isSeekable()) {
+                $bodyStream->rewind();
+            }
+            $elasticaResponse = new Response((string) $bodyStream, $psrResponse->getStatusCode());
+            throw new ResponseException(new Request('_ingest/pipeline/'.$id, Request::DELETE), $elasticaResponse);
+        }
 
-        return $this->requestEndpoint($endpoint);
+        return new Response($esResponse->asArray(), $esResponse->getStatusCode());
     }
 
     /**
@@ -171,11 +179,13 @@ class Pipeline extends Param
 
     /**
      * Makes calls to the elasticsearch server with usage official client Endpoint based on this index.
+     *
+     * @deprecated This method is deprecated in Elasticsearch v9
+     *
+     * @param mixed $endpoint
      */
-    public function requestEndpoint(AbstractEndpoint $endpoint): Response
+    public function requestEndpoint($endpoint): Response
     {
-        $cloned = clone $endpoint;
-
-        return $this->getClient()->requestEndpoint($cloned);
+        throw new RuntimeException('requestEndpoint() is deprecated in Elasticsearch v9. AbstractEndpoint class no longer exists. Use direct client methods like $client->ingest()->putPipeline() instead.');
     }
 }

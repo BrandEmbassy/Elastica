@@ -48,8 +48,7 @@ class ClientFactory
         $config = [
             'servers' => [$serverConfiguration],
             'apiVersion' => $clusterConfiguration->getVersion()->getValue(),
-            'documentTypeResolver' => static fn(string $indexName): string =>
-                $isBrandIndependentIndexByName($indexName) ? Type::DOC : Type::DEFAULT,
+            'documentTypeResolver' => static fn (string $indexName): string => $isBrandIndependentIndexByName($indexName) ? Type::DOC : Type::DEFAULT,
         ];
 
         $client = new Client(
@@ -70,4 +69,3 @@ class ClientFactory
         return $client;
     }
 }
-

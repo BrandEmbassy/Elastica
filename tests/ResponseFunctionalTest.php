@@ -71,20 +71,15 @@ class ResponseFunctionalTest extends BaseTest
 
     public function testGetDataEmpty(): void
     {
-        $index = $this->_createIndex();
+        $client = $this->_getClient();
+        $index = $client->getIndex('non_existent_index_elastica_test_'.\uniqid());
         $gotException = false;
 
         try {
-            $index->request(
-                'non-existent-type/_mapping',
-                Request::GET,
-                [],
-                ['include_type_name' => true]
-            );
+            $index->request('_mapping', Request::GET);
         } catch (ResponseException $e) {
             $error = $e->getResponse()->getFullError();
-            $this->assertEquals('type_missing_exception', $error['type']);
-            $this->assertStringContainsString('non-existent-type', $error['reason']);
+            $this->assertEquals('index_not_found_exception', $error['type']);
 
             $gotException = true;
         }

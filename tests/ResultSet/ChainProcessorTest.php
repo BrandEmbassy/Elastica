@@ -2,6 +2,7 @@
 
 namespace Elastica\Test\ResultSet;
 
+use Elastica\ApiVersion;
 use Elastica\Query;
 use Elastica\Response;
 use Elastica\ResultSet;
@@ -22,7 +23,7 @@ class ChainProcessorTest extends BaseTest
             $processor1 = $this->createMock(ProcessorInterface::class),
             $processor2 = $this->createMock(ProcessorInterface::class),
         ]);
-        $resultSet = new ResultSet(new Response(''), new Query(), []);
+        $resultSet = new ResultSet(new Response(''), new Query(), [], ApiVersion::API_VERSION_9);
 
         $processor1->expects($this->once())
             ->method('process')

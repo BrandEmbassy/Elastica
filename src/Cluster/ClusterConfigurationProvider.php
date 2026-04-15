@@ -2,10 +2,10 @@
 
 namespace Elastica\Cluster;
 
-use LogicException;
-use RuntimeException;
 use function assert;
 use function current;
+use LogicException;
+use RuntimeException;
 use function sprintf;
 
 class ClusterConfigurationProvider

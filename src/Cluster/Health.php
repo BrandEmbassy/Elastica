@@ -178,11 +178,10 @@ class Health
      */
     protected function _retrieveHealthData(): array
     {
-        $endpoint = new \Elasticsearch\Endpoints\Cluster\Health();
-        $endpoint->setParams(['level' => 'shards']);
+        $esResponse = $this->_client->getConnection()->getClient()->cluster()->health([
+            'level' => 'shards',
+        ]);
 
-        $response = $this->_client->requestEndpoint($endpoint);
-
-        return $response->getData();
+        return $esResponse->asArray();
     }
 }

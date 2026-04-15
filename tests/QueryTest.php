@@ -620,14 +620,6 @@ class QueryTest extends BaseTest
         $this->assertFalse($query->getParam('track_total_hits'));
     }
 
-    public function provideSetTrackTotalHitsInvalidValue(): iterable
-    {
-        yield 'string' => ['string string'];
-        yield 'null' => [null];
-        yield 'object' => [new \stdClass()];
-        yield 'array' => [[]];
-    }
-
     /**
      * @group functional
      * @dataProvider provideSetTrackTotalHitsInvalidValue
@@ -639,6 +631,14 @@ class QueryTest extends BaseTest
         $this->expectException(InvalidException::class);
 
         (new Query())->setTrackTotalHits($value);
+    }
+
+    public function provideSetTrackTotalHitsInvalidValue(): iterable
+    {
+        yield 'string' => ['string string'];
+        yield 'null' => [null];
+        yield 'object' => [new \stdClass()];
+        yield 'array' => [[]];
     }
 
     /**

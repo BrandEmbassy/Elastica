@@ -199,9 +199,9 @@ class MappingTest extends BaseTest
         $mapping = new Mapping([
             'note' => [
                 'properties' => [
-                    'titulo' => ['type' => 'text', 'copy_to' => 'testall', 'boost' => 1.0],
-                    'contenido' => ['type' => 'text', 'copy_to' => 'testall', 'boost' => 1.0],
-                    'testall' => ['type' => 'text',  'boost' => 1.0],
+                    'titulo' => ['type' => 'text', 'copy_to' => 'testall'],
+                    'contenido' => ['type' => 'text', 'copy_to' => 'testall'],
+                    'testall' => ['type' => 'text'],
                 ],
             ],
         ]);

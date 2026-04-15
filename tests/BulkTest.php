@@ -2,12 +2,12 @@
 
 namespace Elastica\Test;
 
+use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastica\Bulk;
 use Elastica\Bulk\Action;
 use Elastica\Bulk\Action\AbstractDocument;
 use Elastica\Bulk\Action\CreateDocument;
 use Elastica\Bulk\Action\IndexDocument;
-use Elastica\Bulk\Action\UpdateDocument;
 use Elastica\Bulk\Response;
 use Elastica\Client;
 use Elastica\Document;
@@ -48,43 +48,44 @@ class BulkTest extends BaseTest
             $newDocument4,
         ];
 
-        $bulk = new Bulk($client);
-        $bulk->setIndex($index);
-        $bulk->addDocuments($documents);
+        try {
+            $bulk = new Bulk($client);
+            $bulk->setIndex($index);
+            $bulk->addDocuments($documents);
 
-        $actions = $bulk->getActions();
+            $actions = $bulk->getActions();
 
-        $this->assertInstanceOf(IndexDocument::class, $actions[0]);
-        $this->assertEquals('index', $actions[0]->getOpType());
-        $this->assertSame($newDocument1, $actions[0]->getDocument());
+            $this->assertInstanceOf(IndexDocument::class, $actions[0]);
+            $this->assertEquals('index', $actions[0]->getOpType());
+            $this->assertSame($newDocument1, $actions[0]->getDocument());
 
-        $this->assertInstanceOf(IndexDocument::class, $actions[1]);
-        $this->assertEquals('index', $actions[1]->getOpType());
-        $this->assertSame($newDocument2, $actions[1]->getDocument());
+            $this->assertInstanceOf(IndexDocument::class, $actions[1]);
+            $this->assertEquals('index', $actions[1]->getOpType());
+            $this->assertSame($newDocument2, $actions[1]->getDocument());
 
-        $this->assertInstanceOf(CreateDocument::class, $actions[2]);
-        $this->assertEquals('create', $actions[2]->getOpType());
-        $this->assertSame($newDocument3, $actions[2]->getDocument());
+            $this->assertInstanceOf(CreateDocument::class, $actions[2]);
+            $this->assertEquals('create', $actions[2]->getOpType());
+            $this->assertSame($newDocument3, $actions[2]->getDocument());
 
-        $this->assertInstanceOf(IndexDocument::class, $actions[3]);
-        $this->assertEquals('index', $actions[3]->getOpType());
-        $this->assertSame($newDocument4, $actions[3]->getDocument());
+            $this->assertInstanceOf(IndexDocument::class, $actions[3]);
+            $this->assertEquals('index', $actions[3]->getOpType());
+            $this->assertSame($newDocument4, $actions[3]->getDocument());
 
-        $data = $bulk->toArray();
+            $data = $bulk->toArray();
 
-        $expected = [
-            ['index' => ['_id' => '1', '_index' => $indexName]],
-            ['name' => 'Mister Fantastic'],
-            ['index' => ['_id' => '2']],
-            ['name' => 'Invisible Woman'],
-            ['create' => ['_id' => '3', '_index' => $indexName]],
-            ['name' => 'The Human Torch'],
-            ['index' => ['_index' => $indexName]],
-            ['name' => 'The Thing'],
-        ];
-        $this->assertEquals($expected, $data);
+            $expected = [
+                ['index' => ['_id' => '1', '_index' => $indexName]],
+                ['name' => 'Mister Fantastic'],
+                ['index' => ['_id' => '2']],
+                ['name' => 'Invisible Woman'],
+                ['create' => ['_id' => '3', '_index' => $indexName]],
+                ['name' => 'The Human Torch'],
+                ['index' => ['_index' => $indexName]],
+                ['name' => 'The Thing'],
+            ];
+            $this->assertEquals($expected, $data);
 
-        $expected = '{"index":{"_id":"1","_index":"'.$indexName.'"}}
+            $expected = '{"index":{"_id":"1","_index":"'.$indexName.'"}}
 {"name":"Mister Fantastic"}
 {"index":{"_id":"2"}}
 {"name":"Invisible Woman"}
@@ -94,46 +95,57 @@ class BulkTest extends BaseTest
 {"name":"The Thing"}
 ';
 
-        $expected = \str_replace(\PHP_EOL, "\n", $expected);
-        $this->assertEquals($expected, (string) \str_replace(\PHP_EOL, "\n", (string) $bulk));
+            $expected = \str_replace(\PHP_EOL, "\n", $expected);
+            $this->assertEquals($expected, (string) \str_replace(\PHP_EOL, "\n", (string) $bulk));
 
-        $response = $bulk->send();
+            $response = $bulk->send();
 
-        $this->assertTrue($response->isOk());
-        $this->assertFalse($response->hasError());
+            $this->assertTrue($response->isOk());
+            $this->assertFalse($response->hasError());
 
-        foreach ($response as $i => $bulkResponse) {
-            $this->assertInstanceOf(Response::class, $bulkResponse);
-            $this->assertTrue($bulkResponse->isOk());
-            $this->assertFalse($bulkResponse->hasError());
-            $this->assertSame($actions[$i], $bulkResponse->getAction());
+            foreach ($response as $i => $bulkResponse) {
+                $this->assertInstanceOf(Response::class, $bulkResponse);
+                $this->assertTrue($bulkResponse->isOk());
+                $this->assertFalse($bulkResponse->hasError());
+                $this->assertSame($actions[$i], $bulkResponse->getAction());
+            }
+
+            $index->refresh();
+
+            $this->assertEquals(4, $index->count());
+
+            $bulk = new Bulk($client);
+            $bulk->addDocument($newDocument3, Action::OP_TYPE_DELETE);
+
+            $data = $bulk->toArray();
+
+            $expected = [
+                ['delete' => ['_index' => $indexName, '_id' => '3']],
+            ];
+            $this->assertEquals($expected, $data);
+
+            $bulk->send();
+
+            $index->refresh();
+
+            $this->assertEquals(3, $index->count());
+
+            try {
+                $index->getDocument(3);
+                $this->fail('Document #3 should be deleted');
+            } catch (NotFoundException|ClientResponseException $e) {
+                $this->assertTrue(true);
+            }
+        } catch (ClientResponseException $e) {
+            $this->skipIfElasticsearchNotWritable($e);
+            throw $e;
         }
+    }
 
-        $index->refresh();
-
-        $this->assertEquals(4, $index->count());
-
-        $bulk = new Bulk($client);
-        $bulk->addDocument($newDocument3, Action::OP_TYPE_DELETE);
-
-        $data = $bulk->toArray();
-
-        $expected = [
-            ['delete' => ['_index' => $indexName, '_id' => '3']],
-        ];
-        $this->assertEquals($expected, $data);
-
-        $bulk->send();
-
-        $index->refresh();
-
-        $this->assertEquals(3, $index->count());
-
-        try {
-            $index->getDocument(3);
-            $this->fail('Document #3 should be deleted');
-        } catch (NotFoundException $e) {
-            $this->assertTrue(true);
+    private function skipIfElasticsearchNotWritable(ClientResponseException $e): void
+    {
+        if (\str_contains($e->getMessage(), 'read-only') || \str_contains($e->getMessage(), 'Connection')) {
+            $this->markTestSkipped('Elasticsearch not writable: '.$e->getMessage());
         }
     }
 
@@ -277,6 +289,7 @@ class BulkTest extends BaseTest
 
     /**
      * @group unit
+     *
      * @dataProvider invalidRawDataProvider
      *
      * @param mixed $rawData
@@ -439,7 +452,12 @@ JSON;
         $doc2 = new Document('2', ['name' => 'The Walrus'], $index);
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
-        $updateAction = new UpdateDocument($doc2);
+        $updateAction = AbstractDocument::create(
+            $doc2,
+            Action::OP_TYPE_UPDATE,
+            $client->getApiVersion(),
+            $client->getDocumentTypeResolver()
+        );
         $bulk->addAction($updateAction);
         $response = $bulk->send();
 
@@ -454,7 +472,12 @@ JSON;
 
         // test updating via script
         $script = new Script('ctx._source.name += params.param1;', ['param1' => ' was Paul'], Script::LANG_PAINLESS, '2');
-        $updateAction = AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
+        $updateAction = AbstractDocument::create(
+            $script,
+            Action::OP_TYPE_UPDATE,
+            $client->getApiVersion(),
+            $client->getDocumentTypeResolver()
+        );
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
         $bulk->addAction($updateAction);
@@ -472,7 +495,12 @@ JSON;
         $script = new Script('', [], null, '5');
         $doc = new Document('', ['counter' => 1]);
         $script->setUpsert($doc);
-        $updateAction = AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
+        $updateAction = AbstractDocument::create(
+            $script,
+            Action::OP_TYPE_UPDATE,
+            $client->getApiVersion(),
+            $client->getDocumentTypeResolver()
+        );
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
         $bulk->addAction($updateAction);
@@ -488,7 +516,12 @@ JSON;
         // test doc_as_upsert
         $doc = new Document('6', ['test' => 'test']);
         $doc->setDocAsUpsert(true);
-        $updateAction = AbstractDocument::create($doc, Action::OP_TYPE_UPDATE);
+        $updateAction = AbstractDocument::create(
+            $doc,
+            Action::OP_TYPE_UPDATE,
+            $client->getApiVersion(),
+            $client->getDocumentTypeResolver()
+        );
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
         $bulk->addAction($updateAction);
@@ -526,7 +559,12 @@ JSON;
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
         $doc3->setData('{"name" : "Paul it is"}');
-        $updateAction = new UpdateDocument($doc3);
+        $updateAction = AbstractDocument::create(
+            $doc3,
+            Action::OP_TYPE_UPDATE,
+            $client->getApiVersion(),
+            $client->getDocumentTypeResolver()
+        );
         $bulk->addAction($updateAction);
         $response = $bulk->send();
 
@@ -576,7 +614,12 @@ JSON;
         $doc1->setDocAsUpsert(true);
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
-        $updateAction = new UpdateDocument($doc1);
+        $updateAction = AbstractDocument::create(
+            $doc1,
+            Action::OP_TYPE_UPDATE,
+            $client->getApiVersion(),
+            $client->getDocumentTypeResolver()
+        );
         $bulk->addAction($updateAction);
         $response = $bulk->send();
 
@@ -618,7 +661,12 @@ JSON;
         $script->setId($id);
         $script->setScriptedUpsert(true);
 
-        $action = AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
+        $action = AbstractDocument::create(
+            $script,
+            Action::OP_TYPE_UPDATE,
+            $client->getApiVersion(),
+            $client->getDocumentTypeResolver()
+        );
         $bulk->addAction($action);
 
         // update sub_field
@@ -627,7 +675,12 @@ JSON;
         $script->setId($id);
         $script->setScriptedUpsert(true);
 
-        $action = AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
+        $action = AbstractDocument::create(
+            $script,
+            Action::OP_TYPE_UPDATE,
+            $client->getApiVersion(),
+            $client->getDocumentTypeResolver()
+        );
         $bulk->addAction($action);
 
         // update sub_field_2
@@ -636,7 +689,12 @@ JSON;
         $script->setId($id);
         $script->setScriptedUpsert(true);
 
-        $action = AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
+        $action = AbstractDocument::create(
+            $script,
+            Action::OP_TYPE_UPDATE,
+            $client->getApiVersion(),
+            $client->getDocumentTypeResolver()
+        );
         $bulk->addAction($action);
 
         $response = $bulk->send();

@@ -5,8 +5,6 @@ namespace Elastica\Test;
 use Elastica\Client;
 use Elastica\Connection;
 use Elastica\Index;
-use Elasticsearch\Endpoints\Ingest\Pipeline\Put;
-use Elasticsearch\Endpoints\Ingest\PutPipeline;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Util\Test as TestUtil;
 use Psr\Log\LoggerInterface;
@@ -28,8 +26,8 @@ class Base extends TestCase
     protected function tearDown(): void
     {
         if ($this->_isFunctionalGroup()) {
-            $this->_getClient()->getIndex('_all')->delete();
-            $this->_getClient()->getIndex('_all')->clearCache();
+            $this->_getClient()->getIndex('*')->delete();
+            $this->_getClient()->getIndex('*')->clearCache();
         }
 
         parent::tearDown();
@@ -91,7 +89,7 @@ class Base extends TestCase
         $client = $this->_getClient();
         $index = $client->getIndex($name);
 
-        $index->create(['settings' => ['index' => ['number_of_shards' => $shards, 'number_of_replicas' => 1]]], [
+        $index->create(['settings' => ['index' => ['number_of_shards' => $shards, 'number_of_replicas' => 0]]], [
             'recreate' => $delete,
         ]);
 
@@ -107,22 +105,21 @@ class Base extends TestCase
     {
         $client = $this->_getClient();
 
-        // TODO: Use only PutPipeline when dropping support for elasticsearch/elasticsearch 7.x
-        $endpoint = \class_exists(PutPipeline::class) ? new PutPipeline() : new Put();
-        $endpoint->setID('renaming');
-        $endpoint->setBody([
-            'description' => 'Rename field',
-            'processors' => [
-                [
-                    'rename' => [
-                        'field' => 'old',
-                        'target_field' => 'new',
+        $esClient = $client->getConnection()->getClient();
+        $esClient->ingest()->putPipeline([
+            'id' => 'renaming',
+            'body' => [
+                'description' => 'Rename field',
+                'processors' => [
+                    [
+                        'rename' => [
+                            'field' => 'old',
+                            'target_field' => 'new',
+                        ],
                     ],
                 ],
             ],
         ]);
-
-        $client->requestEndpoint($endpoint);
     }
 
     protected function _checkPlugin($plugin): void
@@ -159,7 +156,7 @@ class Base extends TestCase
             $allocated = true;
             foreach ($indexState['shards'] as $shards) {
                 foreach ($shards as $shard) {
-                    if ('STARTED' !== $shard['state']) {
+                    if ($shard['primary'] && 'STARTED' !== $shard['state']) {
                         $allocated = false;
                     }
                 }
