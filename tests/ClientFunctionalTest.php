@@ -884,6 +884,7 @@ class ClientFunctionalTest extends BaseTest
         /** @var LoggerInterface&MockObject $logger */
         $logger = $this->createMock(LoggerInterface::class);
         $client = $this->_getClient([], null, $logger);
+        $client->setLoggingMode(Client::LOG_BASIC | Client::LOG_REQUEST_BODY | Client::LOG_RESPONSE_BODY);
 
         $logger->expects($this->once())
             ->method('debug')
