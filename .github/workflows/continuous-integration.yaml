@@ -28,7 +28,10 @@ jobs:
           composer-normalize --diff --dry-run --indent-size=4 --indent-style=space --no-update-lock
 
   phpunit:
-    runs-on: 'ubuntu-latest'
+    # 22.04 (not latest/24.04): the ES 7.15.2 docker cluster used by the
+    # functional tests fails to start on 24.04; 22.04 is supported and matches
+    # the previous 20.04 behaviour.
+    runs-on: 'ubuntu-22.04'
     name: 'PHPUnit (PHP ${{ matrix.php }}, ES ${{ matrix.elasticsearch }})'
     timeout-minutes: 10
     strategy:
