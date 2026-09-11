@@ -27,6 +27,8 @@ class Response
      */
     protected $_responseString = '';
 
+    protected ?int $_responseSizeInBytes = null;
+
     /**
      * Transfer info.
      *
@@ -67,8 +69,19 @@ class Response
             $this->_response = $responseString;
         } else {
             $this->_responseString = $responseString;
+            $this->_responseSizeInBytes = \strlen($responseString);
         }
         $this->_status = $responseStatus;
+    }
+
+    public function getResponseSizeInBytes(): int
+    {
+        if (null === $this->_responseSizeInBytes) {
+            $encodedResponse = \json_encode($this->_response);
+            $this->_responseSizeInBytes = false === $encodedResponse ? 0 : \strlen($encodedResponse);
+        }
+
+        return $this->_responseSizeInBytes;
     }
 
     /**
