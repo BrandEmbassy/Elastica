@@ -680,7 +680,7 @@ class Client
 
     public function getApiVersion(): int
     {
-        return $this->getConfigValue('apiVersion');
+        return $this->getConfigValue('apiVersion', ApiVersion::API_VERSION_7);
     }
 
     public function getDocumentTypeResolver(): \Closure
