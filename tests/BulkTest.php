@@ -277,10 +277,8 @@ class BulkTest extends BaseTest
 
     /**
      * @group unit
-     * @dataProvider invalidRawDataProvider
      *
-     * @param mixed $rawData
-     * @param mixed $failMessage
+     * @dataProvider invalidRawDataProvider
      */
     public function testInvalidRawData($rawData, $failMessage): void
     {
@@ -439,7 +437,7 @@ JSON;
         $doc2 = new Document('2', ['name' => 'The Walrus'], $index);
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
-        $updateAction = new UpdateDocument($doc2);
+        $updateAction = new UpdateDocument($doc2, $client->getApiVersion(), $client->getDocumentTypeResolver());
         $bulk->addAction($updateAction);
         $response = $bulk->send();
 
@@ -454,7 +452,7 @@ JSON;
 
         // test updating via script
         $script = new Script('ctx._source.name += params.param1;', ['param1' => ' was Paul'], Script::LANG_PAINLESS, '2');
-        $updateAction = AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
+        $updateAction = AbstractDocument::create($script, Action::OP_TYPE_UPDATE, $client->getApiVersion(), $client->getDocumentTypeResolver());
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
         $bulk->addAction($updateAction);
@@ -472,7 +470,7 @@ JSON;
         $script = new Script('', [], null, '5');
         $doc = new Document('', ['counter' => 1]);
         $script->setUpsert($doc);
-        $updateAction = AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
+        $updateAction = AbstractDocument::create($script, Action::OP_TYPE_UPDATE, $client->getApiVersion(), $client->getDocumentTypeResolver());
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
         $bulk->addAction($updateAction);
@@ -488,7 +486,7 @@ JSON;
         // test doc_as_upsert
         $doc = new Document('6', ['test' => 'test']);
         $doc->setDocAsUpsert(true);
-        $updateAction = AbstractDocument::create($doc, Action::OP_TYPE_UPDATE);
+        $updateAction = AbstractDocument::create($doc, Action::OP_TYPE_UPDATE, $client->getApiVersion(), $client->getDocumentTypeResolver());
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
         $bulk->addAction($updateAction);
@@ -526,7 +524,7 @@ JSON;
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
         $doc3->setData('{"name" : "Paul it is"}');
-        $updateAction = new UpdateDocument($doc3);
+        $updateAction = new UpdateDocument($doc3, $client->getApiVersion(), $client->getDocumentTypeResolver());
         $bulk->addAction($updateAction);
         $response = $bulk->send();
 
@@ -576,7 +574,7 @@ JSON;
         $doc1->setDocAsUpsert(true);
         $bulk = new Bulk($client);
         $bulk->setIndex($index);
-        $updateAction = new UpdateDocument($doc1);
+        $updateAction = new UpdateDocument($doc1, $client->getApiVersion(), $client->getDocumentTypeResolver());
         $bulk->addAction($updateAction);
         $response = $bulk->send();
 
@@ -618,7 +616,7 @@ JSON;
         $script->setId($id);
         $script->setScriptedUpsert(true);
 
-        $action = AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
+        $action = AbstractDocument::create($script, Action::OP_TYPE_UPDATE, $client->getApiVersion(), $client->getDocumentTypeResolver());
         $bulk->addAction($action);
 
         // update sub_field
@@ -627,7 +625,7 @@ JSON;
         $script->setId($id);
         $script->setScriptedUpsert(true);
 
-        $action = AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
+        $action = AbstractDocument::create($script, Action::OP_TYPE_UPDATE, $client->getApiVersion(), $client->getDocumentTypeResolver());
         $bulk->addAction($action);
 
         // update sub_field_2
@@ -636,7 +634,7 @@ JSON;
         $script->setId($id);
         $script->setScriptedUpsert(true);
 
-        $action = AbstractDocument::create($script, Action::OP_TYPE_UPDATE);
+        $action = AbstractDocument::create($script, Action::OP_TYPE_UPDATE, $client->getApiVersion(), $client->getDocumentTypeResolver());
         $bulk->addAction($action);
 
         $response = $bulk->send();
