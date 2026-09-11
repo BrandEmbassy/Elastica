@@ -3,9 +3,7 @@
 namespace Elastica\Bulk\Action;
 
 use Elastica\AbstractUpdateAction;
-use Elastica\ApiVersion;
 use Elastica\Document;
-use Elastica\Type;
 
 class IndexDocument extends AbstractDocument
 {

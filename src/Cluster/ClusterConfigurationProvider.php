@@ -1,12 +1,11 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace Elastica\Cluster;
 
 use LogicException;
 use RuntimeException;
-use function assert;
-use function current;
-use function sprintf;
 
 class ClusterConfigurationProvider
 {
@@ -15,7 +14,6 @@ class ClusterConfigurationProvider
      */
     private array $clusterConfigurations;
 
-
     /**
      * @param ClusterConfiguration[] $clusterConfigurations
      */
@@ -23,13 +21,12 @@ class ClusterConfigurationProvider
     {
         foreach ($clusterConfigurations as $clusterConfiguration) {
             if (!$clusterConfiguration instanceof ClusterConfiguration) {
-                $message = sprintf('Cluster configuration is not instance of %s', ClusterConfiguration::class);
+                $message = \sprintf('Cluster configuration is not instance of %s', ClusterConfiguration::class);
                 throw new LogicException($message);
             }
         }
         $this->clusterConfigurations = $clusterConfigurations;
     }
-
 
     /**
      * @return ClusterConfiguration[]
@@ -39,7 +36,6 @@ class ClusterConfigurationProvider
         return $this->clusterConfigurations;
     }
 
-
     public function getFirstConfigurationWithMatchingVersion(int $elasticSearchVersion): ClusterConfiguration
     {
         foreach ($this->clusterConfigurations as $configuration) {
@@ -48,12 +44,8 @@ class ClusterConfigurationProvider
             }
         }
 
-        throw new RuntimeException(sprintf(
-            'No cluster configuration with elastic search version %d was found',
-            $elasticSearchVersion,
-        ));
+        throw new RuntimeException(\sprintf('No cluster configuration with elastic search version %d was found', $elasticSearchVersion));
     }
-
 
     public function hasClusterConfiguration(string $clusterId): bool
     {
@@ -65,7 +57,6 @@ class ClusterConfigurationProvider
 
         return false;
     }
-
 
     public function getClusterConfiguration(string $clusterId, bool $throwIfNotFound = false): ClusterConfiguration
     {
@@ -79,8 +70,8 @@ class ClusterConfigurationProvider
             }
         }
 
-        $firstConfiguration = current($this->clusterConfigurations);
-        assert($firstConfiguration instanceof ClusterConfiguration);
+        $firstConfiguration = \current($this->clusterConfigurations);
+        \assert($firstConfiguration instanceof ClusterConfiguration);
 
         return $firstConfiguration;
     }

@@ -884,11 +884,12 @@ class ClientFunctionalTest extends BaseTest
         /** @var LoggerInterface&MockObject $logger */
         $logger = $this->createMock(LoggerInterface::class);
         $client = $this->_getClient([], null, $logger);
+        $client->setLoggingMode(Client::LOG_BASIC | Client::LOG_REQUEST_BODY | Client::LOG_RESPONSE_BODY);
 
         $logger->expects($this->once())
             ->method('debug')
             ->with(
-                'Elastica Request',
+                $this->stringStartsWith('Elastica Request'),
                 $this->logicalAnd(
                     $this->arrayHasKey('request'),
                     $this->arrayHasKey('response'),
@@ -913,7 +914,7 @@ class ClientFunctionalTest extends BaseTest
         $logger->expects($this->once())
             ->method('error')
             ->with(
-                'Elastica Request Failure',
+                $this->stringStartsWith('Elastica Request Failure'),
                 $this->logicalAnd(
                     $this->arrayHasKey('exception'),
                     $this->arrayHasKey('request'),

@@ -74,18 +74,11 @@ class Action
         return $string;
     }
 
-    /**
-     * @return int
-     */
     public function getApiVersion(): int
     {
         return $this->apiVersion;
     }
 
-
-    /**
-     * @param int $apiVersion
-     */
     public function setApiVersion(int $apiVersion): void
     {
         $this->apiVersion = $apiVersion;

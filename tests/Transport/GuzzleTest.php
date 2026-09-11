@@ -15,7 +15,7 @@ class GuzzleTest extends BaseTest
 {
     public static function setUpbeforeClass(): void
     {
-        if (!\class_exists('GuzzleHttp\\Client')) {
+        if (!\class_exists('GuzzleHttp\Client')) {
             self::markTestSkipped('guzzlehttp/guzzle package should be installed to run guzzle transport tests');
         }
     }
@@ -121,7 +121,7 @@ class GuzzleTest extends BaseTest
         $response = $index->request('/_search', 'POST');
 
         $builder = new DefaultBuilder();
-        $resultSet = $builder->buildResultSet($response, Query::create([]));
+        $resultSet = $builder->buildResultSet($response, Query::create([]), $index->getClient()->getApiVersion());
 
         $this->assertEquals(1, $resultSet->getTotalHits());
     }
