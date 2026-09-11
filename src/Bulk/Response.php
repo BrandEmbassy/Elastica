@@ -2,6 +2,7 @@
 
 namespace Elastica\Bulk;
 
+use Elastica\ApiVersion;
 use Elastica\Response as BaseResponse;
 
 class Response extends BaseResponse
@@ -21,7 +22,7 @@ class Response extends BaseResponse
     /**
      * @param array|string $responseData
      */
-    public function __construct($responseData, Action $action, string $opType, int $apiVersion)
+    public function __construct($responseData, Action $action, string $opType, int $apiVersion = ApiVersion::API_VERSION_7)
     {
         parent::__construct($responseData);
 
