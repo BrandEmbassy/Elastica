@@ -171,7 +171,7 @@ class HttpTest extends BaseTest
         $response = $index->request('/_search', 'POST');
 
         $builder = new DefaultBuilder();
-        $resultSet = $builder->buildResultSet($response, Query::create([]));
+        $resultSet = $builder->buildResultSet($response, Query::create([]), $index->getClient()->getApiVersion());
 
         $this->assertEquals(1, $resultSet->getTotalHits());
     }

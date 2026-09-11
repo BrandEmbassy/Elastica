@@ -17,7 +17,7 @@ class AwsAuthV4 extends Guzzle
     protected function _getGuzzleClient(bool $persistent = true): Client
     {
         if (!$persistent || !self::$_guzzleClientConnection) {
-            $stack = HandlerStack::create(GuzzleHttp\choose_handler());
+            $stack = HandlerStack::create(GuzzleHttp\Utils::chooseHandler());
             $stack->push($this->getSigningMiddleware(), 'sign');
 
             self::$_guzzleClientConnection = new Client([

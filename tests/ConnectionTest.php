@@ -10,6 +10,7 @@ use Elastica\Request;
 use Elastica\Test\Base as BaseTest;
 use Elastica\Transport\AbstractTransport;
 use Elastica\Transport\Http;
+use Psr\Log\NullLogger;
 
 /**
  * @internal
@@ -25,7 +26,7 @@ class ConnectionTest extends BaseTest
         $this->assertEquals(Connection::DEFAULT_HOST, $connection->getHost());
         $this->assertEquals(Connection::DEFAULT_PORT, $connection->getPort());
         $this->assertEquals(Connection::DEFAULT_TRANSPORT, $connection->getTransport());
-        $this->assertInstanceOf(AbstractTransport::class, $connection->getTransportObject());
+        $this->assertInstanceOf(AbstractTransport::class, $connection->getTransportObject(new NullLogger(), false));
         $this->assertEquals(Connection::TIMEOUT, $connection->getTimeout());
         $this->assertEquals(Connection::CONNECT_TIMEOUT, $connection->getConnectTimeout());
         $this->assertEquals([], $connection->getConfig());
@@ -105,7 +106,7 @@ class ConnectionTest extends BaseTest
     public function testGetConfigWithArrayUsedForTransport(): void
     {
         $connection = new Connection(['transport' => ['type' => 'Http']]);
-        $this->assertInstanceOf(Http::class, $connection->getTransportObject());
+        $this->assertInstanceOf(Http::class, $connection->getTransportObject(new NullLogger(), false));
     }
 
     /**
@@ -117,7 +118,7 @@ class ConnectionTest extends BaseTest
         $this->expectExceptionMessage('Invalid transport');
 
         $connection = new Connection(['transport' => ['type' => 'invalidtransport']]);
-        $connection->getTransportObject();
+        $connection->getTransportObject(new NullLogger(), false);
     }
 
     /**

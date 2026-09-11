@@ -2,6 +2,7 @@
 
 namespace Elastica\Test\ResultSet;
 
+use Elastica\ApiVersion;
 use Elastica\Query;
 use Elastica\Response;
 use Elastica\ResultSet;
@@ -46,11 +47,11 @@ class ProcessingBuilderTest extends BaseTest
     {
         $response = new Response('');
         $query = new Query();
-        $resultSet = new ResultSet($response, $query, []);
+        $resultSet = new ResultSet($response, $query, [], ApiVersion::API_VERSION_7);
 
         $this->innerBuilder->expects($this->once())
             ->method('buildResultSet')
-            ->with($response, $query)
+            ->with($response, $query, ApiVersion::API_VERSION_7)
             ->willReturn($resultSet)
         ;
         $this->processor->expects($this->once())
@@ -58,6 +59,6 @@ class ProcessingBuilderTest extends BaseTest
             ->with($resultSet)
         ;
 
-        $this->builder->buildResultSet($response, $query);
+        $this->builder->buildResultSet($response, $query, ApiVersion::API_VERSION_7);
     }
 }

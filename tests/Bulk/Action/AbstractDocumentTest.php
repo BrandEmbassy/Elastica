@@ -2,9 +2,11 @@
 
 namespace Elastica\Test\Bulk\Action;
 
+use Elastica\ApiVersion;
 use Elastica\Bulk\Action\AbstractDocument;
 use Elastica\Script\Script;
 use Elastica\Test\Base as BaseTest;
+use Elastica\Type;
 
 /**
  * @internal
@@ -19,7 +21,7 @@ class AbstractDocumentTest extends BaseTest
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('The data needs to be a Document or a Script.');
 
-        AbstractDocument::create(new \stdClass(), null);
+        AbstractDocument::create(new \stdClass(), null, ApiVersion::API_VERSION_7, static fn (): string => Type::DOC);
     }
 
     /**
@@ -30,6 +32,6 @@ class AbstractDocumentTest extends BaseTest
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Scripts can only be used with the update operation type.');
 
-        AbstractDocument::create(new Script('foobar'), AbstractDocument::OP_TYPE_CREATE);
+        AbstractDocument::create(new Script('foobar'), AbstractDocument::OP_TYPE_CREATE, ApiVersion::API_VERSION_7, static fn (): string => Type::DOC);
     }
 }

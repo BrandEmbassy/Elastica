@@ -137,7 +137,7 @@ abstract class AbstractTransport extends Param
             $classNames = ["Elastica\\Transport\\{$transport}", $transport];
             foreach ($classNames as $className) {
                 if (\class_exists($className)) {
-                    if ($transport === 'Https' || $transport === 'Http') {
+                    if ('Https' === $transport || 'Http' === $transport) {
                         $transport = new $className($connection, $logger, $isRetryFeatureEnabled);
                     } else {
                         $transport = new $className();

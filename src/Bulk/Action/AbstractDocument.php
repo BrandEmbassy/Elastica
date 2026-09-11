@@ -128,8 +128,7 @@ abstract class AbstractDocument extends Action
         ?string $opType,
         int $apiVersion,
         Closure $documentTypeResolver
-    ): self
-    {
+    ): self {
         // Check type
         if (!$data instanceof Document && !$data instanceof AbstractScript) {
             throw new \InvalidArgumentException('The data needs to be a Document or a Script.');
@@ -166,8 +165,9 @@ abstract class AbstractDocument extends Action
 
     abstract protected function _getMetadata(AbstractUpdateAction $source): array;
 
-    protected function handleMetadataByApiVersion(array $metadata): array {
-        if ($this->apiVersion === ApiVersion::API_VERSION_6) {
+    protected function handleMetadataByApiVersion(array $metadata): array
+    {
+        if (ApiVersion::API_VERSION_6 === $this->apiVersion) {
             // @see https://github.com/BrandEmbassy/platform-backend/blob/206169d2c8b69a48ce7b59dab1cf6f5159621df0/application/src/BE/ElasticSearch/Index/Index.php#L73-L80
             $metadata['_type'] = ($this->documentTypeResolver)($metadata['_index']);
         }

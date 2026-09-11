@@ -3,8 +3,6 @@
 namespace Elastica\Bulk\Action;
 
 use Elastica\AbstractUpdateAction;
-use Elastica\ApiVersion;
-use Elastica\Type;
 
 class DeleteDocument extends AbstractDocument
 {

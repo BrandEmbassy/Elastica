@@ -2,7 +2,6 @@
 
 namespace Elastica;
 
-use Closure;
 use Elastica\Bulk\Action;
 use Elastica\Bulk\ResponseSet;
 use Elastica\Elasticsearch\Endpoints\Update;
@@ -62,9 +61,6 @@ class Client
      */
     protected $_lastResponse;
 
-    /**
-     * @var LoggerInterface
-     */
     protected LoggerInterface $logger;
 
     /**
@@ -73,10 +69,9 @@ class Client
     protected $_version;
 
     /**
-     * @var null|RequestCounterInterface
+     * @var RequestCounterInterface|null
      */
     private $requestCounter;
-
 
     private int $loggingMode = self::LOG_BASIC;
 
@@ -84,23 +79,22 @@ class Client
 
     private int $slowRequestThresholdMs;
 
-
     /**
      * Creates a new Elastica client.
      *
-     * @param array|string  $config   OPTIONAL Additional config or DSN of options
-     * @param callable|null $callback OPTIONAL Callback function which can be used to be notified about errors (for example connection down)
+     * @param array|string  $config                 OPTIONAL Additional config or DSN of options
+     * @param callable|null $callback               OPTIONAL Callback function which can be used to be notified about errors (for example connection down)
      * @param int           $slowRequestThresholdMs OPTIONAL Threshold in milliseconds for slow request logging (default: 500)
      *
      * @throws InvalidException
      */
     public function __construct(
-        array $config = [],
+        $config = [],
         $callback = null,
         ?LoggerInterface $logger = null,
         ?RequestCounterInterface $requestCounter = null,
         bool $isRetryFeatureEnabled = false,
-        int $slowRequestThresholdMs = self::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS
+        int $slowRequestThresholdMs = self::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS,
     ) {
         if (\is_string($config)) {
             $configuration = ClientConfiguration::fromDsn($config);
@@ -127,22 +121,22 @@ class Client
 
     public function shouldLog(): bool
     {
-        return $this->loggingMode & self::LOG_BASIC;
+        return ($this->loggingMode & self::LOG_BASIC) !== 0;
     }
 
     public function shouldLogRequestBody(): bool
     {
-        return $this->loggingMode & self::LOG_REQUEST_BODY;
+        return ($this->loggingMode & self::LOG_REQUEST_BODY) !== 0;
     }
 
     public function shouldLogResponseBody(): bool
     {
-        return $this->loggingMode & self::LOG_RESPONSE_BODY;
+        return ($this->loggingMode & self::LOG_RESPONSE_BODY) !== 0;
     }
 
     public function shouldLogSlowRequests(): bool
     {
-        return $this->loggingMode & self::LOG_SLOW_REQUESTS;
+        return ($this->loggingMode & self::LOG_SLOW_REQUESTS) !== 0;
     }
 
     private function isSlow(int $elapsedTimeMs): bool
@@ -157,7 +151,7 @@ class Client
         int $elapsedTimeMs,
         Request $request,
         Response $response,
-        array $tags
+        array $tags,
     ): void {
         $context = [
             'tags' => $tags,
@@ -172,7 +166,7 @@ class Client
         }
 
         $this->logger->warning(
-            sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            \sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
             $context
         );
     }
@@ -184,7 +178,7 @@ class Client
         int $elapsedTimeMs,
         Request $request,
         Response $response,
-        array $tags
+        array $tags,
     ): void {
         $context = [
             'tags' => $tags,
@@ -201,7 +195,7 @@ class Client
         }
 
         $this->logger->debug(
-            sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
+            \sprintf('Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
             $context
         );
     }
@@ -259,8 +253,6 @@ class Client
     /**
      * @param array|string $keys    config key or path of config keys
      * @param mixed        $default default value will be returned if key was not found
-     *
-     * @return mixed
      */
     public function getConfigValue($keys, $default = null)
     {
@@ -412,7 +404,7 @@ class Client
                 'timeout',
             ];
 
-            if ($this->getApiVersion() === ApiVersion::API_VERSION_6) {
+            if (ApiVersion::API_VERSION_6 === $this->getApiVersion()) {
                 // @see https://github.com/ruflin/Elastica/pull/1803/files
                 $optionWhitelist[] = 'version';
             }
@@ -537,7 +529,7 @@ class Client
     }
 
     /**
-     * @return \Elastica\Connection\Strategy\StrategyInterface
+     * @return Connection\Strategy\StrategyInterface
      */
     public function getConnectionStrategy()
     {
@@ -645,21 +637,21 @@ class Client
         $request = $this->_lastRequest = new Request($path, $method, $data, $query, $connection, $contentType, $this->logger, $this->isRetryFeatureEnabled);
         $this->_lastResponse = null;
 
-        $requestName = sprintf('[%s]', $tags === [] ? 'untagged' : implode('.', $tags));
+        $requestName = \sprintf('[%s]', [] === $tags ? 'untagged' : \implode('.', $tags));
 
-        if ($this->requestCounter !== null) {
+        if (null !== $this->requestCounter) {
             $this->requestCounter->incrementCount();
-            $requestName = sprintf('#%02d %s', $this->requestCounter->getCount(), $requestName);
+            $requestName = \sprintf('#%02d %s', $this->requestCounter->getCount(), $requestName);
         }
 
         try {
             $response = $this->_lastResponse = $request->send();
         } catch (ConnectionException $e) {
             $this->_connectionPool->onFail($connection, $e, $this);
-            $this->logger->error(sprintf('Elastica Request Failure %s', $requestName), [
+            $this->logger->error(\sprintf('Elastica Request Failure %s', $requestName), [
                 'tags' => $tags,
                 'exception' => $e,
-                'request' => (string)$e->getRequest(),
+                'request' => (string) $e->getRequest(),
                 'retry' => $this->hasConnection(),
             ]);
 
@@ -671,7 +663,7 @@ class Client
             return $this->request($path, $method, $data, $query);
         }
 
-        $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
+        $elapsedTimeMs = (int) \round($response->getQueryTime() * 1000);
 
         if ($this->shouldLogSlowRequests() && $this->isSlow($elapsedTimeMs)) {
             $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
@@ -686,12 +678,14 @@ class Client
         return $response;
     }
 
-    public function getApiVersion(): int {
-        return $this->getConfigValue('apiVersion');
+    public function getApiVersion(): int
+    {
+        return $this->getConfigValue('apiVersion', ApiVersion::API_VERSION_7);
     }
 
-    public function getDocumentTypeResolver(): Closure {
-        return $this->getConfigValue('documentTypeResolver', static fn() => Type::DOC);
+    public function getDocumentTypeResolver(): \Closure
+    {
+        return $this->getConfigValue('documentTypeResolver', static fn () => Type::DOC);
     }
 
     /**
@@ -701,9 +695,9 @@ class Client
      */
     public function requestEndpoint(AbstractEndpoint $endpoint, array $tags = []): Response
     {
-        if ($this->getApiVersion() === ApiVersion::API_VERSION_6) {
+        if (ApiVersion::API_VERSION_6 === $this->getApiVersion()) {
             $index = $endpoint->getIndex();
-            if ($index !== null) {
+            if (null !== $index) {
                 $endpoint->setType(($this->getDocumentTypeResolver())($endpoint->getIndex()));
             }
         }
