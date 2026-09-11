@@ -6,7 +6,7 @@ jobs:
     name: 'Coding style'
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@v2'
+        uses: 'actions/checkout@v4'
 
       - name: 'Setup PHP'
         uses: 'shivammathur/setup-php@v2'
@@ -41,7 +41,7 @@ jobs:
       fail-fast: false
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@v2'
+        uses: 'actions/checkout@v4'
 
       - name: 'Setup PHP'
         uses: 'shivammathur/setup-php@v2'
@@ -57,7 +57,7 @@ jobs:
           echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: 'Cache dependencies'
-        uses: 'actions/cache@v2'
+        uses: 'actions/cache@v4'
         with:
           path: '${{ steps.composer_cache.outputs.dir }}'
           key: '${{ runner.os }}-composer-php${{ matrix.php }}-${{ hashFiles(''**/composer.json'') }}'
@@ -88,7 +88,7 @@ jobs:
           vendor/bin/phpunit --group functional --coverage-clover=build/coverage/functional-coverage.xml
 
       - name: 'Upload coverage to Codecov'
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v4
         with:
             files: build/coverage/unit-coverage.xml,build/coverage/functional-coverage.xml
 
@@ -105,7 +105,7 @@ jobs:
       fail-fast: false
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@v2'
+        uses: 'actions/checkout@v4'
 
       - name: 'Setup PHP'
         uses: 'shivammathur/setup-php@v2'
@@ -121,7 +121,7 @@ jobs:
           echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: 'Cache dependencies'
-        uses: 'actions/cache@v2'
+        uses: 'actions/cache@v4'
         with:
           path: '${{ steps.composer_cache.outputs.dir }}'
           key: '${{ runner.os }}-composer-php${{ matrix.php }}-${{ hashFiles(''**/composer.json'') }}'
