@@ -2,8 +2,6 @@
 
 namespace Elastica\Exception;
 
-use Throwable;
-
 /**
  * Not found exception.
  *
@@ -18,15 +16,14 @@ class NotFoundException extends \RuntimeException implements ExceptionInterface
      * @param mixed[] $notFoundIds
      */
     public function __construct(
-        string $message = "",
+        string $message = '',
         int $code = 0,
-        ?Throwable $previous = null,
-        array $notFoundIds = []
+        ?\Throwable $previous = null,
+        array $notFoundIds = [],
     ) {
         parent::__construct($message, $code, $previous);
         $this->notFoundIds = $notFoundIds;
     }
-
 
     /**
      * @return string[]

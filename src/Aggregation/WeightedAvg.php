@@ -14,7 +14,7 @@ class WeightedAvg extends AbstractAggregation
     /**
      * Set the value for this aggregation.
      *
-     * @param mixed $missing
+     * @param mixed|null $missing
      *
      * @return $this
      */
@@ -50,7 +50,7 @@ class WeightedAvg extends AbstractAggregation
     /**
      * Set the weight for this aggregation.
      *
-     * @param mixed $missing
+     * @param mixed|null $missing
      *
      * @return $this
      */
@@ -97,8 +97,6 @@ class WeightedAvg extends AbstractAggregation
 
     /**
      * Set the value_type for this aggregation.
-     *
-     * @param mixed $valueType
      *
      * @return $this
      */

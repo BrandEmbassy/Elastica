@@ -38,9 +38,6 @@ class Script extends AbstractQuery
         return $this->setParam('script', BaseScript::create($script));
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function toArray(): array
     {
         $array = parent::toArray();

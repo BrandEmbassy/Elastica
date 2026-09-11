@@ -17,20 +17,16 @@ use Elastica\Transport\Http;
 class AbstractTransportTest extends BaseTest
 {
     /**
-     * Return transport configuration and the expected HTTP method.
+     * @group unit
      *
-     * @return array[]
+     * @dataProvider getValidDefinitions
      */
-    public function getTransport(): array
+    public function testCanCreateTransportInstances($transport): void
     {
-        return [
-            [
-                ['transport' => 'Http', 'curl' => [\CURLINFO_HEADER_OUT => true]],
-            ],
-            [
-                ['transport' => 'Guzzle', 'curl' => [\CURLINFO_HEADER_OUT => true]],
-            ],
-        ];
+        $connection = new Connection();
+        $transport = AbstractTransport::create($transport, $connection);
+
+        $this->assertSame($connection, $transport->getConnection());
     }
 
     /**
@@ -51,16 +47,15 @@ class AbstractTransportTest extends BaseTest
 
     /**
      * @group unit
-     * @dataProvider getValidDefinitions
      *
-     * @param mixed $transport
+     * @dataProvider getInvalidDefinitions
      */
-    public function testCanCreateTransportInstances($transport): void
+    public function testThrowsExecptionOnInvalidTransportDefinition($transport): void
     {
-        $connection = new Connection();
-        $transport = AbstractTransport::create($transport, $connection);
+        $this->expectException(InvalidException::class);
+        $this->expectExceptionMessage('Invalid transport');
 
-        $this->assertSame($connection, $transport->getConnection());
+        AbstractTransport::create($transport, new Connection());
     }
 
     public function getInvalidDefinitions(): array
@@ -69,20 +64,6 @@ class AbstractTransportTest extends BaseTest
             [['transport' => 'Http']],
             ['InvalidTransport'],
         ];
-    }
-
-    /**
-     * @group unit
-     * @dataProvider getInvalidDefinitions
-     *
-     * @param mixed $transport
-     */
-    public function testThrowsExecptionOnInvalidTransportDefinition($transport): void
-    {
-        $this->expectException(InvalidException::class);
-        $this->expectExceptionMessage('Invalid transport');
-
-        AbstractTransport::create($transport, new Connection());
     }
 
     /**
@@ -113,9 +94,8 @@ class AbstractTransportTest extends BaseTest
      * due to boolean strict type in ES.
      *
      * @group functional
-     * @dataProvider getTransport
      *
-     * @param mixed $transport
+     * @dataProvider getTransport
      */
     public function testBooleanStringValues($transport): void
     {
@@ -142,5 +122,22 @@ class AbstractTransportTest extends BaseTest
             $url = $info['url'];
             $this->assertStringEndsWith('version=true', $url);
         }
+    }
+
+    /**
+     * Return transport configuration and the expected HTTP method.
+     *
+     * @return array[]
+     */
+    public function getTransport(): array
+    {
+        return [
+            [
+                ['transport' => 'Http', 'curl' => [\CURLINFO_HEADER_OUT => true]],
+            ],
+            [
+                ['transport' => 'Guzzle', 'curl' => [\CURLINFO_HEADER_OUT => true]],
+            ],
+        ];
     }
 }

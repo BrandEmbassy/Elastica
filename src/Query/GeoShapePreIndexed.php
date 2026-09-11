@@ -46,7 +46,7 @@ class GeoShapePreIndexed extends AbstractGeoShape
         string $path,
         string $indexedId,
         string $indexedIndex,
-        string $indexedPath
+        string $indexedPath,
     ) {
         $this->_path = $path;
         $this->_indexedId = $indexedId;
@@ -54,9 +54,6 @@ class GeoShapePreIndexed extends AbstractGeoShape
         $this->_indexedPath = $indexedPath;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function toArray(): array
     {
         return [

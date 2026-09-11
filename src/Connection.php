@@ -5,7 +5,6 @@ namespace Elastica;
 use Elastica\Exception\InvalidException;
 use Elastica\Transport\AbstractTransport;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * Elastica connection instance to an elasticasearch node.
@@ -275,7 +274,6 @@ class Connection extends Param
 
     /**
      * @param string $key
-     * @param mixed  $value
      *
      * @return $this
      */
@@ -325,7 +323,7 @@ class Connection extends Param
     /**
      * @param array|Connection $params Params to create a connection
      *
-     * @throws Exception\InvalidException
+     * @throws InvalidException
      *
      * @return self
      */

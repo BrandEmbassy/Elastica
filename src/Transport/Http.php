@@ -184,24 +184,25 @@ class Http extends AbstractTransport
 
         if ($errorNumber > 0) {
             $isRetryFeatureEnabled = $this->getParam('isRetryFeatureEnabled');
-            $isSearch = preg_match('/\/_search/', $requestPath) === 1;
-            $isAllowedForRetry = $isSearch || $httpMethod === 'GET';
+            $isSearch = 1 === \preg_match('/\/_search/', $requestPath);
+            $isAllowedForRetry = $isSearch || 'GET' === $httpMethod;
 
-            if (!$isRetryFeatureEnabled || !$isAllowedForRetry || $remainingRetries === 0) {
+            if (!$isRetryFeatureEnabled || !$isAllowedForRetry || 0 === $remainingRetries) {
                 throw new HttpException($errorNumber, $request, $response);
             }
             --$remainingRetries;
 
             $logger = $this->getLogger();
             $logger->warning(
-                sprintf(
-                'Retrying request because of cURL error %s. Remaining retries: %d',
+                \sprintf(
+                    'Retrying request because of cURL error %s. Remaining retries: %d',
                     $errorNumber,
                     $remainingRetries,
-                ));
+                )
+            );
 
             // sleep for 0.5 seconds
-            usleep(.5 * 1000000);
+            \usleep(.5 * 1000000);
 
             return $this->exec($request, $params, $remainingRetries);
         }

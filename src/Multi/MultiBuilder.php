@@ -21,9 +21,8 @@ class MultiBuilder implements MultiBuilderInterface
     private function buildResultSet(
         Response $childResponse,
         BaseSearch $search,
-        int $apiVersion
-    ): BaseResultSet
-    {
+        int $apiVersion,
+    ): BaseResultSet {
         return $search->getResultSetBuilder()->buildResultSet(
             $childResponse,
             $search->getQuery(),

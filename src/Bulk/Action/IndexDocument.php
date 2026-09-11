@@ -3,9 +3,7 @@
 namespace Elastica\Bulk\Action;
 
 use Elastica\AbstractUpdateAction;
-use Elastica\ApiVersion;
 use Elastica\Document;
-use Elastica\Type;
 
 class IndexDocument extends AbstractDocument
 {
@@ -14,9 +12,6 @@ class IndexDocument extends AbstractDocument
      */
     protected $_opType = self::OP_TYPE_INDEX;
 
-    /**
-     * {@inheritdoc}
-     */
     public function setDocument(Document $document): AbstractDocument
     {
         parent::setDocument($document);
@@ -26,9 +21,6 @@ class IndexDocument extends AbstractDocument
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function _getMetadata(AbstractUpdateAction $action): array
     {
         $metadata = $action->getOptions([

@@ -15,7 +15,6 @@ use Elastica\Script\AbstractScript;
 use Elasticsearch\Endpoints\AbstractEndpoint;
 use Elasticsearch\Endpoints\DeleteByQuery;
 use Elasticsearch\Endpoints\Get as DocumentGet;
-use Elasticsearch\Endpoints\Mget as DocumentMget;
 use Elasticsearch\Endpoints\Index as IndexEndpoint;
 use Elasticsearch\Endpoints\Indices\Alias;
 use Elasticsearch\Endpoints\Indices\Aliases\Update;
@@ -37,6 +36,7 @@ use Elasticsearch\Endpoints\Indices\PutSettings;
 use Elasticsearch\Endpoints\Indices\Refresh;
 use Elasticsearch\Endpoints\Indices\Settings\Put;
 use Elasticsearch\Endpoints\Indices\UpdateAliases;
+use Elasticsearch\Endpoints\Mget as DocumentMget;
 use Elasticsearch\Endpoints\OpenPointInTime;
 use Elasticsearch\Endpoints\UpdateByQuery;
 
@@ -292,36 +292,36 @@ class Index implements SearchableInterface
     /**
      * Get the document from search index.
      *
-     * @param string[]   $ids     Document ids
-     * @param array      $options options for the get request
-     *
-     * @return array<array-key, Document>
+     * @param string[] $ids     Document ids
+     * @param array    $options options for the get request
      *
      * @throws ResponseException
      * @throws NotFoundException
+     *
+     * @return array<array-key, Document>
      */
     public function getDocuments(array $ids, array $options = [], bool $throwOnNotFound = true): array
     {
         $endpoint = new DocumentMget();
         $client = $this->getClient();
-        $isApiV6 = $client->getApiVersion() === ApiVersion::API_VERSION_6;
+        $isApiV6 = ApiVersion::API_VERSION_6 === $client->getApiVersion();
         $documentType = ($client->getDocumentTypeResolver())($this->getName());
 
         $docs = [];
         foreach ($ids as $id) {
             $identifiers = [
-                "_id" => $id
+                '_id' => $id,
             ];
 
             if ($isApiV6) {
-                $identifiers["_type"] = $documentType;
+                $identifiers['_type'] = $documentType;
             }
 
             $docs[] = $identifiers;
         }
 
         $body = [
-            "docs" => $docs
+            'docs' => $docs,
         ];
 
         $endpoint->setBody($body);
@@ -354,13 +354,8 @@ class Index implements SearchableInterface
             $documents[$id] = $doc;
         }
 
-        if ($notFoundIds !== [] && $throwOnNotFound) {
-            throw new NotFoundException(
-                sprintf('doc ids %s not found', implode(', ', $notFoundIds)),
-                0,
-                null,
-                $notFoundIds
-            );
+        if ([] !== $notFoundIds && $throwOnNotFound) {
+            throw new NotFoundException(\sprintf('doc ids %s not found', \implode(', ', $notFoundIds)), 0, null, $notFoundIds);
         }
 
         return $documents;
@@ -538,9 +533,6 @@ class Index implements SearchableInterface
         return 200 === $response->getStatus();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function createSearch($query = '', $options = null, ?BuilderInterface $builder = null): Search
     {
         $search = new Search($this->getClient(), $builder);
@@ -550,9 +542,6 @@ class Index implements SearchableInterface
         return $search;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function search($query = '', $options = [], string $method = Request::POST): ResultSet
     {
         $search = $this->createSearch($query, $options);
@@ -560,9 +549,6 @@ class Index implements SearchableInterface
         return $search->search('', $options, $method);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function count($query = '', string $method = Request::POST): int
     {
         $search = $this->createSearch($query);

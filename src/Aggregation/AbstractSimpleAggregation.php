@@ -30,9 +30,6 @@ abstract class AbstractSimpleAggregation extends AbstractAggregation
         return $this->setParam('script', $script);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function toArray(): array
     {
         if (!$this->hasParam('field') && !$this->hasParam('script')) {

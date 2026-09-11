@@ -44,18 +44,9 @@ class CardinalityTest extends BaseAggregationTest
         $this->assertEquals(4, $results['value']);
     }
 
-    public function validPrecisionThresholdProvider(): array
-    {
-        return [
-            'negative-int' => [-140],
-            'zero' => [0],
-            'positive-int' => [150],
-            'more-than-max' => [40001],
-        ];
-    }
-
     /**
      * @dataProvider validPrecisionThresholdProvider
+     *
      * @group unit
      */
     public function testPrecisionThreshold(int $threshold): void
@@ -67,8 +58,19 @@ class CardinalityTest extends BaseAggregationTest
         $this->assertIsInt($agg->getParam('precision_threshold'));
     }
 
+    public function validPrecisionThresholdProvider(): array
+    {
+        return [
+            'negative-int' => [-140],
+            'zero' => [0],
+            'positive-int' => [150],
+            'more-than-max' => [40001],
+        ];
+    }
+
     /**
      * @dataProvider validRehashProvider
+     *
      * @group unit
      */
     public function testRehash(bool $rehash): void

@@ -3,8 +3,6 @@
 namespace Elastica\Bulk\Action;
 
 use Elastica\AbstractUpdateAction;
-use Elastica\ApiVersion;
-use Elastica\Type;
 
 class DeleteDocument extends AbstractDocument
 {
@@ -13,9 +11,6 @@ class DeleteDocument extends AbstractDocument
      */
     protected $_opType = self::OP_TYPE_DELETE;
 
-    /**
-     * {@inheritdoc}
-     */
     protected function _getMetadata(AbstractUpdateAction $action): array
     {
         $metadata = $action->getOptions([
