@@ -63,11 +63,15 @@ class ClientTest extends BaseTest
         $client->request('/_search');
     }
 
-    public function testLargeResponseIsNotLoggedWhenSlowRequestLoggingDisabled(): void
+    public function testLargeResponseIsLoggedEvenWhenSlowRequestLoggingDisabled(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects($this->never())
+        $logger->expects($this->once())
             ->method('warning')
+            ->with(
+                $this->stringContains('Large Elastica Response'),
+                $this->logicalAnd($this->arrayHasKey('responseSizeInBytes'), $this->arrayHasKey('responseSizeInMb')),
+            )
         ;
 
         $client = $this->createClientWithTransportAndLogger(

@@ -722,21 +722,20 @@ class Client
 
         $elapsedTimeMs = (int) \round($response->getQueryTime() * 1000);
 
-        if ($this->shouldLogSlowRequests()) {
-            $isSlow = $this->isSlow($elapsedTimeMs);
-            $isLargeResponse = $this->isLargeResponse($response->getResponseSizeInBytes());
+        // Large responses are logged for all requests (regardless of the slow-request toggle) so they can drive an alert metric.
+        $isLargeResponse = $this->isLargeResponse($response->getResponseSizeInBytes());
+        $isSlow = $this->shouldLogSlowRequests() && $this->isSlow($elapsedTimeMs);
 
-            if ($isSlow) {
-                $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
-            }
+        if ($isSlow) {
+            $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
+        }
 
-            if ($isLargeResponse) {
-                $this->logLargeResponse($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
-            }
+        if ($isLargeResponse) {
+            $this->logLargeResponse($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
+        }
 
-            if ($isSlow || $isLargeResponse) {
-                return $response;
-            }
+        if ($isSlow || $isLargeResponse) {
+            return $response;
         }
 
         if ($this->shouldLog()) {
