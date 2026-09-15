@@ -37,7 +37,7 @@ class Client
 
     public const DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS = 500;
 
-    public const DEFAULT_LARGE_RESPONSE_THRESHOLD_IN_BYTES = 10 * 1024 * 1024;
+    public const DEFAULT_LARGE_RESPONSE_THRESHOLD_IN_BYTES = 30 * 1024 * 1024;
 
     /**
      * @var ClientConfiguration
@@ -90,7 +90,7 @@ class Client
      * @param array|string  $config                      OPTIONAL Additional config or DSN of options
      * @param callable|null $callback                    OPTIONAL Callback function which can be used to be notified about errors (for example connection down)
      * @param int           $slowRequestThresholdMs      OPTIONAL Threshold in milliseconds for slow request logging (default: 500)
-     * @param int           $largeResponseThresholdBytes OPTIONAL Threshold in bytes above which a request is logged for its large response (default: 10 MB)
+     * @param int           $largeResponseThresholdBytes OPTIONAL Threshold in bytes above which a request is logged for its large response (default: 30 MB)
      *
      * @throws InvalidException
      */
