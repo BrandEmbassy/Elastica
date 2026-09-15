@@ -19,6 +19,7 @@ class ClientFactory
 
     private int $slowRequestThresholdMs;
 
+    private int $largeResponseThresholdBytes;
 
     public function __construct(
         ServerConfiguration $serverConfiguration,
@@ -26,7 +27,8 @@ class ClientFactory
         LoggerInterface $lazyLogger,
         bool $isRequestLoggingEnabled,
         bool $isRetryFeatureEnabled,
-        int $slowRequestThresholdMs = Client::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS
+        int $slowRequestThresholdMs = Client::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS,
+        int $largeResponseThresholdBytes = Client::DEFAULT_LARGE_RESPONSE_THRESHOLD_IN_BYTES
     ) {
         $this->serverConfiguration = $serverConfiguration;
         $this->requestCounter = $requestCounter;
@@ -34,8 +36,8 @@ class ClientFactory
         $this->isRequestLoggingEnabled = $isRequestLoggingEnabled;
         $this->isRetryFeatureEnabled = $isRetryFeatureEnabled;
         $this->slowRequestThresholdMs = $slowRequestThresholdMs;
+        $this->largeResponseThresholdBytes = $largeResponseThresholdBytes;
     }
-
 
     public function createClientForCluster(
         ClusterConfiguration $clusterConfiguration,
@@ -58,7 +60,8 @@ class ClientFactory
             null,
             $withRequestCounter ? $this->requestCounter : null,
             $this->isRetryFeatureEnabled,
-            $this->slowRequestThresholdMs
+            $this->slowRequestThresholdMs,
+            $this->largeResponseThresholdBytes
         );
 
         $client->setLoggingMode($loggingMode);

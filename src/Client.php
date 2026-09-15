@@ -17,6 +17,7 @@ use Elasticsearch\Endpoints\Indices\ForceMerge;
 use Elasticsearch\Endpoints\Indices\Refresh;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 /**
  * Client to connect the the elasticsearch server.
@@ -36,6 +37,8 @@ class Client
     public const LOG_SLOW_REQUESTS = 0b1000;
 
     public const DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS = 500;
+
+    public const DEFAULT_LARGE_RESPONSE_THRESHOLD_IN_BYTES = 30 * 1024 * 1024;
 
     /**
      * @var ClientConfiguration
@@ -84,13 +87,15 @@ class Client
 
     private int $slowRequestThresholdMs;
 
+    private int $largeResponseThresholdBytes;
 
     /**
      * Creates a new Elastica client.
      *
-     * @param array|string  $config   OPTIONAL Additional config or DSN of options
-     * @param callable|null $callback OPTIONAL Callback function which can be used to be notified about errors (for example connection down)
-     * @param int           $slowRequestThresholdMs OPTIONAL Threshold in milliseconds for slow request logging (default: 500)
+     * @param array|string  $config                      OPTIONAL Additional config or DSN of options
+     * @param callable|null $callback                    OPTIONAL Callback function which can be used to be notified about errors (for example connection down)
+     * @param int           $slowRequestThresholdMs      OPTIONAL Threshold in milliseconds for slow request logging (default: 500)
+     * @param int           $largeResponseThresholdBytes OPTIONAL Threshold in bytes above which a request is logged for its large response (default: 30 MB). Unconditional: not gated by the logging mode, fires even under LOG_DISABLED to drive an alert metric.
      *
      * @throws InvalidException
      */
@@ -100,7 +105,8 @@ class Client
         ?LoggerInterface $logger = null,
         ?RequestCounterInterface $requestCounter = null,
         bool $isRetryFeatureEnabled = false,
-        int $slowRequestThresholdMs = self::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS
+        int $slowRequestThresholdMs = self::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS,
+        int $largeResponseThresholdBytes = self::DEFAULT_LARGE_RESPONSE_THRESHOLD_IN_BYTES,
     ) {
         if (\is_string($config)) {
             $configuration = ClientConfiguration::fromDsn($config);
@@ -116,6 +122,7 @@ class Client
         $this->requestCounter = $requestCounter;
         $this->isRetryFeatureEnabled = $isRetryFeatureEnabled;
         $this->slowRequestThresholdMs = $slowRequestThresholdMs;
+        $this->largeResponseThresholdBytes = $largeResponseThresholdBytes;
 
         $this->_initConnections();
     }
@@ -150,6 +157,11 @@ class Client
         return $elapsedTimeMs > $this->slowRequestThresholdMs;
     }
 
+    private function isLargeResponse(int $responseSizeInBytes): bool
+    {
+        return $responseSizeInBytes > $this->largeResponseThresholdBytes;
+    }
+
     private function logSlowRequest(
         string $method,
         string $path,
@@ -159,13 +171,9 @@ class Client
         Response $response,
         array $tags
     ): void {
-        $context = [
-            'tags' => $tags,
-            'responseStatus' => $response->getStatus(),
-            'execution_time' => $elapsedTimeMs,
-            'request' => $request->toArray(),
-            'exception' => new \RuntimeException('slow query'),
-        ];
+        $context = $this->buildRequestLogContext($response, $elapsedTimeMs, $tags);
+        $context['exception'] = new RuntimeException('slow query');
+        $context['request'] = $request->toArray();
 
         if ($this->shouldLogResponseBody()) {
             $context['response'] = $response->getData();
@@ -175,6 +183,52 @@ class Client
             sprintf('Slow Elastica Request %s %s %s took %d ms', $method, $path, $requestName, $elapsedTimeMs),
             $context
         );
+    }
+
+    private function logLargeResponse(
+        string $method,
+        string $path,
+        string $requestName,
+        int $elapsedTimeMs,
+        Request $request,
+        Response $response,
+        array $tags,
+    ): void {
+        $context = $this->buildRequestLogContext($response, $elapsedTimeMs, $tags);
+        $context['exception'] = new RuntimeException('large response');
+        $context['request'] = $request->toArray();
+
+        $this->logger->warning(
+            \sprintf(
+                'Large Elastica Response %s %s %s, response size %.2f MB',
+                $method,
+                $path,
+                $requestName,
+                $context['responseSizeInMb']
+            ),
+            $context
+        );
+    }
+
+    /**
+     * @param string[] $tags
+     *
+     * @return array<string, mixed>
+     */
+    private function buildRequestLogContext(
+        Response $response,
+        int $elapsedTimeMs,
+        array $tags,
+    ): array {
+        $responseSizeInBytes = $response->getResponseSizeInBytes();
+
+        return [
+            'tags' => $tags,
+            'responseStatus' => $response->getStatus(),
+            'execution_time' => $elapsedTimeMs,
+            'responseSizeInBytes' => $responseSizeInBytes,
+            'responseSizeInMb' => $responseSizeInBytes / 1024 / 1024,
+        ];
     }
 
     private function logRequest(
@@ -673,9 +727,19 @@ class Client
 
         $elapsedTimeMs = (int)(round($response->getQueryTime() * 1000));
 
-        if ($this->shouldLogSlowRequests() && $this->isSlow($elapsedTimeMs)) {
-            $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
+        // Large responses are logged for all requests (regardless of the slow-request toggle) so they can drive an alert metric.
+        $isLargeResponse = $this->isLargeResponse($response->getResponseSizeInBytes());
+        $isSlow = $this->shouldLogSlowRequests() && $this->isSlow($elapsedTimeMs);
 
+        if ($isSlow) {
+            $this->logSlowRequest($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
+        }
+
+        if ($isLargeResponse) {
+            $this->logLargeResponse($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
+        }
+
+        if ($isSlow || $isLargeResponse) {
             return $response;
         }
 
