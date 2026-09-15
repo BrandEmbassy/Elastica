@@ -118,7 +118,7 @@ class ClientTest extends BaseTest
         $client->request('/_search');
     }
 
-    public function testLargeResponseLogOmitsRequestAndResponseBody(): void
+    public function testLargeResponseLogIncludesRequestButOmitsResponseBodyWhenNotSlow(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())
@@ -127,7 +127,9 @@ class ClientTest extends BaseTest
                 $this->stringContains('Large Elastica Response'),
                 $this->logicalAnd(
                     $this->arrayHasKey('requestPath'),
-                    $this->logicalNot($this->arrayHasKey('request')),
+                    // The small request body identifies the query, so it is logged even for a fast+large
+                    // request; the (large) response body is never logged, not even under LOG_RESPONSE_BODY.
+                    $this->arrayHasKey('request'),
                     $this->logicalNot($this->arrayHasKey('response')),
                 ),
             )
@@ -138,9 +140,52 @@ class ClientTest extends BaseTest
             $logger,
             10,
         );
-        $client->setLoggingMode(Client::LOG_SLOW_REQUESTS | Client::LOG_RESPONSE_BODY);
+        $client->setLoggingMode(Client::LOG_RESPONSE_BODY);
 
         $client->request('/_search');
+    }
+
+    public function testSlowAndLargeResponseLogsPayloadOnceInTheSlowRecord(): void
+    {
+        // SlowResponseTransport is both slow (5s) and large (13-byte body > 10-byte threshold).
+        $warnings = [];
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->method('warning')->willReturnCallback(
+            static function (string $message, array $context) use (&$warnings): void {
+                $warnings[] = ['message' => $message, 'context' => $context];
+            }
+        );
+
+        $client = $this->createClientWithTransportAndLogger(
+            SlowResponseTransport::class,
+            $logger,
+            10,
+        );
+        $client->setLoggingMode(Client::LOG_SLOW_REQUESTS);
+
+        $client->request('/_search');
+
+        $slow = $this->filterWarningsByMessage($warnings, 'Slow Elastica Request');
+        $large = $this->filterWarningsByMessage($warnings, 'Large Elastica Response');
+
+        $this->assertCount(1, $slow);
+        $this->assertCount(1, $large);
+        // The slow record carries the request body; the large record does not, so the payload is logged once.
+        $this->assertArrayHasKey('request', $slow[0]['context']);
+        $this->assertArrayNotHasKey('request', $large[0]['context']);
+    }
+
+    /**
+     * @param array<int, array{message: string, context: array<string, mixed>}> $warnings
+     *
+     * @return array<int, array{message: string, context: array<string, mixed>}>
+     */
+    private function filterWarningsByMessage(array $warnings, string $needle): array
+    {
+        return \array_values(\array_filter(
+            $warnings,
+            static fn (array $warning): bool => \str_contains($warning['message'], $needle)
+        ));
     }
 
     public function testResponseExactlyAtThresholdIsNotLoggedAsLarge(): void
@@ -153,7 +198,7 @@ class ClientTest extends BaseTest
         $client = $this->createClientWithTransportAndLogger(
             LargeResponseTransport::class,
             $logger,
-            1035,
+            LargeResponseTransport::RESPONSE_SIZE_IN_BYTES,
         );
         $client->setLoggingMode(Client::LOG_SLOW_REQUESTS);
 
@@ -171,7 +216,7 @@ class ClientTest extends BaseTest
         $client = $this->createClientWithTransportAndLogger(
             LargeResponseTransport::class,
             $logger,
-            1034,
+            LargeResponseTransport::RESPONSE_SIZE_IN_BYTES - 1,
         );
         $client->setLoggingMode(Client::LOG_SLOW_REQUESTS);
 
