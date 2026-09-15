@@ -31,7 +31,7 @@ class ClientTest extends BaseTest
             ->method('warning')
             ->with(
                 $this->stringContains('Large Elastica Response'),
-                $this->logicalAnd($this->arrayHasKey('responseSizeInBytes'), $this->arrayHasKey('responseSizeInMb')),
+                $this->arrayHasKey('data_size_in_bytes'),
             )
         ;
 
@@ -70,7 +70,7 @@ class ClientTest extends BaseTest
             ->method('warning')
             ->with(
                 $this->stringContains('Large Elastica Response'),
-                $this->logicalAnd($this->arrayHasKey('responseSizeInBytes'), $this->arrayHasKey('responseSizeInMb')),
+                $this->arrayHasKey('data_size_in_bytes'),
             )
         ;
 
@@ -126,8 +126,8 @@ class ClientTest extends BaseTest
             ->with(
                 $this->stringContains('Large Elastica Response'),
                 $this->logicalAnd(
-                    // request body logged (identifies query); response body never logged, even under LOG_RESPONSE_BODY.
-                    $this->arrayHasKey('request'),
+                    $this->arrayHasKey('requestData'),
+                    $this->logicalNot($this->arrayHasKey('request')),
                     $this->logicalNot($this->arrayHasKey('response')),
                 ),
             )
@@ -169,7 +169,45 @@ class ClientTest extends BaseTest
         $this->assertCount(1, $slow);
         $this->assertCount(1, $large);
         $this->assertArrayHasKey('request', $slow[0]['context']);
-        $this->assertArrayHasKey('request', $large[0]['context']);
+        $this->assertArrayHasKey('requestData', $large[0]['context']);
+    }
+
+    public function testLargeResponseLogDoesNotLeakConnectionCredentials(): void
+    {
+        $capturedContext = null;
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->method('warning')->willReturnCallback(
+            static function (string $message, array $context) use (&$capturedContext): void {
+                if (\str_contains($message, 'Large Elastica Response')) {
+                    $capturedContext = $context;
+                }
+            }
+        );
+
+        $client = new Client(
+            [
+                'host' => $this->_getHost(),
+                'port' => $this->_getPort(),
+                'transport' => LargeResponseTransport::class,
+                'username' => 'search-user',
+                'password' => 'super-secret-password',
+                'auth_type' => 'basic',
+            ],
+            null,
+            $logger,
+            null,
+            false,
+            Client::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS,
+            10,
+        );
+        $client->setLoggingMode(Client::LOG_DISABLED);
+
+        $client->request('/_search');
+
+        $this->assertNotNull($capturedContext);
+        $this->assertArrayHasKey('requestData', $capturedContext);
+        $this->assertArrayNotHasKey('request', $capturedContext);
+        $this->assertStringNotContainsString('super-secret-password', (string) \json_encode($capturedContext));
     }
 
     /**
