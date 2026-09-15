@@ -95,7 +95,7 @@ class Client
      * @param array|string  $config                      OPTIONAL Additional config or DSN of options
      * @param callable|null $callback                    OPTIONAL Callback function which can be used to be notified about errors (for example connection down)
      * @param int           $slowRequestThresholdMs      OPTIONAL Threshold in milliseconds for slow request logging (default: 500)
-     * @param int           $largeResponseThresholdBytes OPTIONAL Threshold in bytes above which a request is logged for its large response (default: 30 MB). Large-response logging is unconditional — it is not gated by any bit of the logging mode, so it fires even under LOG_DISABLED to drive an alert metric.
+     * @param int           $largeResponseThresholdBytes OPTIONAL Threshold in bytes above which a request is logged for its large response (default: 30 MB). Unconditional: not gated by the logging mode, fires even under LOG_DISABLED to drive an alert metric.
      *
      * @throws InvalidException
      */
@@ -172,8 +172,7 @@ class Client
         array $tags
     ): void {
         $context = $this->buildRequestLogContext($response, $elapsedTimeMs, $tags);
-        // Create the exception here (not in buildRequestLogContext) so its stack trace stays at the same
-        // depth as before this feature — Sentry groups on the trace, and an extra frame would fork the issue.
+        // Build the exception here, not in buildRequestLogContext, so the trace depth (and Sentry grouping) is unchanged.
         $context['exception'] = new RuntimeException('slow query');
         $context['request'] = $request->toArray();
 
@@ -203,9 +202,7 @@ class Client
         $context['requestPath'] = $request->getPath();
         $context['requestQuery'] = $request->getQuery();
 
-        // The request body (the search DSL / _mget id list) is what identifies which query produced the
-        // large response, and it is small. Attach it unless the slow-request record already carried it,
-        // so a slow+large request still logs its payload only once. The large response body is never logged.
+        // The (small) request body identifies the query; attach it unless the slow record already did. Response body never logged.
         if ($includeRequest) {
             $context['request'] = $request->toArray();
         }
@@ -748,7 +745,7 @@ class Client
         }
 
         if ($isLargeResponse) {
-            // When the request was also slow, logSlowRequest already logged the body — don't duplicate it.
+            // Skip the request body if the slow record already logged it.
             $this->logLargeResponse($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags, !$isSlow);
         }
 

@@ -127,8 +127,7 @@ class ClientTest extends BaseTest
                 $this->stringContains('Large Elastica Response'),
                 $this->logicalAnd(
                     $this->arrayHasKey('requestPath'),
-                    // The small request body identifies the query, so it is logged even for a fast+large
-                    // request; the (large) response body is never logged, not even under LOG_RESPONSE_BODY.
+                    // request body logged (identifies query); response body never logged, even under LOG_RESPONSE_BODY.
                     $this->arrayHasKey('request'),
                     $this->logicalNot($this->arrayHasKey('response')),
                 ),
@@ -170,7 +169,7 @@ class ClientTest extends BaseTest
 
         $this->assertCount(1, $slow);
         $this->assertCount(1, $large);
-        // The slow record carries the request body; the large record does not, so the payload is logged once.
+        // Payload logged once: slow record carries the request body, large record omits it.
         $this->assertArrayHasKey('request', $slow[0]['context']);
         $this->assertArrayNotHasKey('request', $large[0]['context']);
     }

@@ -8,10 +8,7 @@ use Elastica\Transport\AbstractTransport;
 
 class LargeResponseTransport extends AbstractTransport
 {
-    /**
-     * Exact byte size of the response body this transport returns. Boundary tests derive their
-     * thresholds from this constant so they can't silently invert if the payload below changes.
-     */
+    /** Exact byte size of the returned body; boundary tests derive their thresholds from it. */
     public const RESPONSE_SIZE_IN_BYTES = 1035;
 
     public function exec(Request $request, array $params): Response
