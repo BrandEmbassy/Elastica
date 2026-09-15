@@ -90,7 +90,7 @@ class Client
      * @param array|string  $config                      OPTIONAL Additional config or DSN of options
      * @param callable|null $callback                    OPTIONAL Callback function which can be used to be notified about errors (for example connection down)
      * @param int           $slowRequestThresholdMs      OPTIONAL Threshold in milliseconds for slow request logging (default: 500)
-     * @param int           $largeResponseThresholdBytes OPTIONAL Threshold in bytes above which a request is logged for its large response (default: 30 MB)
+     * @param int           $largeResponseThresholdBytes OPTIONAL Threshold in bytes above which a request is logged for its large response (default: 30 MB). Unconditional: not gated by the logging mode, fires even under LOG_DISABLED to drive an alert metric.
      *
      * @throws InvalidException
      */
@@ -166,7 +166,8 @@ class Client
         Response $response,
         array $tags,
     ): void {
-        $context = $this->buildRequestLogContext($response, $elapsedTimeMs, $tags, 'slow query');
+        $context = $this->buildRequestLogContext($response, $elapsedTimeMs, $tags);
+        $context['exception'] = new RuntimeException('slow query');
         $context['request'] = $request->toArray();
 
         if ($this->shouldLogResponseBody()) {
@@ -188,10 +189,9 @@ class Client
         Response $response,
         array $tags,
     ): void {
-        $context = $this->buildRequestLogContext($response, $elapsedTimeMs, $tags, 'large response');
-        $context['requestMethod'] = $request->getMethod();
-        $context['requestPath'] = $request->getPath();
-        $context['requestQuery'] = $request->getQuery();
+        $context = $this->buildRequestLogContext($response, $elapsedTimeMs, $tags);
+        $context['exception'] = new RuntimeException('large response');
+        $context['request'] = $request->toArray();
 
         $this->logger->warning(
             \sprintf(
@@ -214,7 +214,6 @@ class Client
         Response $response,
         int $elapsedTimeMs,
         array $tags,
-        string $reason,
     ): array {
         $responseSizeInBytes = $response->getResponseSizeInBytes();
 
@@ -224,7 +223,6 @@ class Client
             'execution_time' => $elapsedTimeMs,
             'responseSizeInBytes' => $responseSizeInBytes,
             'responseSizeInMb' => $responseSizeInBytes / 1024 / 1024,
-            'exception' => new RuntimeException($reason),
         ];
     }
 
