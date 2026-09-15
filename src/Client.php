@@ -172,7 +172,6 @@ class Client
         array $tags
     ): void {
         $context = $this->buildRequestLogContext($response, $elapsedTimeMs, $tags);
-        // Build the exception here, not in buildRequestLogContext, so the trace depth (and Sentry grouping) is unchanged.
         $context['exception'] = new RuntimeException('slow query');
         $context['request'] = $request->toArray();
 
@@ -194,18 +193,10 @@ class Client
         Request $request,
         Response $response,
         array $tags,
-        bool $includeRequest,
     ): void {
         $context = $this->buildRequestLogContext($response, $elapsedTimeMs, $tags);
         $context['exception'] = new RuntimeException('large response');
-        $context['requestMethod'] = $request->getMethod();
-        $context['requestPath'] = $request->getPath();
-        $context['requestQuery'] = $request->getQuery();
-
-        // The (small) request body identifies the query; attach it unless the slow record already did. Response body never logged.
-        if ($includeRequest) {
-            $context['request'] = $request->toArray();
-        }
+        $context['request'] = $request->toArray();
 
         $this->logger->warning(
             \sprintf(
@@ -745,8 +736,7 @@ class Client
         }
 
         if ($isLargeResponse) {
-            // Skip the request body if the slow record already logged it.
-            $this->logLargeResponse($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags, !$isSlow);
+            $this->logLargeResponse($method, $path, $requestName, $elapsedTimeMs, $request, $response, $tags);
         }
 
         if ($isSlow || $isLargeResponse) {

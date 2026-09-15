@@ -118,7 +118,7 @@ class ClientTest extends BaseTest
         $client->request('/_search');
     }
 
-    public function testLargeResponseLogIncludesRequestButOmitsResponseBodyWhenNotSlow(): void
+    public function testLargeResponseLogIncludesRequestButOmitsResponseBody(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())
@@ -126,7 +126,6 @@ class ClientTest extends BaseTest
             ->with(
                 $this->stringContains('Large Elastica Response'),
                 $this->logicalAnd(
-                    $this->arrayHasKey('requestPath'),
                     // request body logged (identifies query); response body never logged, even under LOG_RESPONSE_BODY.
                     $this->arrayHasKey('request'),
                     $this->logicalNot($this->arrayHasKey('response')),
@@ -144,7 +143,7 @@ class ClientTest extends BaseTest
         $client->request('/_search');
     }
 
-    public function testSlowAndLargeResponseLogsPayloadOnceInTheSlowRecord(): void
+    public function testSlowAndLargeResponseBothCarryTheRequest(): void
     {
         // SlowResponseTransport is both slow (5s) and large (13-byte body > 10-byte threshold).
         $warnings = [];
@@ -169,9 +168,8 @@ class ClientTest extends BaseTest
 
         $this->assertCount(1, $slow);
         $this->assertCount(1, $large);
-        // Payload logged once: slow record carries the request body, large record omits it.
         $this->assertArrayHasKey('request', $slow[0]['context']);
-        $this->assertArrayNotHasKey('request', $large[0]['context']);
+        $this->assertArrayHasKey('request', $large[0]['context']);
     }
 
     /**
@@ -225,7 +223,7 @@ class ClientTest extends BaseTest
     private function createClientWithTransportAndLogger(
         string $transportClass,
         LoggerInterface $logger,
-        int $largeResponseThresholdBytes
+        int $largeResponseThresholdBytes,
     ): Client {
         return new Client(
             [
