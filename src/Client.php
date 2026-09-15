@@ -196,7 +196,10 @@ class Client
     ): void {
         $context = $this->buildRequestLogContext($response, $elapsedTimeMs, $tags);
         $context['exception'] = new RuntimeException('large response');
-        $context['request'] = $request->toArray();
+        $context['requestMethod'] = $request->getMethod();
+        $context['requestPath'] = $request->getPath();
+        $context['requestQuery'] = $request->getQuery();
+        $context['requestData'] = $request->getData();
 
         $this->logger->warning(
             \sprintf(
@@ -204,7 +207,7 @@ class Client
                 $method,
                 $path,
                 $requestName,
-                $context['responseSizeInMb']
+                $context['data_size_in_bytes'] / 1024 / 1024
             ),
             $context
         );
@@ -220,14 +223,11 @@ class Client
         int $elapsedTimeMs,
         array $tags,
     ): array {
-        $responseSizeInBytes = $response->getResponseSizeInBytes();
-
         return [
             'tags' => $tags,
             'responseStatus' => $response->getStatus(),
             'execution_time' => $elapsedTimeMs,
-            'responseSizeInBytes' => $responseSizeInBytes,
-            'responseSizeInMb' => $responseSizeInBytes / 1024 / 1024,
+            'data_size_in_bytes' => $response->getResponseSizeInBytes(),
         ];
     }
 
