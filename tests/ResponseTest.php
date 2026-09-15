@@ -123,4 +123,38 @@ class ResponseTest extends BaseTest
 
         $this->assertIsArray($response->getData());
     }
+
+    public function testResponseSizeInBytesFromStringBody(): void
+    {
+        $body = \json_encode(['took' => 5, 'hits' => ['total' => 1]]);
+        $response = new Response($body);
+
+        $this->assertSame(\strlen($body), $response->getResponseSizeInBytes());
+    }
+
+    public function testResponseSizeInBytesIsPreservedAfterDataIsDecoded(): void
+    {
+        $body = \json_encode(['took' => 5, 'hits' => ['total' => 1]]);
+        $response = new Response($body);
+
+        // getData() decodes and clears the raw string; the captured size must survive.
+        $response->getData();
+
+        $this->assertSame(\strlen($body), $response->getResponseSizeInBytes());
+    }
+
+    public function testResponseSizeInBytesFromArrayBody(): void
+    {
+        $data = ['took' => 5, 'hits' => ['total' => 1]];
+        $response = new Response($data);
+
+        $this->assertSame(\strlen((string) \json_encode($data)), $response->getResponseSizeInBytes());
+    }
+
+    public function testResponseSizeInBytesIsZeroWhenArrayBodyCannotBeEncoded(): void
+    {
+        $response = new Response(['invalid' => "\xB1\x31"]);
+
+        $this->assertSame(0, $response->getResponseSizeInBytes());
+    }
 }

@@ -6,6 +6,10 @@ use Elastica\Client;
 use Elastica\Connection;
 use Elastica\Exception\InvalidException;
 use Elastica\Test\Base as BaseTest;
+use Elastica\Test\Transport\DummyTransport;
+use Elastica\Test\Transport\LargeResponseTransport;
+use Elastica\Test\Transport\SlowResponseTransport;
+use Psr\Log\LoggerInterface;
 
 /**
  * @group unit
@@ -18,6 +22,260 @@ class ClientTest extends BaseTest
     {
         $client = $this->_getClient();
         $this->assertCount(1, $client->getConnections());
+    }
+
+    public function testLargeResponseIsLoggedWhenSlowRequestLoggingEnabled(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('warning')
+            ->with(
+                $this->stringContains('Large Elastica Response'),
+                $this->arrayHasKey('data_size_in_bytes'),
+            )
+        ;
+
+        $client = $this->createClientWithTransportAndLogger(
+            LargeResponseTransport::class,
+            $logger,
+            10,
+        );
+        $client->setLoggingMode(Client::LOG_SLOW_REQUESTS);
+
+        $client->request('/_search');
+    }
+
+    public function testSlowResponseIsLoggedAsSlowRequest(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('warning')
+            ->with($this->stringContains('Slow Elastica Request'))
+        ;
+
+        $client = $this->createClientWithTransportAndLogger(
+            SlowResponseTransport::class,
+            $logger,
+            Client::DEFAULT_LARGE_RESPONSE_THRESHOLD_IN_BYTES,
+        );
+        $client->setLoggingMode(Client::LOG_SLOW_REQUESTS);
+
+        $client->request('/_search');
+    }
+
+    public function testLargeResponseIsLoggedEvenWhenSlowRequestLoggingDisabled(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('warning')
+            ->with(
+                $this->stringContains('Large Elastica Response'),
+                $this->arrayHasKey('data_size_in_bytes'),
+            )
+        ;
+
+        $client = $this->createClientWithTransportAndLogger(
+            LargeResponseTransport::class,
+            $logger,
+            10,
+        );
+        $client->setLoggingMode(Client::LOG_DISABLED);
+
+        $client->request('/_search');
+    }
+
+    public function testSmallFastResponseIsNotLoggedAsSlowOrLarge(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())
+            ->method('warning')
+        ;
+
+        $client = $this->createClientWithTransportAndLogger(
+            DummyTransport::class,
+            $logger,
+            Client::DEFAULT_LARGE_RESPONSE_THRESHOLD_IN_BYTES,
+        );
+        $client->setLoggingMode(Client::LOG_SLOW_REQUESTS);
+
+        $client->request('/_search');
+    }
+
+    public function testSlowAndLargeResponseAreLoggedAsTwoWarnings(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(2))
+            ->method('warning')
+        ;
+
+        $client = $this->createClientWithTransportAndLogger(
+            SlowResponseTransport::class,
+            $logger,
+            10,
+        );
+        $client->setLoggingMode(Client::LOG_SLOW_REQUESTS);
+
+        $client->request('/_search');
+    }
+
+    public function testLargeResponseLogIncludesRequestButOmitsResponseBody(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('warning')
+            ->with(
+                $this->stringContains('Large Elastica Response'),
+                $this->logicalAnd(
+                    $this->arrayHasKey('requestData'),
+                    $this->logicalNot($this->arrayHasKey('request')),
+                    $this->logicalNot($this->arrayHasKey('response')),
+                ),
+            )
+        ;
+
+        $client = $this->createClientWithTransportAndLogger(
+            LargeResponseTransport::class,
+            $logger,
+            10,
+        );
+        $client->setLoggingMode(Client::LOG_RESPONSE_BODY);
+
+        $client->request('/_search');
+    }
+
+    public function testSlowAndLargeResponseBothCarryTheRequest(): void
+    {
+        // SlowResponseTransport is both slow (5s) and large (13-byte body > 10-byte threshold).
+        $warnings = [];
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->method('warning')->willReturnCallback(
+            static function (string $message, array $context) use (&$warnings): void {
+                $warnings[] = ['message' => $message, 'context' => $context];
+            }
+        );
+
+        $client = $this->createClientWithTransportAndLogger(
+            SlowResponseTransport::class,
+            $logger,
+            10,
+        );
+        $client->setLoggingMode(Client::LOG_SLOW_REQUESTS);
+
+        $client->request('/_search');
+
+        $slow = $this->filterWarningsByMessage($warnings, 'Slow Elastica Request');
+        $large = $this->filterWarningsByMessage($warnings, 'Large Elastica Response');
+
+        $this->assertCount(1, $slow);
+        $this->assertCount(1, $large);
+        $this->assertArrayHasKey('request', $slow[0]['context']);
+        $this->assertArrayHasKey('requestData', $large[0]['context']);
+    }
+
+    public function testLargeResponseLogDoesNotLeakConnectionCredentials(): void
+    {
+        $capturedContext = null;
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->method('warning')->willReturnCallback(
+            static function (string $message, array $context) use (&$capturedContext): void {
+                if (\str_contains($message, 'Large Elastica Response')) {
+                    $capturedContext = $context;
+                }
+            }
+        );
+
+        $client = new Client(
+            [
+                'host' => $this->_getHost(),
+                'port' => $this->_getPort(),
+                'transport' => LargeResponseTransport::class,
+                'username' => 'search-user',
+                'password' => 'super-secret-password',
+                'auth_type' => 'basic',
+            ],
+            null,
+            $logger,
+            null,
+            false,
+            Client::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS,
+            10,
+        );
+        $client->setLoggingMode(Client::LOG_DISABLED);
+
+        $client->request('/_search');
+
+        $this->assertNotNull($capturedContext);
+        $this->assertArrayHasKey('requestData', $capturedContext);
+        $this->assertArrayNotHasKey('request', $capturedContext);
+        $this->assertStringNotContainsString('super-secret-password', (string) \json_encode($capturedContext));
+    }
+
+    /**
+     * @param array<int, array{message: string, context: array<string, mixed>}> $warnings
+     *
+     * @return array<int, array{message: string, context: array<string, mixed>}>
+     */
+    private function filterWarningsByMessage(array $warnings, string $needle): array
+    {
+        return \array_values(\array_filter(
+            $warnings,
+            static fn (array $warning): bool => \str_contains($warning['message'], $needle)
+        ));
+    }
+
+    public function testResponseExactlyAtThresholdIsNotLoggedAsLarge(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())
+            ->method('warning')
+        ;
+
+        $client = $this->createClientWithTransportAndLogger(
+            LargeResponseTransport::class,
+            $logger,
+            LargeResponseTransport::RESPONSE_SIZE_IN_BYTES,
+        );
+        $client->setLoggingMode(Client::LOG_SLOW_REQUESTS);
+
+        $client->request('/_search');
+    }
+
+    public function testResponseJustAboveThresholdIsLoggedAsLarge(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('warning')
+            ->with($this->stringContains('Large Elastica Response'))
+        ;
+
+        $client = $this->createClientWithTransportAndLogger(
+            LargeResponseTransport::class,
+            $logger,
+            LargeResponseTransport::RESPONSE_SIZE_IN_BYTES - 1,
+        );
+        $client->setLoggingMode(Client::LOG_SLOW_REQUESTS);
+
+        $client->request('/_search');
+    }
+
+    private function createClientWithTransportAndLogger(
+        string $transportClass,
+        LoggerInterface $logger,
+        int $largeResponseThresholdBytes,
+    ): Client {
+        return new Client(
+            [
+                'host' => $this->_getHost(),
+                'port' => $this->_getPort(),
+                'transport' => $transportClass,
+            ],
+            null,
+            $logger,
+            null,
+            false,
+            Client::DEFAULT_SLOW_REQUEST_THRESHOLD_IN_MS,
+            $largeResponseThresholdBytes,
+        );
     }
 
     public function testConstructWithDsn(): void
