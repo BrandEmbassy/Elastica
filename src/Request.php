@@ -150,7 +150,7 @@ class Request extends Param
     /**
      * Return Connection Object.
      *
-     * @throws Exception\InvalidException If no valid connection was set
+     * @throws InvalidException If no valid connection was set
      */
     public function getConnection(): Connection
     {
@@ -205,7 +205,13 @@ class Request extends Param
     {
         $data = $this->getParams();
         if ($this->_connection) {
-            $data['connection'] = $this->_connection->getParams();
+            $connectionParams = $this->_connection->getParams();
+            foreach (['username', 'password'] as $sensitiveKey) {
+                if (isset($connectionParams[$sensitiveKey])) {
+                    $connectionParams[$sensitiveKey] = '***';
+                }
+            }
+            $data['connection'] = $connectionParams;
         }
 
         return $data;
