@@ -15,6 +15,7 @@ use Elastica\Response;
  * can be changed on a running indices. To make changes like the merge policy (https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules-merge.html)
  * the index has to be closed first and reopened after the call
  *
+ *
  * @author Nicolas Ruflin <spam@ruflin.com>
  *
  * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
