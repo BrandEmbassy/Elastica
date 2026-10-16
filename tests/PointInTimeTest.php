@@ -113,8 +113,9 @@ class PointInTimeTest extends BaseTest
     {
         $exception = $this->createResponseException([
             'error' => [
-                'root_cause' => [['type' => 'search_context_missing_exception']],
+                'root_cause' => [['type' => 'search_context_missing_exception', 'reason' => 'No search context found for id [1]']],
                 'type' => 'search_phase_execution_exception',
+                'reason' => 'all shards failed',
             ],
             'status' => 404,
         ]);
@@ -132,7 +133,7 @@ class PointInTimeTest extends BaseTest
     public function testMapFromConvertsSearchContextMissingExceptionByType(): void
     {
         $exception = $this->createResponseException([
-            'error' => ['type' => 'search_context_missing_exception'],
+            'error' => ['type' => 'search_context_missing_exception', 'reason' => 'No search context found for id [1]'],
             'status' => 404,
         ]);
 
@@ -154,7 +155,11 @@ class PointInTimeTest extends BaseTest
     public function provideOtherErrors(): iterable
     {
         yield 'other error type' => [[
-            'error' => ['root_cause' => [['type' => 'index_not_found_exception']], 'type' => 'index_not_found_exception'],
+            'error' => [
+                'root_cause' => [['type' => 'index_not_found_exception', 'reason' => 'no such index [missing]']],
+                'type' => 'index_not_found_exception',
+                'reason' => 'no such index [missing]',
+            ],
             'status' => 404,
         ]];
         yield 'string error' => [['error' => 'something broke', 'status' => 500]];
