@@ -817,6 +817,7 @@ class Client
      * Runs a search that uses a PointInTime (no index in the path) and fails loudly:
      * a lost PointInTime, a timeout or a shard failure throws instead of returning a partial ResultSet.
      *
+     * @throws InvalidException when the query has no PointInTime, as it would run a live search over all indices
      * @throws PointInTimeLostException when the PointInTime no longer exists
      * @throws PartialShardFailureException
      * @throws SearchTimedOutException
@@ -824,16 +825,17 @@ class Client
      */
     public function searchWithPointInTime(Query $query): ResultSet
     {
+        if (!$query->hasParam('pit')) {
+            throw new InvalidException('The query must have a PointInTime, set it with Query::setPointInTime().');
+        }
+
         try {
             $resultSet = (new Search($this))->search($query);
         } catch (ResponseException $exception) {
             throw PointInTimeLostException::mapFrom($exception);
         }
 
-        $request = $this->getLastRequest();
-        \assert(null !== $request);
-
-        $this->assertCompleteSearchResponse($request, $resultSet->getResponse());
+        $this->assertCompleteSearchResponse($this->getLastRequest(), $resultSet->getResponse());
 
         return $resultSet;
     }

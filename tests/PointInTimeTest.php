@@ -3,6 +3,7 @@
 namespace Elastica\Test;
 
 use Elastica\Document;
+use Elastica\Exception\InvalidException;
 use Elastica\Exception\PartialShardFailureException;
 use Elastica\Exception\PointInTimeLostException;
 use Elastica\Exception\ResponseException;
@@ -215,6 +216,16 @@ class PointInTimeTest extends BaseTest
             new Request('_search'),
             new Response(\json_encode(['_shards' => ['total' => 2, 'successful' => 2, 'failed' => 0, 'failures' => [['reason' => 'x']]]]), 200)
         );
+    }
+
+    /**
+     * @group unit
+     */
+    public function testSearchWithPointInTimeRejectsQueryWithoutPointInTime(): void
+    {
+        $this->expectException(InvalidException::class);
+
+        $this->_getClient()->searchWithPointInTime(new Query());
     }
 
     private function createResponseException(array $responseData): ResponseException
