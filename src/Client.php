@@ -9,7 +9,10 @@ use Elastica\Elasticsearch\Endpoints\Update;
 use Elastica\Exception\ClientException;
 use Elastica\Exception\ConnectionException;
 use Elastica\Exception\InvalidException;
+use Elastica\Exception\PartialShardFailureException;
+use Elastica\Exception\PointInTimeLostException;
 use Elastica\Exception\ResponseException;
+use Elastica\Exception\SearchTimedOutException;
 use Elastica\Script\AbstractScript;
 use Elasticsearch\Endpoints\AbstractEndpoint;
 use Elasticsearch\Endpoints\ClosePointInTime;
@@ -808,6 +811,58 @@ class Client
         $endpoint->setBody(['id' => $pointInTimeId]);
 
         return $this->requestEndpoint($endpoint);
+    }
+
+    /**
+     * Runs a search that uses a PointInTime (no index in the path) and fails loudly:
+     * a lost PointInTime, a timeout or a shard failure throws instead of returning a partial ResultSet.
+     *
+     * @throws PointInTimeLostException when the PointInTime no longer exists
+     * @throws PartialShardFailureException
+     * @throws SearchTimedOutException
+     * @throws ResponseException
+     */
+    public function searchWithPointInTime(Query $query): ResultSet
+    {
+        try {
+            $resultSet = (new Search($this))->search($query);
+        } catch (ResponseException $exception) {
+            throw PointInTimeLostException::mapFrom($exception);
+        }
+
+        $request = $this->getLastRequest();
+        \assert(null !== $request);
+
+        $this->assertCompleteSearchResponse($request, $resultSet->getResponse());
+
+        return $resultSet;
+    }
+
+    /**
+     * Throws when a search response is incomplete: it timed out, or any shard failed.
+     *
+     * Not part of the regular request flow, so normal searches keep returning a ResultSet for such responses.
+     *
+     * @throws SearchTimedOutException
+     * @throws PartialShardFailureException
+     */
+    public function assertCompleteSearchResponse(Request $request, Response $response): void
+    {
+        $data = $response->getData();
+
+        if (!\is_array($data)) {
+            return;
+        }
+
+        if (true === ($data['timed_out'] ?? false)) {
+            throw new SearchTimedOutException($request, $response);
+        }
+
+        $shards = $data['_shards'] ?? null;
+
+        if (\is_array($shards) && (($shards['failed'] ?? 0) > 0 || \array_key_exists('failures', $shards))) {
+            throw new PartialShardFailureException($request, $response);
+        }
     }
 
     /**
