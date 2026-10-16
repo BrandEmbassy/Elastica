@@ -2,6 +2,8 @@
 
 namespace Elastica\Exception;
 
+use Elastica\Response;
+
 /**
  * The Point-in-Time used by a search no longer exists (expired keep-alive or closed).
  *
@@ -15,21 +17,38 @@ class PointInTimeLostException extends ResponseException
     /**
      * Returns a PointInTimeLostException when the given exception was caused by a lost search context,
      * the given exception itself otherwise.
+     *
+     * The search context can be reported in the top-level error type, in any root cause, or in the reason of
+     * any shard failure (an HTTP 200 partial response has no top-level error).
      */
     public static function mapFrom(ResponseException $exception): ResponseException
     {
-        $error = $exception->getResponse()->getFullError();
+        $response = $exception->getResponse();
 
-        if (!\is_array($error)) {
+        if (!self::hasLostSearchContext($response)) {
             return $exception;
         }
 
-        $type = $error['root_cause'][0]['type'] ?? $error['type'] ?? null;
+        $mapped = new self($exception->getRequest(), $response);
+        $mapped->message = $exception->getMessage();
 
-        if (self::ERROR_TYPE !== $type) {
-            return $exception;
+        return $mapped;
+    }
+
+    private static function hasLostSearchContext(Response $response): bool
+    {
+        $types = [];
+        $error = $response->getFullError();
+
+        if (\is_array($error)) {
+            $types = \array_column($error['root_cause'] ?? [], 'type');
+            $types[] = $error['type'] ?? null;
         }
 
-        return new self($exception->getRequest(), $exception->getResponse());
+        foreach ($response->getData()['_shards']['failures'] ?? [] as $failure) {
+            $types[] = $failure['reason']['type'] ?? null;
+        }
+
+        return \in_array(self::ERROR_TYPE, $types, true);
     }
 }

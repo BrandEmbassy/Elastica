@@ -233,6 +233,72 @@ class PointInTimeTest extends BaseTest
         $this->_getClient()->searchWithPointInTime(new Query());
     }
 
+    /**
+     * @group unit
+     */
+    public function testMapFromConvertsWhenLostSearchContextIsNotTheFirstRootCause(): void
+    {
+        $exception = $this->createResponseException([
+            'error' => [
+                'root_cause' => [
+                    ['type' => 'circuit_breaking_exception', 'reason' => 'data too large'],
+                    ['type' => 'search_context_missing_exception', 'reason' => 'No search context found for id [1]'],
+                ],
+                'type' => 'search_phase_execution_exception',
+                'reason' => 'all shards failed',
+            ],
+            'status' => 500,
+        ]);
+
+        $this->assertInstanceOf(PointInTimeLostException::class, PointInTimeLostException::mapFrom($exception));
+    }
+
+    /**
+     * @group unit
+     */
+    public function testMapFromConvertsPartialShardFailureWithLostSearchContext(): void
+    {
+        $exception = new PartialShardFailureException(new Request('_search'), new Response(\json_encode([
+            'timed_out' => false,
+            '_shards' => [
+                'total' => 2,
+                'successful' => 1,
+                'failed' => 1,
+                'failures' => [[
+                    'shard' => 0,
+                    'index' => 'test',
+                    'reason' => ['type' => 'search_context_missing_exception', 'reason' => 'No search context found for id [1]'],
+                ]],
+            ],
+        ]), 200));
+
+        $mapped = PointInTimeLostException::mapFrom($exception);
+
+        $this->assertInstanceOf(PointInTimeLostException::class, $mapped);
+        $this->assertSame($exception->getMessage(), $mapped->getMessage());
+    }
+
+    /**
+     * @group unit
+     */
+    public function testMapFromReturnsPartialShardFailureWithOtherReasonUnchanged(): void
+    {
+        $exception = new PartialShardFailureException(new Request('_search'), new Response(\json_encode([
+            '_shards' => [
+                'total' => 2,
+                'successful' => 1,
+                'failed' => 1,
+                'failures' => [[
+                    'shard' => 0,
+                    'index' => 'test',
+                    'reason' => ['type' => 'circuit_breaking_exception', 'reason' => 'data too large'],
+                ]],
+            ],
+        ]), 200));
+
+        $this->assertSame($exception, PointInTimeLostException::mapFrom($exception));
+    }
+
     private function createResponseException(array $responseData): ResponseException
     {
         return new ResponseException(new Request('_search'), new Response(\json_encode($responseData), $responseData['status'] ?? 200));
