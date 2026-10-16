@@ -418,6 +418,18 @@ class Query extends Param
     }
 
     /**
+     * Sets the sort values of the last hit of the previous page, to fetch the page after it.
+     *
+     * @param array<bool|float|int|string|null> $sortValues
+     *
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
+     */
+    public function setSearchAfter(array $sortValues): self
+    {
+        return $this->setParam('search_after', $sortValues);
+    }
+
+    /**
      * @param array<string, float> $indicesBoost
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/search-multiple-indices.html#index-boost
