@@ -596,6 +596,21 @@ class QueryTest extends BaseTest
     }
 
     /**
+     * @group unit
+     */
+    public function testSetSearchAfterIsSameAsRawParam(): void
+    {
+        $query = new Query();
+        $query->setSearchAfter([1700000000, 'doc-42']);
+
+        $rawQuery = new Query();
+        $rawQuery->setParam('search_after', [1700000000, 'doc-42']);
+
+        $this->assertSame([1700000000, 'doc-42'], $query->toArray()['search_after']);
+        $this->assertSame($rawQuery->toArray(), $query->toArray());
+    }
+
+    /**
      * @group functional
      */
     public function testPointInTimeQueryExecution(): void
