@@ -37,7 +37,6 @@ use Elasticsearch\Endpoints\Indices\PutSettings;
 use Elasticsearch\Endpoints\Indices\Refresh;
 use Elasticsearch\Endpoints\Indices\Settings\Put;
 use Elasticsearch\Endpoints\Indices\UpdateAliases;
-use Elasticsearch\Endpoints\OpenPointInTime;
 use Elasticsearch\Endpoints\UpdateByQuery;
 
 /**
@@ -406,14 +405,11 @@ class Index implements SearchableInterface
     /**
      * Opens a Point-in-Time on the index.
      *
-     * @see: https://www.elastic.co/guide/en/elasticsearch/reference/current/point-in-time-api.html
+     * @see: https://docs.opensearch.org/latest/search-plugins/searching-data/point-in-time-api/
      */
     public function openPointInTime(string $keepAlive): Response
     {
-        $endpoint = new OpenPointInTime();
-        $endpoint->setParams(['keep_alive' => $keepAlive]);
-
-        return $this->requestEndpoint($endpoint);
+        return $this->request('_search/point_in_time', Request::POST, [], ['keep_alive' => $keepAlive]);
     }
 
     /**

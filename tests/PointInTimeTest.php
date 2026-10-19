@@ -28,13 +28,13 @@ class PointInTimeTest extends BaseTest
         $pitOpenResponse = $index->openPointInTime('10s');
         $this->assertTrue($pitOpenResponse->isOk());
 
-        $pitId = $pitOpenResponse->getData()['id'];
+        $pitId = $pitOpenResponse->getData()['pit_id'];
 
         $client = $index->getClient();
         $pitCloseResponse = $client->closePointInTime($pitId);
         $this->assertTrue($pitCloseResponse->isOk());
 
-        $this->assertArrayHasKey('num_freed', $pitCloseResponse->getData());
+        $this->assertTrue($pitCloseResponse->getData()['pits'][0]['successful']);
     }
 
     /**
@@ -51,7 +51,7 @@ class PointInTimeTest extends BaseTest
         $index->refresh();
 
         $client = $index->getClient();
-        $pitId = $index->openPointInTime('1m')->getData()['id'];
+        $pitId = $index->openPointInTime('1m')->getData()['pit_id'];
 
         // Change the live index after the PIT was opened: remove one document, add another.
         $index->deleteById('1');
@@ -62,7 +62,7 @@ class PointInTimeTest extends BaseTest
         $query->setPointInTime(new PointInTime($pitId, '1m'));
 
         // Test the PIT functionality by comparing a query with a PIT query
-        $liveIds = \array_map(static fn ($result) => $result->getId(), $index->search(new Query(), 10)->getResults());
+        $liveIds = \array_map(static fn ($result) => $result->getId(), $index->search(new Query(), ['size' => 10])->getResults());
         \sort($liveIds);
         $this->assertSame(['2', '3', '4'], $liveIds);
 
@@ -94,7 +94,7 @@ class PointInTimeTest extends BaseTest
     public function testSearchWithClosedPointInTimeThrowsPointInTimeLostException(): void
     {
         $index = $this->_createIndex();
-        $pitId = $index->openPointInTime('1m')->getData()['id'];
+        $pitId = $index->openPointInTime('1m')->getData()['pit_id'];
         $client = $index->getClient();
         $client->closePointInTime($pitId);
 

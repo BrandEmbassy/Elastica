@@ -15,7 +15,6 @@ use Elastica\Exception\ResponseException;
 use Elastica\Exception\SearchTimedOutException;
 use Elastica\Script\AbstractScript;
 use Elasticsearch\Endpoints\AbstractEndpoint;
-use Elasticsearch\Endpoints\ClosePointInTime;
 use Elasticsearch\Endpoints\Indices\ForceMerge;
 use Elasticsearch\Endpoints\Indices\Refresh;
 use Psr\Log\LoggerInterface;
@@ -803,14 +802,11 @@ class Client
     /**
      * Closes the given PointInTime.
      *
-     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/point-in-time-api.html#close-point-in-time-api
+     * @see https://docs.opensearch.org/latest/search-plugins/searching-data/point-in-time-api/
      */
     public function closePointInTime(string $pointInTimeId): Response
     {
-        $endpoint = new ClosePointInTime();
-        $endpoint->setBody(['id' => $pointInTimeId]);
-
-        return $this->requestEndpoint($endpoint);
+        return $this->request('_search/point_in_time', Request::DELETE, ['pit_id' => [$pointInTimeId]]);
     }
 
     /**
