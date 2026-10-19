@@ -440,7 +440,7 @@ class IndexTest extends BaseTest
 
         $data = $response->getData();
         $this->assertIsArray($data);
-        $this->assertArrayHasKey('id', $data);
+        $this->assertArrayHasKey('pit_id', $data);
     }
 
     /**

@@ -596,12 +596,27 @@ class QueryTest extends BaseTest
     }
 
     /**
+     * @group unit
+     */
+    public function testSetSearchAfterIsSameAsRawParam(): void
+    {
+        $query = new Query();
+        $query->setSearchAfter([1700000000, 'doc-42']);
+
+        $rawQuery = new Query();
+        $rawQuery->setParam('search_after', [1700000000, 'doc-42']);
+
+        $this->assertSame([1700000000, 'doc-42'], $query->toArray()['search_after']);
+        $this->assertEquals($rawQuery->toArray(), $query->toArray());
+    }
+
+    /**
      * @group functional
      */
     public function testPointInTimeQueryExecution(): void
     {
         $index = $this->_createIndex();
-        $pitId = $index->openPointInTime('20s')->getData()['id'];
+        $pitId = $index->openPointInTime('20s')->getData()['pit_id'];
 
         $query = (new Query())->setPointInTime(new PointInTime($pitId, '20s'));
         $search = (new Search($index->getClient()))->setQuery($query);

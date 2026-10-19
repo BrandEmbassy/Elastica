@@ -9,10 +9,12 @@ use Elastica\Elasticsearch\Endpoints\Update;
 use Elastica\Exception\ClientException;
 use Elastica\Exception\ConnectionException;
 use Elastica\Exception\InvalidException;
+use Elastica\Exception\PartialShardFailureException;
+use Elastica\Exception\PointInTimeLostException;
 use Elastica\Exception\ResponseException;
+use Elastica\Exception\SearchTimedOutException;
 use Elastica\Script\AbstractScript;
 use Elasticsearch\Endpoints\AbstractEndpoint;
-use Elasticsearch\Endpoints\ClosePointInTime;
 use Elasticsearch\Endpoints\Indices\ForceMerge;
 use Elasticsearch\Endpoints\Indices\Refresh;
 use Psr\Log\LoggerInterface;
@@ -800,14 +802,65 @@ class Client
     /**
      * Closes the given PointInTime.
      *
-     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/point-in-time-api.html#close-point-in-time-api
+     * @see https://docs.opensearch.org/latest/search-plugins/searching-data/point-in-time-api/
      */
     public function closePointInTime(string $pointInTimeId): Response
     {
-        $endpoint = new ClosePointInTime();
-        $endpoint->setBody(['id' => $pointInTimeId]);
+        return $this->request('_search/point_in_time', Request::DELETE, ['pit_id' => [$pointInTimeId]]);
+    }
 
-        return $this->requestEndpoint($endpoint);
+    /**
+     * Runs a search that uses a PointInTime (no index in the path) and fails loudly:
+     * a lost PointInTime, a timeout or a shard failure throws instead of returning a partial ResultSet.
+     *
+     * @throws InvalidException when the query has no PointInTime, as it would run a live search over all indices
+     * @throws PointInTimeLostException when the PointInTime no longer exists
+     * @throws PartialShardFailureException
+     * @throws SearchTimedOutException
+     * @throws ResponseException
+     */
+    public function searchWithPointInTime(Query $query): ResultSet
+    {
+        if (!$query->hasParam('pit')) {
+            throw new InvalidException('The query must have a PointInTime, set it with Query::setPointInTime().');
+        }
+
+        try {
+            $resultSet = (new Search($this))->search($query);
+        } catch (ResponseException $exception) {
+            throw PointInTimeLostException::mapFrom($exception);
+        }
+
+        $this->assertCompleteSearchResponse($this->getLastRequest(), $resultSet->getResponse());
+
+        return $resultSet;
+    }
+
+    /**
+     * Throws when a search response is incomplete: it timed out, or any shard failed.
+     *
+     * Not part of the regular request flow, so normal searches keep returning a ResultSet for such responses.
+     *
+     * @throws SearchTimedOutException
+     * @throws PartialShardFailureException
+     */
+    public function assertCompleteSearchResponse(Request $request, Response $response): void
+    {
+        $data = $response->getData();
+
+        if (!\is_array($data)) {
+            return;
+        }
+
+        if (true === ($data['timed_out'] ?? false)) {
+            throw new SearchTimedOutException($request, $response);
+        }
+
+        $shards = $data['_shards'] ?? null;
+
+        if (\is_array($shards) && (($shards['failed'] ?? 0) > 0 || \array_key_exists('failures', $shards))) {
+            throw new PartialShardFailureException($request, $response);
+        }
     }
 
     /**
