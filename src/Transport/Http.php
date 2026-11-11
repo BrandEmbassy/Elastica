@@ -157,10 +157,7 @@ class Http extends AbstractTransport
 
         $start = \microtime(true);
 
-        // cURL opt returntransfer leaks memory, therefore OB instead.
-        \ob_start();
-        \curl_exec($conn);
-        $responseString = \ob_get_clean();
+        $responseString = $this->_executeCurl($conn);
 
         $end = \microtime(true);
 
@@ -207,6 +204,25 @@ class Http extends AbstractTransport
         }
 
         return $response;
+    }
+
+    /**
+     * Performs the transfer of the prepared curl connection and returns the response body.
+     *
+     * A transport that performs the transfer in another way, for instance through a curl multi handle, overrides this:
+     * afterwards curl_errno() and curl_getinfo() of the connection have to describe the transfer.
+     *
+     * @param \CurlHandle|resource $curlConnection Curl connection
+     *
+     * @return false|string Response body
+     */
+    protected function _executeCurl($curlConnection)
+    {
+        // cURL opt returntransfer leaks memory, therefore OB instead.
+        \ob_start();
+        \curl_exec($curlConnection);
+
+        return \ob_get_clean();
     }
 
     /**
