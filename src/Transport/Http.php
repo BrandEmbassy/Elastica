@@ -210,7 +210,8 @@ class Http extends AbstractTransport
      * Performs the transfer of the prepared curl connection and returns the response body.
      *
      * A transport that performs the transfer in another way, for instance through a curl multi handle, overrides this:
-     * afterwards curl_errno() and curl_getinfo() of the connection have to describe the transfer.
+     * afterwards curl_errno() and curl_getinfo() of the connection have to describe the transfer
+     * (after a curl multi transfer, curl_errno() is set only once curl_multi_info_read() reported it).
      *
      * @param \CurlHandle|resource $curlConnection Curl connection
      *
